@@ -1,0 +1,2 @@
+global-exclude *.env
+recursive-exclude tests *

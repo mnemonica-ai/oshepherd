@@ -1,0 +1,45 @@
+[project]
+name = "oshepherd"
+version = "0.0.2"
+description = "The Oshepherd guiding the Ollama(s) inference orchestration."
+readme = "README.md"
+authors = [
+    {name = "mnemonica.ai", email = "info@mnemonica.ai"},
+]
+requires-python = ">=3.8"
+dependencies = [
+    "flask",
+    "celery",
+    "click",
+    "ollama",
+    "amqp",
+    "redis",
+    "pydantic",
+    "python-dotenv",
+    "requests",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.optional-dependencies]
+dev = [
+    "packageName[tests, lint]",
+    "build",
+    "twine"
+]
+tests = [
+  "pytest"
+]
+lint = [
+  "black"
+]
+
+[project.urls]
+Homepage = "https://github.com/mnemonica-ai/oshepherd"
+Issues = "https://github.com/mnemonica-ai/oshepherd/issues"
+
+[project.scripts]
+oshepherd = "oshepherd.cli:main"
