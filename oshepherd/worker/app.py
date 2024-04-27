@@ -20,6 +20,7 @@ def create_celery_app(config: WorkerConfig):
     )
     celery_app.conf.update(
         result_expires=config.RESULTS_EXPIRES,
+        broker_transport_options=config.BROKER_TRANSPORT_OPTIONS
     )
     celery_app.autodiscover_tasks([TASKS_MODULE])
 
