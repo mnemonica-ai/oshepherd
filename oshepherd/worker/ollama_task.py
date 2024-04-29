@@ -6,8 +6,8 @@ from httpx import ConnectError
 
 class OllamaCeleryTask(CeleryTask):
     """
-    Base Celery Task class for ollama tasks.
-    Handling error events related to ollama server in each worker:
+    Base Celery Task class for Ollama tasks.
+    Handling error events related to connectivity issues in each worker:
         1. RedisConnectionError: `redis.exceptions.ConnectionError: Error while reading from 104 Connection reset by peer`
         2. AMQPConnectionError: `amqp.exceptions.RecoverableConnectionError: Socket was disconnected`
         3. ConnectionResetError: `ConnectionResetError: [Errno 104] Connection reset by peer`
