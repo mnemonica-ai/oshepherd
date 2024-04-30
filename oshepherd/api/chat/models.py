@@ -1,5 +1,6 @@
 from pydantic import BaseModel, HttpUrl
 from typing import List, Optional
+from datetime import datetime
 
 
 class Message(BaseModel):
@@ -11,10 +12,10 @@ class Message(BaseModel):
 class ChatRequestPayload(BaseModel):
     model: str  # Required model name
     messages: Optional[List[Message]] = None
-    format: Optional[str] = "json"
-    options: Optional[dict] = None
-    stream: Optional[bool] = None
-    keep_alive: Optional[str] = "5m"
+    format: Optional[str] = ""
+    options: Optional[dict] = {}
+    stream: Optional[bool] = False
+    keep_alive: Optional[str] = None
 
 
 class ChatRequest(BaseModel):
@@ -22,4 +23,14 @@ class ChatRequest(BaseModel):
     payload: ChatRequestPayload
 
 
-# TODO add response type
+class ChatResponse(BaseModel):
+    model: str
+    created_at: datetime
+    message: Message
+    done: bool
+    total_duration: int
+    load_duration: int
+    prompt_eval_count: Optional[int] = None
+    prompt_eval_duration: int
+    eval_count: int
+    eval_duration: int
