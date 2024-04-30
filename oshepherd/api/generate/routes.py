@@ -8,18 +8,17 @@ generate_blueprint = Blueprint("generate", __name__, url_prefix="/api/generate")
 
 @generate_blueprint.route("/", methods=["POST"])
 def generate():
-    # TODO use .send_task() instead?
-    from oshepherd.worker.tasks import make_generate_request
+    from oshepherd.worker.tasks import exec_completion
 
     print(f" # request.json {request.json}")
-    generate_request = GenerateRequest(**request.json)
+    generate_request = GenerateRequest(**{"type": "generate", "payload": request.json})
 
     # req as json string ready to be sent though broker
     generate_request_json_str = generate_request.model_dump_json()
-    print(generate_request_json_str)
+    print(f" # generate request {generate_request_json_str}")
 
     # queue request to remote ollama api server though
-    task = make_generate_request.delay(generate_request_json_str)
+    task = exec_completion.delay(generate_request_json_str)
     while not task.ready():
         print(" > waiting for response...")
         time.sleep(1)
@@ -29,7 +28,7 @@ def generate():
     if ollama_res.get("error"):
         ollama_res = {
             "error": "Internal Server Error",
-            "message": f"error triggering llm inference: {ollama_res['error']['message']}",
+            "message": f"error executing completion: {ollama_res['error']['message']}",
         }
         status = 500
 

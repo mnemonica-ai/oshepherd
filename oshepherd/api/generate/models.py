@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from typing import Optional, List
 
 
-class GenerateRequest(BaseModel):
+class GenerateRequestPayload(BaseModel):
     model: str
     prompt: str
     images: Optional[List[str]] = None
@@ -14,6 +14,11 @@ class GenerateRequest(BaseModel):
     stream: Optional[bool] = False
     raw: Optional[bool] = False
     keep_alive: Optional[str] = "5m"
+
+
+class GenerateRequest(BaseModel):
+    type: str
+    payload: GenerateRequestPayload
 
 
 class GenerateResponse(BaseModel):
