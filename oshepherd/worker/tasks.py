@@ -5,19 +5,25 @@ from oshepherd.worker.ollama_task import OllamaCeleryTask
 
 
 @celery_app.task(
-    name="oshepherd.worker.tasks.make_generate_request",
+    name="oshepherd.worker.tasks.exec_completion",
     bind=True,
     base=OllamaCeleryTask,
 )
-def make_generate_request(self, request_str: str):
+def exec_completion(self, request_str: str):
     try:
         request = json.loads(request_str)
-        print(f"# make_generate_request request {request}")
+        print(f"# exec_completion request {request}")
+        req_type = request["type"]
+        req_payload = request["payload"]
 
-        response = ollama.generate(**request)
+        if req_type == "generate":
+            response = ollama.generate(**req_payload)
+        elif req_type == "chat":
+            response = ollama.chat(**req_payload)
+
         print(f"  $ success {response}")
     except Exception as error:
-        print(f"  * error make_generate_request {error}")
+        print(f"  * error exec_completion {error}")
         response = {
             "error": {"type": str(error.__class__.__name__), "message": str(error)}
         }
@@ -25,7 +31,6 @@ def make_generate_request(self, request_str: str):
             f"    * error response {response}",
         )
 
-        # Rethrow exception in order to be handled by base class
         raise
 
     return response
