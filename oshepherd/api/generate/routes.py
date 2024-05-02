@@ -11,13 +11,13 @@ def generate():
     from oshepherd.worker.tasks import exec_completion
 
     print(f" # request.json {request.json}")
-    generate_request = GenerateRequest(**{"type": "generate", "payload": request.json})
+    generate_request = GenerateRequest(**{"payload": request.json})
 
-    # req as json string ready to be sent though broker
+    # req as json string ready to be sent through broker
     generate_request_json_str = generate_request.model_dump_json()
     print(f" # generate request {generate_request_json_str}")
 
-    # queue request to remote ollama api server though
+    # queue request to remote ollama api server
     task = exec_completion.delay(generate_request_json_str)
     while not task.ready():
         print(" > waiting for response...")

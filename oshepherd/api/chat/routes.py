@@ -11,13 +11,13 @@ def chat():
     from oshepherd.worker.tasks import exec_completion
 
     print(f" # request.json {request.json}")
-    chat_request = ChatRequest(**{"type": "chat", "payload": request.json})
+    chat_request = ChatRequest(**{"payload": request.json})
 
-    # req as json string ready to be sent though broker
+    # req as json string ready to be sent through broker
     chat_request_json_str = chat_request.model_dump_json()
     print(f" # chat request {chat_request_json_str}")
 
-    # queue request to remote ollama api server though
+    # queue request to remote ollama api server
     task = exec_completion.delay(chat_request_json_str)
     while not task.ready():
         print(" > waiting for response...")

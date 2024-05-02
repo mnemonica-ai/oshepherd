@@ -17,7 +17,7 @@ class GenerateRequestPayload(BaseModel):
 
 
 class GenerateRequest(BaseModel):
-    type: str
+    type: str = "generate"
     payload: GenerateRequestPayload
 
 

@@ -10,7 +10,7 @@ class Message(BaseModel):
 
 
 class ChatRequestPayload(BaseModel):
-    model: str  # Required model name
+    model: str
     messages: Optional[List[Message]] = None
     format: Optional[str] = ""
     options: Optional[dict] = {}
@@ -19,7 +19,7 @@ class ChatRequestPayload(BaseModel):
 
 
 class ChatRequest(BaseModel):
-    type: str
+    type: str = "chat"
     payload: ChatRequestPayload
 
 
