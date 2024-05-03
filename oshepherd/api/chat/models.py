@@ -1,17 +1,19 @@
-from pydantic import BaseModel, HttpUrl
-from typing import List, Optional
+from pydantic import BaseModel
+from typing import Optional, List, Literal
 from datetime import datetime
 
 
-class Message(BaseModel):
-    role: str
+class ChatMessage(BaseModel):
+    role: Literal["user", "assistant", "system"]
     content: str
-    images: Optional[List[HttpUrl]] = None
+
+    # TODO add support for images
+    # images: NotRequired[Sequence[Any]]
 
 
 class ChatRequestPayload(BaseModel):
     model: str
-    messages: Optional[List[Message]] = None
+    messages: Optional[List[ChatMessage]] = None
     format: Optional[str] = ""
     options: Optional[dict] = {}
     stream: Optional[bool] = False
@@ -26,7 +28,7 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     model: str
     created_at: datetime
-    message: Message
+    message: ChatMessage
     done: bool
     total_duration: int
     load_duration: int

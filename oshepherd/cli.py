@@ -40,7 +40,7 @@ def start_worker(env_file):
         concurrency=config.CONCURRENCY,
         prefetch_multiplier=config.PREFETCH_MULTIPLIER,
         redis_retry_on_timeout=config.REDIS_RETRY_ON_TIMEOUT,
-        redis_socket_keepalive=config.REDIS_SOCKET_KEEPALIVE
+        redis_socket_keepalive=config.REDIS_SOCKET_KEEPALIVE,
     )
     worker.start()
 

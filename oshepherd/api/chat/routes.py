@@ -3,6 +3,7 @@ Generate a chat completion
 API implementation of `POST /api/chat` endpoint, handling completion orchestration, as replica of the same Ollama server endpoint.
 Ollama endpoint reference: https://github.com/ollama/ollama/blob/main/docs/api.md#generate-a-chat-completion
 """
+
 import time
 from flask import Blueprint, request
 from oshepherd.api.utils import streamify_json
