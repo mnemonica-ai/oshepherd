@@ -14,7 +14,7 @@ pip install oshepherd
 
 1. Setup RabbitMQ and Redis:
 
-[Celery](https://docs.celeryq.dev) uses [RabbitMQ](https://docs.celeryq.dev/en/stable/getting-started/backends-and-brokers/index.html#rabbitmq) as message broker, and [Redis](https://docs.celeryq.dev/en/stable/getting-started/backends-and-brokers/index.html#redis) as backend, you'll need to create one instance for each. You can create small instances for free in [cloudamqp.com](https://www.cloudamqp.com) (for RabbitMQ) and [redislabs.com](https://app.redislabs.com) (for Redids).
+    [Celery](https://docs.celeryq.dev) uses [RabbitMQ](https://docs.celeryq.dev/en/stable/getting-started/backends-and-brokers/index.html#rabbitmq) as message broker, and [Redis](https://docs.celeryq.dev/en/stable/getting-started/backends-and-brokers/index.html#redis) as backend, you'll need to create one instance for each. You can create small instances for free in [cloudamqp.com](https://www.cloudamqp.com) and [redislabs.com](https://app.redislabs.com) respectively.
 
 2. Setup Flask API Server:
 
@@ -41,35 +41,35 @@ pip install oshepherd
     oshepherd start-worker --env-file .worker.env
     ```
 
-4. Done, now you're ready to execute Ollama completions remotely, and if you have multiple workers, in a distributed way. You can point your Ollama client to your oshepherd api server by setting the `host`, and it will return your requested completions from any of the workers:
+4. Done, now you're ready to execute Ollama completions remotely. You can point your Ollama client to your oshepherd api server by setting the `host`, and it will return your requested completions from any of the workers:
 
-* [ollama-python](https://github.com/ollama/ollama-python) in Python:
+    * [ollama-python](https://github.com/ollama/ollama-python) client:
 
-```python
-import ollama
-client = ollama.Client(host="http://127.0.0.1:5001")
-ollama_response = client.generate({"model": "mistral", "prompt": "Why is the sky blue?"})
-```
+    ```python
+    import ollama
+    client = ollama.Client(host="http://127.0.0.1:5001")
+    ollama_response = client.generate({"model": "mistral", "prompt": "Why is the sky blue?"})
+    ```
 
-* [ollama-js](https://github.com/ollama/ollama-js) in Javascript:
+    * [ollama-js](https://github.com/ollama/ollama-js) client:
 
-```javascript
-import { Ollama } from "ollama/browser";
-const ollama = new Ollama({ host: "http://127.0.0.1:5001" });
-const ollamaResponse = await ollama.generate({
-    model: "mistral",
-    prompt: "Why is the sky blue?",
-});
-```
+    ```javascript
+    import { Ollama } from "ollama/browser";
+    const ollama = new Ollama({ host: "http://127.0.0.1:5001" });
+    const ollamaResponse = await ollama.generate({
+        model: "mistral",
+        prompt: "Why is the sky blue?",
+    });
+    ```
 
-* Raw http request:
+    * Raw http request:
 
-```sh
-curl -X POST -H "Content-Type: application/json" -L http://127.0.0.1:5001/api/generate/ -d '{
-    "model": "mistral",
-    "prompt":"Why is the sky blue?"
-}'
-```
+    ```sh
+    curl -X POST -H "Content-Type: application/json" -L http://127.0.0.1:5001/api/generate/ -d '{
+        "model": "mistral",
+        "prompt":"Why is the sky blue?"
+    }'
+    ```
 
 ### Words of advice 🚨
 
