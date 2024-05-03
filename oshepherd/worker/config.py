@@ -15,3 +15,5 @@ class WorkerConfig(BaseModel):
         "interval_step": 0.1,
         "interval_max": 0.5,
     }
+    REDIS_RETRY_ON_TIMEOUT: bool = True
+    REDIS_SOCKET_KEEPALIVE: bool = True
