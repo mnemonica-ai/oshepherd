@@ -12,6 +12,7 @@ import requests
 import ollama
 from oshepherd.api.generate.models import GenerateResponse
 from oshepherd.api.chat.models import ChatResponse
+from oshepherd.api.embeddings.models import EmbeddingsResponse
 
 
 def test_basic_generate_completion_using_ollama():
@@ -60,3 +61,15 @@ def test_basic_chat_completion_using_requests():
     assert "error" not in response
     ollama_res = ChatResponse(**response.json())
     assert ollama_res.message.content, "response should not be empty"
+
+
+def test_basic_embeddings_using_ollama():
+    params = {
+        "model": "mistral",
+        "prompt": "The sky is blue because of rayleigh scattering"
+    }
+    client = ollama.Client(host="http://127.0.0.1:5001")
+    ollama_res = client.embeddings(**params)
+
+    ollama_res = EmbeddingsResponse(**ollama_res)
+    assert len(ollama_res.embedding) > 0, "response should not be empty"
