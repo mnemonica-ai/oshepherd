@@ -20,6 +20,8 @@ def exec_completion(self, request_str: str):
             response = ollama.generate(**req_payload)
         elif req_type == "chat":
             response = ollama.chat(**req_payload)
+        elif req_type == "embeddings":
+            response = ollama.embeddings(**req_payload)
 
         print(f"  $ success {response}")
     except Exception as error:
