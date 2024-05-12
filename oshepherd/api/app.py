@@ -2,6 +2,7 @@ from flask import Flask, Blueprint
 from oshepherd.api.config import ApiConfig
 from oshepherd.api.generate.routes import generate_blueprint
 from oshepherd.api.chat.routes import chat_blueprint
+from oshepherd.api.embeddings.routes import embeddings_blueprint
 from oshepherd.worker.app import create_celery_app_for_flask
 
 
@@ -21,6 +22,7 @@ def start_flask_app(config: ApiConfig):
     api = Blueprint("api", __name__)
     api.register_blueprint(generate_blueprint)
     api.register_blueprint(chat_blueprint)
+    api.register_blueprint(embeddings_blueprint)
     app.register_blueprint(api)
 
     app.run(
