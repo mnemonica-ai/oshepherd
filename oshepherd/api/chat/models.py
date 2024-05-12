@@ -6,7 +6,6 @@ from datetime import datetime
 class ChatMessage(BaseModel):
     role: Literal["user", "assistant", "system"]
     content: str
-
     # TODO add support for images
     # images: NotRequired[Sequence[Any]]
 
