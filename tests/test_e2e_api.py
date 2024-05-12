@@ -63,10 +63,25 @@ def test_basic_chat_completion_using_requests():
     assert ollama_res.message.content, "response should not be empty"
 
 
+def test_basic_embeddings_using_requests():
+    url = "http://127.0.0.1:5001/api/embeddings/"
+    headers = {"Content-Type": "application/json"}
+    data = {
+        "model": "mistral",
+        "prompt": "The sky is blue because of rayleigh scattering",
+    }
+    response = requests.post(url, headers=headers, data=json.dumps(data))
+
+    assert response.status_code == 200
+    assert "error" not in response
+    ollama_res = EmbeddingsResponse(**response.json())
+    assert len(ollama_res.embedding) > 0, "response should not be empty"
+
+
 def test_basic_embeddings_using_ollama():
     params = {
         "model": "mistral",
-        "prompt": "The sky is blue because of rayleigh scattering"
+        "prompt": "The sky is blue because of rayleigh scattering",
     }
     client = ollama.Client(host="http://127.0.0.1:5001")
     ollama_res = client.embeddings(**params)
