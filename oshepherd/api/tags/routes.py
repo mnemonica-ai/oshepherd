@@ -5,9 +5,8 @@ Ollama endpoint reference: https://github.com/ollama/ollama/blob/main/docs/api.m
 """
 
 import time
-from flask import Blueprint, request
+from flask import Blueprint
 from oshepherd.api.utils import streamify_json
-# from oshepherd.api.tags.models import ChatRequest
 
 tags_blueprint = Blueprint("tags", __name__, url_prefix="/api/tags")
 
