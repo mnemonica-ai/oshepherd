@@ -32,7 +32,7 @@ def create_celery_app_for_flask(flask_app):
         RABBITMQ_URL=flask_app.config["RABBITMQ_URL"],
         REDIS_URL=flask_app.config["REDIS_URL"],
         RESULTS_EXPIRES=flask_app.config.get(
-            "RESULTS_EXPIRES", WorkerConfig.__fields__["RESULTS_EXPIRES"].default
+            "RESULTS_EXPIRES", WorkerConfig.model_fields["RESULTS_EXPIRES"].default
         ),
     )
 
