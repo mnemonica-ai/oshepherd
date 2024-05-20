@@ -13,6 +13,7 @@ import ollama
 from oshepherd.api.generate.models import GenerateResponse
 from oshepherd.api.chat.models import ChatResponse
 from oshepherd.api.embeddings.models import EmbeddingsResponse
+from oshepherd.api.tags.models import TagsResponse
 
 
 def test_basic_generate_completion_using_ollama():
@@ -88,3 +89,27 @@ def test_basic_embeddings_using_ollama():
 
     ollama_res = EmbeddingsResponse(**ollama_res)
     assert len(ollama_res.embedding) > 0, "response should not be empty"
+
+
+def test_basic_tags_using_requests():
+    url = "http://127.0.0.1:5001/api/tags/"
+    headers = {"Content-Type": "application/json"}
+    response = requests.get(url, headers=headers)
+
+    assert response.status_code == 200
+    assert "error" not in response
+
+    ollama_res = TagsResponse(**response.json())
+
+    assert isinstance(ollama_res.models, list), "response should be a list"
+    assert len(ollama_res.models) > 0, "response list should not be empty"
+
+
+def test_basic_tags_using_ollama():
+    client = ollama.Client(host="http://127.0.0.1:5001")
+    ollama_res = client.list()
+
+    ollama_res = TagsResponse(**response.json())
+
+    assert isinstance(ollama_res.models, list), "response should be a list"
+    assert len(ollama_res.models) > 0, "response list should not be empty"
