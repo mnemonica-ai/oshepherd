@@ -1,14 +1,14 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 from datetime import datetime
 
 
 class TagDetails(BaseModel):
-    format: str
-    family: str
-    families: str
-    parameter_size: str
-    quantization_level: str
+    format: Optional[str]
+    family: Optional[str]
+    families: Optional[str]
+    parameter_size: Optional[str]
+    quantization_level: Optional[str]
 
 
 class Tag(BaseModel):
