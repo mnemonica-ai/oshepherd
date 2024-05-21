@@ -23,17 +23,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Install pytest
+        run: pip install pytest
+
       - name: Run tests
-        run: |-
-          pytest --cov=.
-
-      - name: Report coverage
-        run: |-
-          coverage xml
-
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: coverage-report
-          path: coverage.xml
-          retention-days: 30
+        run: pytest --cov=.
