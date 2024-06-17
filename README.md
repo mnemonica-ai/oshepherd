@@ -2,7 +2,7 @@
 
 > _The Oshepherd guiding the Ollama(s) inference orchestration._
 
-A centralized [Flask](https://flask.palletsprojects.com) API service, using [Celery](https://docs.celeryq.dev), [RabbitMQ](https://www.rabbitmq.com), and [Redis](https://redis.com) to orchestrate multiple [Ollama](https://ollama.com) servers as workers.
+A centralized [Flask](https://flask.palletsprojects.com) API service, using [Celery](https://docs.celeryq.dev) and [Redis](https://redis.com) to orchestrate multiple [Ollama](https://ollama.com) servers as workers.
 
 ### Install
 
@@ -12,15 +12,15 @@ pip install oshepherd
 
 ### Usage
 
-1. Setup RabbitMQ and Redis:
+1. Setup Redis:
 
-    [Celery](https://docs.celeryq.dev) uses [RabbitMQ](https://docs.celeryq.dev/en/stable/getting-started/backends-and-brokers/index.html#rabbitmq) as message broker, and [Redis](https://docs.celeryq.dev/en/stable/getting-started/backends-and-brokers/index.html#redis) as backend. You'll need to create one instance for each. You can create small instances for free in [cloudamqp.com](https://www.cloudamqp.com), and [redislabs.com](https://app.redislabs.com) respectively.
+    [Celery](https://docs.celeryq.dev) uses [Redis](https://docs.celeryq.dev/en/stable/getting-started/backends-and-brokers/index.html#redis) as message broker and backend. You'll need a Redis instance, which you can provision for free in [redislabs.com](https://app.redislabs.com).
 
 2. Setup Flask API Server:
 
     ```sh
     # define configuration env file
-    # use credentials for redis and rabbitmq
+    # use credentials for redis as broker and backend
     cp .api.env.template .api.env
 
     # start api
@@ -35,7 +35,7 @@ pip install oshepherd
     ollama run mistral
 
     # define configuration env file
-    # use credentials for redis and rabbitmq
+    # use credentials for redis as broker and backend
     cp .worker.env.template .worker.env
 
     # start worker
@@ -82,7 +82,7 @@ pip install oshepherd
 
 ### Contribution guidelines
 
-We welcome contributions! If you find a bug or have suggestions for improvements, please open an [issue](https://github.com/mnemonica-ai/oshepherd/issues) or submit a [pull request](https://github.com/mnemonica-ai/oshepherd/pulls). Before creating a new issue/pull request, take a moment to search through the existing issues/pull requests to avoid duplicates.
+We welcome contributions! If you find a bug or have suggestions for improvements, please open an [issue](https://github.com/mnemonica-ai/oshepherd/issues) or submit a [pull request](https://github.com/mnemonica-ai/oshepherd/pulls) pointing to `development` branch. Before creating a new issue/pull request, take a moment to search through the existing issues/pull requests to avoid duplicates.
 
 ##### Conda Support
 
