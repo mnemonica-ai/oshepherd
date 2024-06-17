@@ -23,6 +23,7 @@ ollama==0.1.8
 prompt-toolkit==3.0.43
 pydantic==2.6.4
 pydantic_core==2.16.3
+pytest==8.2.2
 python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
 redis==5.0.3
