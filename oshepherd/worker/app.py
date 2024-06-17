@@ -16,7 +16,7 @@ def create_celery_app(config: WorkerConfig):
     global celery_app
 
     celery_app = Celery(
-        TASKS_MODULE, broker=config.RABBITMQ_URL, backend=config.REDIS_URL
+        TASKS_MODULE, broker=config.CELERY_BROKER_URL, backend=config.CELERY_BACKEND_URL
     )
     celery_app.conf.update(
         result_expires=config.RESULTS_EXPIRES,
@@ -29,8 +29,8 @@ def create_celery_app(config: WorkerConfig):
 
 def create_celery_app_for_flask(flask_app):
     config = WorkerConfig(
-        RABBITMQ_URL=flask_app.config["RABBITMQ_URL"],
-        REDIS_URL=flask_app.config["REDIS_URL"],
+        CELERY_BROKER_URL=flask_app.config["CELERY_BROKER_URL"],
+        CELERY_BACKEND_URL=flask_app.config["CELERY_BACKEND_URL"],
         RESULTS_EXPIRES=flask_app.config.get(
             "RESULTS_EXPIRES", WorkerConfig.__fields__["RESULTS_EXPIRES"].default
         ),
