@@ -3,8 +3,8 @@ from typing import Optional
 
 
 class WorkerConfig(BaseModel):
-    RABBITMQ_URL: str
-    REDIS_URL: str
+    CELERY_BROKER_URL: str
+    CELERY_BACKEND_URL: str
     LOGLEVEL: Optional[str] = "info"
     CONCURRENCY: Optional[int] = 1
     PREFETCH_MULTIPLIER: Optional[int] = 1

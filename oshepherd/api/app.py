@@ -11,8 +11,8 @@ def start_flask_app(config: ApiConfig):
     app.config["FLASK_RUN_PORT"] = config.FLASK_RUN_PORT
     app.config["FLASK_DEBUG"] = config.FLASK_DEBUG
     app.config["FLASK_HOST"] = config.FLASK_HOST
-    app.config["RABBITMQ_URL"] = config.RABBITMQ_URL
-    app.config["REDIS_URL"] = config.REDIS_URL
+    app.config["CELERY_BROKER_URL"] = config.CELERY_BROKER_URL
+    app.config["CELERY_BACKEND_URL"] = config.CELERY_BACKEND_URL
 
     # celery setup
     celery_app = create_celery_app_for_flask(app)
