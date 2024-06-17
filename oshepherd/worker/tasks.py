@@ -22,6 +22,8 @@ def exec_completion(self, request_str: str):
             response = ollama.chat(**req_payload)
         elif req_type == "embeddings":
             response = ollama.embeddings(**req_payload)
+        elif req_type == "tags":
+            response = ollama.list()
 
         print(f"  $ success {response}")
     except Exception as error:
