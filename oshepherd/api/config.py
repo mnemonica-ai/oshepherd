@@ -8,5 +8,5 @@ class ApiConfig(BaseModel):
     FLASK_DEBUG: Optional[bool] = True
     FLASK_RUN_PORT: Optional[int] = 5001
     FLASK_HOST: Optional[str] = "0.0.0.0"
-    RABBITMQ_URL: str
-    REDIS_URL: str
+    CELERY_BROKER_URL: str
+    CELERY_BACKEND_URL: str
