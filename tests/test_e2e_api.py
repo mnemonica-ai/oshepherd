@@ -20,6 +20,16 @@ CHAT_ENDPOINT = f"{HOST}/api/chat/"
 EMBEDDINGS_ENDPOINT = f"{HOST}/api/embeddings/"
 
 
+def test_health_endpoint():
+    headers = {"Content-Type": "application/json"}
+    response = requests.get(f"{HOST}/health", headers=headers)
+
+    assert response.status_code == 200
+    assert "error" not in response
+    res_json = response.json()
+    assert res_json == {'status': 200}, "response should not be empty"
+
+
 def test_basic_generate_completion_using_ollama():
     params = {"model": "mistral", "prompt": "Why is the sky blue?"}
     client = ollama.Client(host=HOST)
