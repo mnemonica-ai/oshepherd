@@ -5,39 +5,42 @@ Ollama endpoint reference: https://github.com/ollama/ollama/blob/main/docs/api.m
 """
 
 import time
-from flask import Blueprint, request
+from fastapi import Request
 from oshepherd.api.utils import streamify_json
 from oshepherd.api.chat.models import ChatRequest
 
-chat_blueprint = Blueprint("chat", __name__, url_prefix="/api/chat")
 
+def load_chat_routes(app):
 
-@chat_blueprint.route("/", methods=["POST"])
-def chat():
-    from oshepherd.worker.tasks import exec_completion
+    @app.post("/api/chat")
+    async def chat(request: Request):
+        from oshepherd.worker.tasks import exec_completion
 
-    print(f" # request.json {request.json}")
-    chat_request = ChatRequest(**{"payload": request.json})
+        request_json = await request.json()
+        print(f" # request json: {request_json}")
+        chat_request = ChatRequest(**{"payload": request_json})
 
-    # req as json string ready to be sent through broker
-    chat_request_json_str = chat_request.model_dump_json()
-    print(f" # chat request {chat_request_json_str}")
+        # req as json string ready to be sent through broker
+        chat_request_json_str = chat_request.model_dump_json()
+        print(f" # chat request {chat_request_json_str}")
 
-    # queue request to remote ollama api server
-    task = exec_completion.delay(chat_request_json_str)
-    while not task.ready():
-        print(" > waiting for response...")
-        time.sleep(1)
-    ollama_res = task.get(timeout=1)
+        # queue request to remote ollama api server
+        task = exec_completion.delay(chat_request_json_str)
+        while not task.ready():
+            print(" > waiting for response...")
+            time.sleep(1)
+        ollama_res = task.get(timeout=1)
 
-    status = 200
-    if ollama_res.get("error"):
-        ollama_res = {
-            "error": "Internal Server Error",
-            "message": f"error executing completion: {ollama_res['error']['message']}",
-        }
-        status = 500
+        status = 200
+        if ollama_res.get("error"):
+            ollama_res = {
+                "error": "Internal Server Error",
+                "message": f"error executing completion: {ollama_res['error']['message']}",
+            }
+            status = 500
 
-    print(f" $ ollama response {status}: {ollama_res}")
+        print(f" $ ollama response {status}: {ollama_res}")
 
-    return streamify_json(ollama_res, status)
+        return streamify_json(ollama_res, status)
+
+    return app
