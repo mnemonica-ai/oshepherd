@@ -24,8 +24,10 @@ def start_api(env_file):
     config: ApiConfig = load_and_validate_env(env_file, ApiConfig)
 
     app = start_api_app(config)
+
+    gunicorn_bind = f"{config.HOST}:{config.PORT}"
     options = {
-        "bind": "0.0.0.0:8000",
+        "bind": gunicorn_bind,
         "workers": 2,
         "worker_class": "uvicorn.workers.UvicornWorker",
     }
@@ -34,7 +36,7 @@ def start_api(env_file):
     def graceful_shutdown(signum, frame):
         print("Shutting down gracefully...")
         gunicorn_app.stop()
-    
+
     # Register signal handler for CTRL+C
     signal.signal(signal.SIGINT, graceful_shutdown)
     signal.signal(signal.SIGTERM, graceful_shutdown)
