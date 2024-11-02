@@ -19,10 +19,11 @@ GENERATE_ENDPOINT = f"{HOST}/api/generate/"
 CHAT_ENDPOINT = f"{HOST}/api/chat/"
 EMBEDDINGS_ENDPOINT = f"{HOST}/api/embeddings/"
 
+req_headers = {"Content-Type": "application/json"}
+
 
 def test_health_endpoint():
-    headers = {"Content-Type": "application/json"}
-    response = requests.get(f"{HOST}/health", headers=headers)
+    response = requests.get(f"{HOST}/health", headers=req_headers)
 
     assert response.status_code == 200
     assert "error" not in response
@@ -40,9 +41,8 @@ def test_basic_generate_completion_using_ollama():
 
 
 def test_basic_generate_completion_using_requests():
-    headers = {"Content-Type": "application/json"}
     data = {"model": "mistral", "prompt": "Why is the sky blue?"}
-    response = requests.post(GENERATE_ENDPOINT, headers=headers, data=json.dumps(data))
+    response = requests.post(GENERATE_ENDPOINT, headers=req_headers, data=json.dumps(data))
 
     assert response.status_code == 200
     assert "error" not in response
@@ -63,12 +63,11 @@ def test_basic_chat_completion_using_ollama():
 
 
 def test_basic_chat_completion_using_requests():
-    headers = {"Content-Type": "application/json"}
     data = {
         "model": "mistral",
         "messages": [{"role": "user", "content": "why is the sky blue?"}],
     }
-    response = requests.post(CHAT_ENDPOINT, headers=headers, data=json.dumps(data))
+    response = requests.post(CHAT_ENDPOINT, headers=req_headers, data=json.dumps(data))
 
     assert response.status_code == 200
     assert "error" not in response
@@ -77,12 +76,11 @@ def test_basic_chat_completion_using_requests():
 
 
 def test_basic_embeddings_using_requests():
-    headers = {"Content-Type": "application/json"}
     data = {
         "model": "mistral",
         "prompt": "The sky is blue because of rayleigh scattering",
     }
-    response = requests.post(EMBEDDINGS_ENDPOINT, headers=headers, data=json.dumps(data))
+    response = requests.post(EMBEDDINGS_ENDPOINT, headers=req_headers, data=json.dumps(data))
 
     assert response.status_code == 200
     assert "error" not in response
