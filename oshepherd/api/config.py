@@ -3,10 +3,7 @@ from typing import Optional
 
 
 class ApiConfig(BaseModel):
-    FLASK_PROJECT_NAME: Optional[str] = "oshepherd_api"
-    FLASK_ENV: Optional[str] = "development"
-    FLASK_DEBUG: Optional[bool] = True
-    FLASK_RUN_PORT: Optional[int] = 5001
-    FLASK_HOST: Optional[str] = "0.0.0.0"
     CELERY_BROKER_URL: str
     CELERY_BACKEND_URL: str
+    HOST: Optional[str] = "0.0.0.0"  # TODO add to env file
+    PORT: Optional[int] = 5001
