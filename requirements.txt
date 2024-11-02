@@ -31,7 +31,6 @@ MarkupSafe==2.1.5
 mdurl==0.1.2
 mypy-extensions==1.0.0
 ollama==0.3.3
--e git+ssh://git@github.com/mnemonica-ai/oshepherd.git@6e6eccaf43c411c8dc7522d6750a628f0ca62a25#egg=oshepherd
 packaging==24.1
 pathspec==0.12.1
 platformdirs==4.3.6
