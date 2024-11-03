@@ -27,13 +27,11 @@ def create_celery_app(config: WorkerConfig):
     return celery_app
 
 
-def create_celery_app_for_flask(flask_app):
+def create_celery_app_for_fastapi(config):
     config = WorkerConfig(
-        CELERY_BROKER_URL=flask_app.config["CELERY_BROKER_URL"],
-        CELERY_BACKEND_URL=flask_app.config["CELERY_BACKEND_URL"],
-        RESULTS_EXPIRES=flask_app.config.get(
-            "RESULTS_EXPIRES", WorkerConfig.__fields__["RESULTS_EXPIRES"].default
-        ),
+        CELERY_BROKER_URL=config.CELERY_BROKER_URL,
+        CELERY_BACKEND_URL=config.CELERY_BACKEND_URL,
+        RESULTS_EXPIRES=WorkerConfig.model_fields["RESULTS_EXPIRES"].default,
     )
 
     celery_app = create_celery_app(config)

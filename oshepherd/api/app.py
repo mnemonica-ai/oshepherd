@@ -1,34 +1,24 @@
-from flask import Flask, Blueprint
+from fastapi import FastAPI
 from oshepherd.api.config import ApiConfig
-from oshepherd.api.generate.routes import generate_blueprint
-from oshepherd.api.chat.routes import chat_blueprint
-from oshepherd.api.embeddings.routes import embeddings_blueprint
-from oshepherd.worker.app import create_celery_app_for_flask
+from oshepherd.worker.app import create_celery_app_for_fastapi
+from oshepherd.api.generate.routes import load_generate_routes
+from oshepherd.api.embeddings.routes import load_embeddings_routes
+from oshepherd.api.chat.routes import load_chat_routes
 
 
-def start_flask_app(config: ApiConfig):
-    app = Flask(config.FLASK_PROJECT_NAME)
-    app.config["FLASK_RUN_PORT"] = config.FLASK_RUN_PORT
-    app.config["FLASK_DEBUG"] = config.FLASK_DEBUG
-    app.config["FLASK_HOST"] = config.FLASK_HOST
-    app.config["CELERY_BROKER_URL"] = config.CELERY_BROKER_URL
-    app.config["CELERY_BACKEND_URL"] = config.CELERY_BACKEND_URL
+def start_api_app(config: ApiConfig):
+    app = FastAPI()
 
     # celery setup
-    celery_app = create_celery_app_for_flask(app)
-    app.celery = celery_app
+    celery_app = create_celery_app_for_fastapi(config)
+    print(" * celery_app ready: ", celery_app)
 
-    # endpoints
-    api = Blueprint("api", __name__)
-    api.register_blueprint(generate_blueprint)
-    api.register_blueprint(chat_blueprint)
-    api.register_blueprint(embeddings_blueprint)
-    app.register_blueprint(api)
+    @app.get("/health")
+    async def health():
+        return {"status": 200}
 
-    app.run(
-        debug=app.config["FLASK_DEBUG"],
-        host=app.config["FLASK_HOST"],
-        port=app.config["FLASK_RUN_PORT"],
-    )
+    load_generate_routes(app)
+    load_embeddings_routes(app)
+    load_chat_routes(app)
 
     return app

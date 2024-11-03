@@ -11,7 +11,8 @@ setup(
     packages=find_packages(),
     python_requires=">=3.8",
     install_requires=[
-        "flask",
+        "gunicorn",
+        "fastapi[standard]",
         "celery",
         "click",
         "ollama",

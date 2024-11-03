@@ -2,7 +2,7 @@
 
 > _The Oshepherd guiding the Ollama(s) inference orchestration._
 
-A centralized [Flask](https://flask.palletsprojects.com) API service, using [Celery](https://docs.celeryq.dev) and [Redis](https://redis.com) to orchestrate multiple [Ollama](https://ollama.com) servers as workers.
+A centralized [FastAPI](https://fastapi.tiangolo.com/) API service, using [Celery](https://docs.celeryq.dev) and [Redis](https://redis.com) to orchestrate multiple [Ollama](https://ollama.com) servers as workers.
 
 ### Install
 
@@ -16,7 +16,7 @@ pip install oshepherd
 
     [Celery](https://docs.celeryq.dev) uses [Redis](https://docs.celeryq.dev/en/stable/getting-started/backends-and-brokers/index.html#redis) as message broker and backend. You'll need a Redis instance, which you can provision for free in [redislabs.com](https://app.redislabs.com).
 
-2. Setup Flask API Server:
+2. Setup FastAPI Server:
 
     ```sh
     # define configuration env file
