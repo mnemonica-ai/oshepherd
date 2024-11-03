@@ -2,7 +2,7 @@
 
 > _The Oshepherd guiding the Ollama(s) inference orchestration._
 
-A centralized [FastAPI](https://fastapi.tiangolo.com/) API service, using [Celery](https://docs.celeryq.dev) and [Redis](https://redis.com) to orchestrate multiple [Ollama](https://ollama.com) servers as workers.
+A centralized [FastAPI](https://fastapi.tiangolo.com/) service, using [Celery](https://docs.celeryq.dev) and [Redis](https://redis.com) to orchestrate multiple [Ollama](https://ollama.com) servers as workers.
 
 ### Install
 
@@ -86,6 +86,8 @@ pip install oshepherd
 - [x] **Generate a chat completion:** `POST /api/chat`
 - [x] **Generate Embeddings:** `POST /api/embeddings`
 - [ ] **List Local Models:** `GET /api/tags` (pending)
+- [ ] **Show Model Information:** `POST /api/show` (pending)
+- [ ] **List Running Models:** `GET /api/ps` (pending)
 
 Oshepherd API server has been designed to maintain compatibility with the endpoints defined by Ollama, ensuring that any official client (i.e.: [ollama-python](https://github.com/ollama/ollama-python), [ollama-js](https://github.com/ollama/ollama-js)) can use this server as host and receive expected responses. For more details on the full API specifications, refer to the official [Ollama API documentation](https://github.com/ollama/ollama/blob/main/docs/api.md#api).
 
