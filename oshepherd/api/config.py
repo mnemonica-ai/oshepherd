@@ -7,3 +7,4 @@ class ApiConfig(BaseModel):
     CELERY_BACKEND_URL: str
     HOST: Optional[str] = "0.0.0.0"
     PORT: Optional[int] = 5001
+    WORKERS: Optional[int] = 2

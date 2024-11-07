@@ -6,7 +6,7 @@ from oshepherd.api.embeddings.routes import load_embeddings_routes
 from oshepherd.api.chat.routes import load_chat_routes
 
 
-def start_api_app(config: ApiConfig):
+def setup_api_app(config: ApiConfig):
     app = FastAPI()
 
     # celery setup
