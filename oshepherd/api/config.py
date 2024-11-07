@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
+from multiprocessing import cpu_count
 
 
 class ApiConfig(BaseModel):
@@ -7,4 +8,4 @@ class ApiConfig(BaseModel):
     CELERY_BACKEND_URL: str
     HOST: Optional[str] = "0.0.0.0"
     PORT: Optional[int] = 5001
-    WORKERS: Optional[int] = 2
+    WORKERS: Optional[int] = cpu_count() - 1
