@@ -2,6 +2,8 @@
 
 > _The Oshepherd guiding the Ollama(s) inference orchestration._
 
+![oshepherd Logo](assets/oshepherd_logo.png)
+
 A centralized [FastAPI](https://fastapi.tiangolo.com/) service, using [Celery](https://docs.celeryq.dev) and [Redis](https://redis.com) to orchestrate multiple [Ollama](https://ollama.com) servers as workers.
 
 ### Install
