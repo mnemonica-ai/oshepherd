@@ -4,6 +4,7 @@ from oshepherd.api.app import setup_api_app
 from oshepherd.api.server import setup_api_server
 from oshepherd.api.config import ApiConfig
 from oshepherd.worker.config import WorkerConfig
+from oshepherd.worker.worker_data import WorkerData
 from oshepherd.worker.app import create_celery_app
 
 
@@ -36,6 +37,9 @@ def start_api(env_file):
 def start_worker(env_file):
     """Starts the Celery Worker serving local Ollama models."""
     config: WorkerConfig = load_and_validate_env(env_file, WorkerConfig)
+
+    worker_data = WorkerData(config)
+    worker_data.start_data_push()
 
     celery_app = create_celery_app(config)
     worker = celery_app.Worker(
