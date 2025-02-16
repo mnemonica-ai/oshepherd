@@ -10,7 +10,7 @@ from oshepherd.worker.config import WorkerConfig
 
 OSHEPHERD_WORKER_HOSTNAME = socket.gethostname()
 OSHEPHERD_WORKER_UUID = uuid.uuid4().hex
-OSHEPHERD_WORKER_DATA_PUSH_INTERVAL = 5  # secs
+OSHEPHERD_WORKER_DATA_PUSH_INTERVAL = 10  # secs
 OSHEPHERD_WORKERS_PREFIX_KEY = "oshepherd_worker:"
 
 

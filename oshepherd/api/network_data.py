@@ -4,7 +4,7 @@ from redis import Redis
 from oshepherd.api.config import ApiConfig
 
 OSHEPHERD_WORKERS_PATTERN = "oshepherd_worker:*"
-OSHEPHERD_IDLE_WORKER_DELTA = 10 * 60  # secs
+OSHEPHERD_IDLE_WORKER_DELTA = 60  # secs
 
 
 class NetworkData:
