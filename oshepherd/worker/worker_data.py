@@ -11,6 +11,7 @@ from oshepherd.worker.config import WorkerConfig
 OSHEPHERD_WORKER_HOSTNAME = socket.gethostname()
 OSHEPHERD_WORKER_UUID = uuid.uuid4().hex
 OSHEPHERD_WORKER_DATA_PUSH_INTERVAL = 5  # secs
+OSHEPHERD_WORKERS_PREFIX_KEY = "oshepherd_worker:"
 
 
 class WorkerData:
@@ -48,7 +49,7 @@ class WorkerData:
     def push_data(self):
         worker_data = self.get_data()
         self.redis_client.hset(
-            f"oshepherd_worker:{self.worker_id}", mapping=worker_data
+            f"{OSHEPHERD_WORKERS_PREFIX_KEY}{self.worker_id}", mapping=worker_data
         )
         print(f" >>> worker {self.worker_id} data pushed")
 
