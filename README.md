@@ -3,7 +3,7 @@
 > _The Oshepherd guiding the Ollama(s) inference orchestration._
 
 <p align="center">
-  <img src="assets/oshepherd_logo.png" alt="oshepherd logo" width="200" style="border-radius: 10px;">
+  <img src="assets/oshepherd_logo.png" alt="oshepherd logo" width="200" style="border-radius: 15px;">
 </p>
 
 A centralized [FastAPI](https://fastapi.tiangolo.com/) service, using [Celery](https://docs.celeryq.dev) and [Redis](https://redis.com) to orchestrate multiple [Ollama](https://ollama.com) servers as workers.
