@@ -3,7 +3,7 @@
 > _The Oshepherd guiding the Ollama(s) inference orchestration._
 
 <p align="center">
-  <img src="assets/oshepherd_logo.png" alt="oshepherd logo">
+  <img src="assets/oshepherd_logo.png" alt="oshepherd logo" width="200" style="border-radius: 10px;">
 </p>
 
 A centralized [FastAPI](https://fastapi.tiangolo.com/) service, using [Celery](https://docs.celeryq.dev) and [Redis](https://redis.com) to orchestrate multiple [Ollama](https://ollama.com) servers as workers.
@@ -89,7 +89,8 @@ pip install oshepherd
 - [x] **Generate a completion:** `POST /api/generate`
 - [x] **Generate a chat completion:** `POST /api/chat`
 - [x] **Generate Embeddings:** `POST /api/embeddings`
-- [ ] **List Local Models:** `GET /api/tags` (pending)
+- [x] **Version:** `GET /api/version`
+- [x] **List Local Models:** `GET /api/tags`
 - [ ] **Show Model Information:** `POST /api/show` (pending)
 - [ ] **List Running Models:** `GET /api/ps` (pending)
 
