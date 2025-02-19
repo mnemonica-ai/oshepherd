@@ -4,6 +4,7 @@ import socket
 import threading
 import time
 import uuid
+import requests
 from redis import Redis
 from datetime import datetime, timezone
 from oshepherd.worker.config import WorkerConfig
@@ -12,6 +13,7 @@ OSHEPHERD_WORKER_HOSTNAME = socket.gethostname()
 OSHEPHERD_WORKER_UUID = uuid.uuid4().hex
 OSHEPHERD_WORKER_DATA_PUSH_INTERVAL = 10  # secs
 OSHEPHERD_WORKERS_PREFIX_KEY = "oshepherd_worker:"
+OLLAMA_BASE_URL = "http://localhost:11434"  # TODO get from env var
 
 
 class WorkerData:
@@ -23,18 +25,38 @@ class WorkerData:
         self.worker_uuid = OSHEPHERD_WORKER_UUID
         self.worker_id = f"{self.hostname}-{self.worker_uuid}"
 
-    def get_data(self):
-        list_res = None
+    def get_ollama_version(self):
+        res = {}
         try:
-            list_res = ollama.list()
+            req_res = requests.get(f"{OLLAMA_BASE_URL}/api/version")
+            req_res.raise_for_status()
+            res = req_res.json()
         except Exception as error:
-            list_res = {
+            res = {
                 "error": {"type": str(error.__class__.__name__), "message": str(error)}
             }
             print(
-                f" *** error ollama list fn: {list_res}",
+                f" *** error ollama version fn: {res}",
             )
+        return res
 
+    def get_ollama_list(self):
+        res = {}
+        try:
+            res = ollama.list()
+        except Exception as error:
+            res = {
+                "error": {"type": str(error.__class__.__name__), "message": str(error)}
+            }
+            print(
+                f" *** error ollama list fn: {res}",
+            )
+        return res
+
+    def get_data(self):
+        version_res = self.get_ollama_version()
+        serialized_version_res = json.dumps(version_res)
+        list_res = self.get_ollama_list()
         serialized_list_res = json.dumps(list_res)
         now = datetime.now(timezone.utc).isoformat()
 
@@ -42,6 +64,7 @@ class WorkerData:
             "worker_id": self.worker_id,
             "hostname": self.hostname,
             "uuid": self.worker_uuid,
+            "version": serialized_version_res,
             "tags": serialized_list_res,
             "heartbeat": now,
         }
