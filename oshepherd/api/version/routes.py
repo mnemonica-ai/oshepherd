@@ -1,22 +1,16 @@
-"""
-Tags
-API implementation of `POST /api/tags` endpoint, list models that are available in any Oshepherd worker.
-Ollama endpoint reference: https://github.com/ollama/ollama/blob/main/docs/api.md#list-local-models
-"""
-
 from fastapi import Request
 from oshepherd.api.utils import streamify_json
 from oshepherd.api.network_data import NetworkData
 
 
-def load_tags_routes(app):
+def load_version_routes(app):
     network_data: NetworkData = app.network_data
 
-    @app.get("/api/tags")
-    async def tags(request: Request):
-        print(f" # tags request")
+    @app.get("/api/version")
+    async def version(request: Request):
+        print(f" # version request")
 
-        ollama_res = network_data.get_available_tags()
+        ollama_res = network_data.get_version()
         status = 200
         if ollama_res.get("error"):
             ollama_res = {

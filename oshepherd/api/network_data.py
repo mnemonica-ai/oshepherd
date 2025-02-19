@@ -15,6 +15,20 @@ class NetworkData:
         self.workers_pattern = OSHEPHERD_WORKERS_PATTERN
         self.idle_worker_delta = OSHEPHERD_IDLE_WORKER_DELTA
 
+    def get_version(self):
+        for key in self.redis_client.scan_iter(match=self.workers_pattern):
+            data = self.redis_client.hgetall(key)
+            # Decode bytes to strings
+            decoded_data = {
+                k.decode("utf-8"): v.decode("utf-8") for k, v in data.items()
+            }
+
+            version = decoded_data.get("version")
+            if version:
+                return json.loads(version)
+
+        return {}
+
     def get_available_tags(self):
         tags_dict = {}
         tags_res = {"models": []}
