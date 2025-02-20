@@ -14,12 +14,14 @@ from oshepherd.api.generate.models import GenerateResponse
 from oshepherd.api.chat.models import ChatResponse
 from oshepherd.api.embeddings.models import EmbeddingsResponse
 from oshepherd.api.tags.models import TagsResponse
+from oshepherd.api.version.models import VersionResponse
 
 HOST = "http://127.0.0.1:5001"
 GENERATE_ENDPOINT = f"{HOST}/api/generate/"
 CHAT_ENDPOINT = f"{HOST}/api/chat/"
 EMBEDDINGS_ENDPOINT = f"{HOST}/api/embeddings/"
 TAGS_ENDPOINT = f"{HOST}/api/tags/"
+VERSION_ENDPOINT = f"{HOST}/api/version/"
 
 req_headers = {"Content-Type": "application/json"}
 
@@ -102,7 +104,7 @@ def test_basic_embeddings_using_ollama():
     assert len(ollama_res.embedding) > 0, "response should not be empty"
 
 
-def test_basic_embeddings_using_requests():
+def test_basic_tags_using_requests():
     response = requests.get(TAGS_ENDPOINT, headers=req_headers)
 
     assert response.status_code == 200
@@ -112,10 +114,20 @@ def test_basic_embeddings_using_requests():
     assert len(ollama_res.models) > 0, "response should not be empty"
 
 
-def test_basic_embeddings_using_ollama():
+def test_basic_tags_using_ollama():
     client = ollama.Client(host=HOST)
     ollama_res = client.list()
 
     ollama_res = TagsResponse(**ollama_res)
     print('ollama_res', ollama_res)
     assert len(ollama_res.models) > 0, "response should not be empty"
+
+
+def test_basic_version_using_requests():
+    response = requests.get(VERSION_ENDPOINT, headers=req_headers)
+
+    assert response.status_code == 200
+    assert "error" not in response
+    ollama_res = VersionResponse(**response.json())
+    print('ollama_res', ollama_res)
+    assert ollama_res.version, "version should not be an empty string"
