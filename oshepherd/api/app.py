@@ -8,6 +8,11 @@ from oshepherd.api.generate.routes import load_generate_routes
 from oshepherd.api.embeddings.routes import load_embeddings_routes
 from oshepherd.api.chat.routes import load_chat_routes
 from oshepherd.api.tags.routes import load_tags_routes
+import logging
+
+# disable uvicorn access logs
+logging.getLogger("uvicorn.access").disabled = True
+logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
 
 
 def setup_api_app(config: ApiConfig) -> FastAPI:
