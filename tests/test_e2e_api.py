@@ -110,7 +110,6 @@ def test_basic_tags_using_requests():
     assert response.status_code == 200
     assert "error" not in response
     ollama_res = TagsResponse(**response.json())
-    print('ollama_res', ollama_res)
     assert len(ollama_res.models) > 0, "response should not be empty"
 
 
@@ -119,7 +118,6 @@ def test_basic_tags_using_ollama():
     ollama_res = client.list()
 
     ollama_res = TagsResponse(**ollama_res)
-    print('ollama_res', ollama_res)
     assert len(ollama_res.models) > 0, "response should not be empty"
 
 
@@ -129,5 +127,4 @@ def test_basic_version_using_requests():
     assert response.status_code == 200
     assert "error" not in response
     ollama_res = VersionResponse(**response.json())
-    print('ollama_res', ollama_res)
     assert ollama_res.version, "version should not be an empty string"
