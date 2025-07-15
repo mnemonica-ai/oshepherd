@@ -73,7 +73,7 @@ class NetworkData:
                     # Reset connection on error
                     if self.redis_client:
                         self.redis_client.connection_pool.reset()
-                    time.sleep(1)  # Wait a bit before retrying
+                    time.sleep(1)
                 else:
                     print(
                         f" >>> Failed to execute Redis operation after {max_retries} attempts"

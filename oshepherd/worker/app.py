@@ -18,9 +18,17 @@ def create_celery_app(config: WorkerConfig):
     celery_app = Celery(
         TASKS_MODULE, broker=config.CELERY_BROKER_URL, backend=config.CELERY_BACKEND_URL
     )
+
+    if config.REDIS_CONNECTION_RECYCLING:
+        print(" > Using recycling mode broker transport options")
+        broker_transport_options = config.BROKER_TRANSPORT_OPTIONS_RECYCLING
+    else:
+        print(" > Using persistent mode broker transport options")
+        broker_transport_options = config.BROKER_TRANSPORT_OPTIONS
+
     celery_app.conf.update(
         result_expires=config.RESULTS_EXPIRES,
-        broker_transport_options=config.BROKER_TRANSPORT_OPTIONS,
+        broker_transport_options=broker_transport_options,
     )
     celery_app.autodiscover_tasks([TASKS_MODULE])
 

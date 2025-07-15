@@ -9,4 +9,6 @@ class ApiConfig(BaseModel):
     HOST: Optional[str] = "0.0.0.0"
     PORT: Optional[int] = 5001
     WORKERS: Optional[int] = max(1, cpu_count() - 1)
+
+    # Connection recycling options
     REDIS_CONNECTION_RECYCLING: Optional[bool] = False
