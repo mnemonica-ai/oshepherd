@@ -1,22 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
-import socket
-
-
-def _get_socket_keepalive_options():
-    """Get platform-compatible socket keepalive options."""
-    options = {}
-
-    # Linux specific contants
-    # TODO abstract this to a common function
-    if hasattr(socket, "TCP_KEEPINTVL"):
-        options[socket.TCP_KEEPINTVL] = 1
-    if hasattr(socket, "TCP_KEEPCNT"):
-        options[socket.TCP_KEEPCNT] = 3
-    if hasattr(socket, "TCP_KEEPIDLE"):
-        options[socket.TCP_KEEPIDLE] = 1
-
-    return options
+from oshepherd.common.redis import get_socket_keepalive_options
 
 
 class WorkerConfig(BaseModel):
@@ -43,7 +27,7 @@ class WorkerConfig(BaseModel):
         "socket_connect_timeout": 30,
         "socket_timeout": 30,
         "socket_keepalive": True,
-        "socket_keepalive_options": _get_socket_keepalive_options(),
+        "socket_keepalive_options": get_socket_keepalive_options(),
         "health_check_interval": 30,
     }
 

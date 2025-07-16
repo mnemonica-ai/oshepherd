@@ -9,27 +9,12 @@ from redis import Redis
 from redis.exceptions import ConnectionError as RedisConnectionError
 from datetime import datetime, timezone
 from oshepherd.worker.config import WorkerConfig
+from oshepherd.common.redis import get_socket_keepalive_options
 
 OSHEPHERD_WORKER_HOSTNAME = socket.gethostname()
 OSHEPHERD_WORKER_UUID = uuid.uuid4().hex
 OSHEPHERD_WORKERS_PREFIX_KEY = "oshepherd_worker:"
 OLLAMA_BASE_URL = "http://localhost:11434"  # TODO get from env var
-
-
-def _get_socket_keepalive_options():
-    """Get platform-compatible socket keepalive options."""
-    options = {}
-
-    # Linux specific contants
-    # TODO abstract this to a common function
-    if hasattr(socket, "TCP_KEEPINTVL"):
-        options[socket.TCP_KEEPINTVL] = 1
-    if hasattr(socket, "TCP_KEEPCNT"):
-        options[socket.TCP_KEEPCNT] = 3
-    if hasattr(socket, "TCP_KEEPIDLE"):
-        options[socket.TCP_KEEPIDLE] = 1
-
-    return options
 
 
 class WorkerData:
@@ -50,7 +35,7 @@ class WorkerData:
             self.redis_client = Redis.from_url(
                 self.backend_url,
                 socket_keepalive=True,
-                socket_keepalive_options=_get_socket_keepalive_options(),
+                socket_keepalive_options=get_socket_keepalive_options(),
                 retry_on_timeout=True,
                 health_check_interval=30,
                 max_connections=10,
@@ -154,6 +139,7 @@ class WorkerData:
             finally:
                 redis_client.close()
         else:
+
             def _push_operation():
                 return self.redis_client.hset(
                     f"{OSHEPHERD_WORKERS_PREFIX_KEY}{self.worker_id}",
