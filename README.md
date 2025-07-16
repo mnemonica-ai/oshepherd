@@ -8,6 +8,8 @@
 
 A centralized [FastAPI](https://fastapi.tiangolo.com/) service, using [Celery](https://docs.celeryq.dev) and [Redis](https://redis.com) to orchestrate multiple [Ollama](https://ollama.com) servers as workers.
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/mnemonica-ai/oshepherd)
+
 ### Install
 
 ```sh
@@ -18,7 +20,7 @@ pip install oshepherd
 
 1. Setup Redis:
 
-    [Celery](https://docs.celeryq.dev) uses [Redis](https://docs.celeryq.dev/en/stable/getting-started/backends-and-brokers/index.html#redis) as message broker and backend. You'll need a Redis instance, which you can provision for free in [redislabs.com](https://app.redislabs.com).
+    [Celery](https://docs.celeryq.dev) uses [Redis](https://docs.celeryq.dev/en/stable/getting-started/backends-and-brokers/redis.html) as message broker and backend (you can provision a Redis instance for free in [redislabs.com](https://app.redislabs.com)).
 
 2. Setup FastAPI Server:
 
@@ -120,6 +122,17 @@ Follow usage instructions to start api server and celery worker using a local ol
 ```sh
 pytest -s tests/
 ```
+
+### Redis Connection Issues
+
+If using small Redis servers (i.e.: free instances in [redislabs.com](https://app.redislabs.com)), and experiencing connection errors:
+
+**Quick Fix:**
+
+1. Set `REDIS_CONNECTION_RECYCLING=true` and `REDIS_HEARTBEAT_INTERVAL=30` in your workers `.worker.env`.
+2. Restart workers.
+
+This prevents timeout crashes by using fresh connections instead of persistent ones.
 
 ### Author
 
