@@ -12,36 +12,17 @@ class WorkerConfig(BaseModel):
     RESULTS_EXPIRES: Optional[int] = 3600
     REDIS_RETRY_ON_TIMEOUT: bool = True
     REDIS_SOCKET_KEEPALIVE: bool = True
+    HEALTH_CHECK_INTERVAL: Optional[int] = 30
+    MAX_RESTART_ATTEMPTS: Optional[int] = 10
 
-    # Connection recycling options
-    REDIS_CONNECTION_RECYCLING: Optional[bool] = False
-    REDIS_HEARTBEAT_INTERVAL: Optional[int] = 10  # seconds
-
-    # Standard broker transport options (for persistent connections)
     BROKER_TRANSPORT_OPTIONS: Optional[dict] = {
-        "max_retries": 5,
-        "interval_start": 0,
-        "interval_step": 0.1,
-        "interval_max": 0.5,
-        "retry_on_timeout": True,
-        "socket_connect_timeout": 30,
-        "socket_timeout": 30,
-        "socket_keepalive": True,
-        "socket_keepalive_options": get_socket_keepalive_options(),
-        "health_check_interval": 30,
-    }
-
-    # Recycling mode broker transport options (for small Redis servers)
-    BROKER_TRANSPORT_OPTIONS_RECYCLING: Optional[dict] = {
-        "visibility_timeout": 300,  # 5 minutes
         "max_retries": 3,
         "interval_start": 0,
         "interval_step": 0.1,
         "interval_max": 0.5,
         "retry_on_timeout": True,
-        "socket_connect_timeout": 5,
-        "socket_timeout": 10,
-        "socket_keepalive": False,
-        "socket_keepalive_options": {},
-        "health_check_interval": 0,
+        "socket_connect_timeout": 10,
+        "socket_timeout": 30,
+        "socket_keepalive": True,
+        "socket_keepalive_options": get_socket_keepalive_options(),
     }
