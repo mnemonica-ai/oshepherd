@@ -31,13 +31,25 @@ class OllamaCeleryTask(CeleryTask):
     retry_jitter = True  # Add a random jitter to delay to prevent all tasks from retrying at the same time
 
     def refresh_connections(self):
-        with self.app.connection() as connection:
-            print(" > Refresh broker connection")
-            connection.ensure_connection(max_retries=3)
+        """Refresh all worker connections when connection errors occur."""
+        try:
+            with self.app.connection() as connection:
+                print(" > Refresh broker connection")
+                connection.ensure_connection(max_retries=3)
 
-        if hasattr(self.app.backend, "ensure_connection"):
-            print(" > Refresh backend connection")
-            self.app.backend.ensure_connection(max_retries=3)
+            if hasattr(self.app.backend, "ensure_connection"):
+                print(" > Refresh backend connection")
+                self.app.backend.ensure_connection(max_retries=3)
+
+            # Force connection pool refresh
+            if hasattr(self.app.backend, "client"):
+                self.app.backend.client.connection_pool.disconnect()
+                print(" > Backend connection pool refreshed")
+
+        except Exception as e:
+            print(f" ! Connection refresh failed: {e}")
+            # Log that worker may need restart
+            print(" ! Worker connections may be in bad state - consider restart")
 
     def on_retry(self, exc, task_id, args, kwargs, einfo):
         print(f"Retrying task {self.name}:{task_id}, attempt {self.request.retries}")
