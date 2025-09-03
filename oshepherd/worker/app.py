@@ -32,7 +32,6 @@ def create_celery_app(config: WorkerConfig):
     )
     celery_app.autodiscover_tasks([TASKS_MODULE])
 
-    # Add connection monitoring
     setup_connection_monitoring(celery_app, config)
 
     return celery_app
@@ -55,12 +54,10 @@ def setup_connection_monitoring(app, config: WorkerConfig):
 def refresh_all_connections(app, config: WorkerConfig):
     """Refresh all Redis connections for the worker."""
     try:
-        # Refresh broker connection
         with app.connection() as connection:
             connection.ensure_connection(max_retries=3)
             print(" > Broker connection refreshed")
 
-        # Refresh backend connection
         if hasattr(app.backend, "ensure_connection"):
             app.backend.ensure_connection(max_retries=3)
             print(" > Backend connection refreshed")
@@ -82,7 +79,7 @@ def start_connection_monitor(app, config: WorkerConfig):
     def monitor_connections():
         while True:
             try:
-                time.sleep(60)  # Check every minute
+                time.sleep(60)
 
                 # Test broker connection
                 with app.connection() as connection:

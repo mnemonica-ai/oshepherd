@@ -22,13 +22,13 @@ class OllamaCeleryTask(CeleryTask):
         TimeoutError,
         ConnectError,
     )
-    retry_kwargs = {  # Retry up to 5 times, with a 1 second delay between retries
+    retry_kwargs = {  # Retry up to 5 times, 1 sec delay in between
         "max_retries": 5,
         "countdown": 1,
     }
-    retry_backoff = True  # Enable exponential backoff
-    retry_backoff_max = 60  # Maximum retry delay in seconds
-    retry_jitter = True  # Add a random jitter to delay to prevent all tasks from retrying at the same time
+    retry_backoff = True
+    retry_backoff_max = 60
+    retry_jitter = True
 
     def refresh_connections(self):
         """Refresh all worker connections when connection errors occur."""
@@ -48,7 +48,6 @@ class OllamaCeleryTask(CeleryTask):
 
         except Exception as e:
             print(f" ! Connection refresh failed: {e}")
-            # Log that worker may need restart
             print(" ! Worker connections may be in bad state - consider restart")
 
     def on_retry(self, exc, task_id, args, kwargs, einfo):
