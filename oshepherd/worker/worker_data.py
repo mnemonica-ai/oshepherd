@@ -5,9 +5,9 @@ import threading
 import time
 import uuid
 import requests
-from redis import Redis
 from datetime import datetime, timezone
 from oshepherd.worker.config import WorkerConfig
+from oshepherd.redis_service import RedisService
 
 OSHEPHERD_WORKER_HOSTNAME = socket.gethostname()
 OSHEPHERD_WORKER_UUID = uuid.uuid4().hex
@@ -20,7 +20,8 @@ class WorkerData:
 
     def __init__(self, config: WorkerConfig):
         self.backend_url = config.CELERY_BACKEND_URL
-        self.redis_client = Redis.from_url(self.backend_url)
+        self.config = config
+        self.redis_service = RedisService(self.backend_url)
         self.hostname = OSHEPHERD_WORKER_HOSTNAME
         self.worker_uuid = OSHEPHERD_WORKER_UUID
         self.worker_id = f"{self.hostname}-{self.worker_uuid}"
@@ -70,11 +71,14 @@ class WorkerData:
         }
 
     def push_data(self):
-        worker_data = self.get_data()
-        self.redis_client.hset(
-            f"{OSHEPHERD_WORKERS_PREFIX_KEY}{self.worker_id}", mapping=worker_data
-        )
-        print(f" >>> worker {self.worker_id} data pushed")
+        try:
+            worker_data = self.get_data()
+            self.redis_service.hset(
+                f"{OSHEPHERD_WORKERS_PREFIX_KEY}{self.worker_id}", mapping=worker_data
+            )
+            print(f" >>> worker {self.worker_id} data pushed")
+        except Exception as e:
+            print(f" ! Data push failed: {e}")
 
     def start_data_push(self):
         print(f" > worker {self.worker_id} data push setup starting")

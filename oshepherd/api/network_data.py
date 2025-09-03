@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 import json
-from redis import Redis
 from oshepherd.api.config import ApiConfig
+from oshepherd.redis_service import RedisService
 
 OSHEPHERD_WORKERS_PATTERN = "oshepherd_worker:*"
 OSHEPHERD_IDLE_WORKER_DELTA = 60  # secs
@@ -11,13 +11,13 @@ class NetworkData:
 
     def __init__(self, config: ApiConfig):
         self.backend_url = config.CELERY_BACKEND_URL
-        self.redis_client = Redis.from_url(self.backend_url)
+        self.redis_service = RedisService(self.backend_url)
         self.workers_pattern = OSHEPHERD_WORKERS_PATTERN
         self.idle_worker_delta = OSHEPHERD_IDLE_WORKER_DELTA
 
     def get_version(self):
-        for key in self.redis_client.scan_iter(match=self.workers_pattern):
-            data = self.redis_client.hgetall(key)
+        for key in self.redis_service.scan_iter(match=self.workers_pattern):
+            data = self.redis_service.hgetall(key)
             # Decode bytes to strings
             decoded_data = {
                 k.decode("utf-8"): v.decode("utf-8") for k, v in data.items()
@@ -43,8 +43,8 @@ class NetworkData:
         tags_dict = {}
         tags_res = {"models": []}
 
-        for key in self.redis_client.scan_iter(match=self.workers_pattern):
-            data = self.redis_client.hgetall(key)
+        for key in self.redis_service.scan_iter(match=self.workers_pattern):
+            data = self.redis_service.hgetall(key)
             # Decode bytes to strings
             decoded_data = {
                 k.decode("utf-8"): v.decode("utf-8") for k, v in data.items()
