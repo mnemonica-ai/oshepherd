@@ -23,16 +23,24 @@ def exec_completion(self, request_str: str):
         elif req_type == "embeddings":
             response = ollama.embeddings(**req_payload)
 
-        print(f"  $ success {response}")
+        # Convert response objects to dict for JSON serialization
+        if hasattr(response, 'model_dump'):
+            serializable_response = response.model_dump()
+        elif hasattr(response, '__dict__'):
+            serializable_response = dict(response)
+        else:
+            serializable_response = response
+
+        print(f"  $ success {serializable_response}")
     except Exception as error:
         print(f"  * error exec_completion {error}")
-        response = {
+        serializable_response = {
             "error": {"type": str(error.__class__.__name__), "message": str(error)}
         }
         print(
-            f"    * error response {response}",
+            f"    * error response {serializable_response}",
         )
 
         raise
 
-    return response
+    return serializable_response

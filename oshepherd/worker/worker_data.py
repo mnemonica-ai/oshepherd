@@ -44,7 +44,9 @@ class WorkerData:
     def get_ollama_list(self):
         res = {}
         try:
-            res = ollama.list()
+            ollama_response = ollama.list()
+            # Convert ListResponse to dict for JSON serialization
+            res = ollama_response.model_dump() if hasattr(ollama_response, 'model_dump') else dict(ollama_response)
         except Exception as error:
             res = {
                 "error": {"type": str(error.__class__.__name__), "message": str(error)}
@@ -56,9 +58,9 @@ class WorkerData:
 
     def get_data(self):
         version_res = self.get_ollama_version()
-        serialized_version_res = json.dumps(version_res)
+        serialized_version_res = json.dumps(version_res, default=str)
         list_res = self.get_ollama_list()
-        serialized_list_res = json.dumps(list_res)
+        serialized_list_res = json.dumps(list_res, default=str)
         now = datetime.now(timezone.utc).isoformat()
 
         return {

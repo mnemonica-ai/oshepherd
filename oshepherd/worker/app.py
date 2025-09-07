@@ -29,6 +29,12 @@ def create_celery_app(config: WorkerConfig):
         broker_connection_retry=True,
         broker_connection_retry_on_startup=True,
         broker_connection_max_retries=10,
+        worker_cancel_long_running_tasks_on_connection_loss=True,
+        broker_pool_limit=5,
+        worker_prefetch_multiplier=config.PREFETCH_MULTIPLIER,
+        worker_max_memory_per_child=200000,
+        broker_heartbeat=30,
+        broker_heartbeat_checkrate=3.0,
     )
     celery_app.autodiscover_tasks([TASKS_MODULE])
 
@@ -77,32 +83,52 @@ def start_connection_monitor(app, config: WorkerConfig):
     """Start background thread to monitor connections and refresh worker if needed."""
 
     def monitor_connections():
+        consecutive_failures = 0
         while True:
             try:
-                time.sleep(60)
+                time.sleep(30)
 
                 # Test broker connection
                 with app.connection() as connection:
                     connection.ensure_connection(max_retries=1)
 
-                # Test backend connection
-                redis_client = redis.Redis.from_url(config.CELERY_BACKEND_URL)
+                # Test backend connection with improved error handling
+                redis_client = redis.Redis.from_url(
+                    config.CELERY_BACKEND_URL,
+                    socket_timeout=10,
+                    socket_connect_timeout=5,
+                    retry_on_timeout=True,
+                    max_connections=3,
+                )
                 redis_client.ping()
                 redis_client.close()
 
+                consecutive_failures = 0
+
             except Exception as e:
-                print(f" ! Connection monitor detected failure: {e}")
-                print(" > Refreshing all connections...")
-                try:
-                    refresh_all_connections(app, config)
-                    print(" > Connection refresh successful")
-                except Exception as refresh_error:
-                    print(f" ! Connection refresh failed: {refresh_error}")
-                    print(" ! Worker may need manual restart")
+                consecutive_failures += 1
+                print(
+                    f" ! Connection monitor detected failure #{consecutive_failures}: {e}"
+                )
+
+                if consecutive_failures >= 3:
+                    print(
+                        " > Multiple failures detected, attempting connection refresh..."
+                    )
+                    try:
+                        refresh_all_connections(app, config)
+                        print(" > Connection refresh successful")
+                        consecutive_failures = 0
+                    except Exception as refresh_error:
+                        print(f" ! Connection refresh failed: {refresh_error}")
+                        if consecutive_failures >= 5:
+                            print(
+                                " ! Too many consecutive failures - worker may need manual restart"
+                            )
 
     monitor_thread = threading.Thread(target=monitor_connections, daemon=True)
     monitor_thread.start()
-    print(" > Connection monitor started")
+    print(" > Enhanced connection monitor started")
 
 
 def create_celery_app_for_fastapi(config):
