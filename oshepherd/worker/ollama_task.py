@@ -22,22 +22,33 @@ class OllamaCeleryTask(CeleryTask):
         TimeoutError,
         ConnectError,
     )
-    retry_kwargs = {  # Retry up to 5 times, with a 1 second delay between retries
+    retry_kwargs = {  # Retry up to 5 times, 1 sec delay in between
         "max_retries": 5,
         "countdown": 1,
     }
-    retry_backoff = True  # Enable exponential backoff
-    retry_backoff_max = 60  # Maximum retry delay in seconds
-    retry_jitter = True  # Add a random jitter to delay to prevent all tasks from retrying at the same time
+    retry_backoff = True
+    retry_backoff_max = 60
+    retry_jitter = True
 
     def refresh_connections(self):
-        with self.app.connection() as connection:
-            print(" > Refresh broker connection")
-            connection.ensure_connection(max_retries=3)
+        """Refresh all worker connections when connection errors occur."""
+        try:
+            with self.app.connection() as connection:
+                print(" > Refresh broker connection")
+                connection.ensure_connection(max_retries=3)
 
-        if hasattr(self.app.backend, "ensure_connection"):
-            print(" > Refresh backend connection")
-            self.app.backend.ensure_connection(max_retries=3)
+            if hasattr(self.app.backend, "ensure_connection"):
+                print(" > Refresh backend connection")
+                self.app.backend.ensure_connection(max_retries=3)
+
+            # Force connection pool refresh
+            if hasattr(self.app.backend, "client"):
+                self.app.backend.client.connection_pool.disconnect()
+                print(" > Backend connection pool refreshed")
+
+        except Exception as e:
+            print(f" ! Connection refresh failed: {e}")
+            print(" ! Worker connections may be in bad state - consider restart")
 
     def on_retry(self, exc, task_id, args, kwargs, einfo):
         print(f"Retrying task {self.name}:{task_id}, attempt {self.request.retries}")
