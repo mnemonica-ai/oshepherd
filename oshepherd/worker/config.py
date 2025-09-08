@@ -9,11 +9,11 @@ class WorkerConfig(BaseModel):
     CONCURRENCY: Optional[int] = 1
     PREFETCH_MULTIPLIER: Optional[int] = 1
     RESULTS_EXPIRES: Optional[int] = 3600
-    # Performance tuning options
-    ENABLE_COMPRESSION: Optional[bool] = True
-    CONNECTION_POOL_SIZE: Optional[int] = 10
-    REDIS_SOCKET_KEEPALIVE_IDLE: Optional[int] = 600
-    REDIS_SOCKET_KEEPALIVE_INTERVAL: Optional[int] = 30
+    # Performance tuning options (Redis Labs free tier optimized)
+    ENABLE_COMPRESSION: Optional[bool] = False
+    CONNECTION_POOL_SIZE: Optional[int] = 3
+    REDIS_SOCKET_KEEPALIVE_IDLE: Optional[int] = 240
+    REDIS_SOCKET_KEEPALIVE_INTERVAL: Optional[int] = 15
     REDIS_SOCKET_KEEPALIVE_COUNT: Optional[int] = 3
     BROKER_TRANSPORT_OPTIONS: Optional[dict] = {
         "max_retries": 10,
