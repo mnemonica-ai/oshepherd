@@ -6,7 +6,7 @@ readme = "README.md"
 authors = [
     {name = "mnemonica.ai", email = "info@mnemonica.ai"},
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.12"
 dependencies = [
     "gunicorn",
     "fastapi[standard]",

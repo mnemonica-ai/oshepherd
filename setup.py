@@ -9,7 +9,7 @@ setup(
     author="mnemonica.ai",
     author_email="info@mnemonica.ai",
     packages=find_packages(),
-    python_requires=">=3.8",
+    python_requires=">=3.12",
     install_requires=[
         "gunicorn",
         "fastapi[standard]",
