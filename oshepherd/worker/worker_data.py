@@ -46,7 +46,11 @@ class WorkerData:
         try:
             ollama_response = ollama.list()
             # Convert ListResponse to dict for JSON serialization
-            res = ollama_response.model_dump() if hasattr(ollama_response, 'model_dump') else dict(ollama_response)
+            res = (
+                ollama_response.model_dump()
+                if hasattr(ollama_response, "model_dump")
+                else dict(ollama_response)
+            )
         except Exception as error:
             res = {
                 "error": {"type": str(error.__class__.__name__), "message": str(error)}

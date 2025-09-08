@@ -24,9 +24,9 @@ def exec_completion(self, request_str: str):
             response = ollama.embeddings(**req_payload)
 
         # Convert response objects to dict for JSON serialization
-        if hasattr(response, 'model_dump'):
+        if hasattr(response, "model_dump"):
             serializable_response = response.model_dump()
-        elif hasattr(response, '__dict__'):
+        elif hasattr(response, "__dict__"):
             serializable_response = dict(response)
         else:
             serializable_response = response

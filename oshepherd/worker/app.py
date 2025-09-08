@@ -23,18 +23,34 @@ def create_celery_app(config: WorkerConfig):
         TASKS_MODULE, broker=config.CELERY_BROKER_URL, backend=config.CELERY_BACKEND_URL
     )
     celery_app.conf.update(
-        result_expires=config.RESULTS_EXPIRES,
+        result_expires=1800,  # 30 minutes for Redis Labs free tier
         broker_transport_options=config.BROKER_TRANSPORT_OPTIONS,
-        result_backend_transport_options=config.BROKER_TRANSPORT_OPTIONS,
         broker_connection_retry=True,
         broker_connection_retry_on_startup=True,
         broker_connection_max_retries=10,
         worker_cancel_long_running_tasks_on_connection_loss=True,
-        broker_pool_limit=5,
+        broker_pool_limit=2,  # Reduced for Redis Labs free tier
         worker_prefetch_multiplier=config.PREFETCH_MULTIPLIER,
         worker_max_memory_per_child=200000,
         broker_heartbeat=30,
         broker_heartbeat_checkrate=3.0,
+        # Celery 5.5+ optimizations for Redis Labs free tier
+        task_acks_late=True,
+        task_reject_on_worker_lost=True,
+        worker_disable_rate_limits=True,
+        # Disable compression for free tier (30MB memory limit)
+        task_compression=None,
+        result_compression=None,
+        result_accept_content=["json"],
+        task_serializer="json",
+        result_serializer="json",
+        accept_content=["json"],
+        # Redis-specific optimizations for free tier
+        result_backend_transport_options={
+            "retry_policy": {"timeout": 5.0},
+            "socket_keepalive": True,
+            "socket_keepalive_options": {},
+        },
     )
     celery_app.autodiscover_tasks([TASKS_MODULE])
 
@@ -86,19 +102,22 @@ def start_connection_monitor(app, config: WorkerConfig):
         consecutive_failures = 0
         while True:
             try:
-                time.sleep(30)
+                # Shorter sleep interval to catch idle timeouts faster
+                time.sleep(180)  # 3 minutes (before Redis Labs 5-minute timeout)
 
                 # Test broker connection
                 with app.connection() as connection:
                     connection.ensure_connection(max_retries=1)
 
-                # Test backend connection with improved error handling
+                # Test backend connection optimized for free tier
                 redis_client = redis.Redis.from_url(
                     config.CELERY_BACKEND_URL,
-                    socket_timeout=10,
-                    socket_connect_timeout=5,
+                    socket_timeout=5,
+                    socket_connect_timeout=3,
                     retry_on_timeout=True,
-                    max_connections=3,
+                    max_connections=2,  # Minimal connections for monitoring
+                    socket_keepalive=True,
+                    socket_keepalive_options={},
                 )
                 redis_client.ping()
                 redis_client.close()
@@ -111,9 +130,10 @@ def start_connection_monitor(app, config: WorkerConfig):
                     f" ! Connection monitor detected failure #{consecutive_failures}: {e}"
                 )
 
-                if consecutive_failures >= 3:
+                # More aggressive recovery for free tier instability
+                if consecutive_failures >= 2:  # Reduced from 3
                     print(
-                        " > Multiple failures detected, attempting connection refresh..."
+                        " > Connection issues detected, attempting immediate refresh..."
                     )
                     try:
                         refresh_all_connections(app, config)
@@ -121,14 +141,14 @@ def start_connection_monitor(app, config: WorkerConfig):
                         consecutive_failures = 0
                     except Exception as refresh_error:
                         print(f" ! Connection refresh failed: {refresh_error}")
-                        if consecutive_failures >= 5:
+                        if consecutive_failures >= 4:  # Reduced from 5
                             print(
-                                " ! Too many consecutive failures - worker may need manual restart"
+                                " ! Multiple refresh failures - consider restarting worker"
                             )
 
     monitor_thread = threading.Thread(target=monitor_connections, daemon=True)
     monitor_thread.start()
-    print(" > Enhanced connection monitor started")
+    print(" > Redis Labs optimized connection monitor started")
 
 
 def create_celery_app_for_fastapi(config):

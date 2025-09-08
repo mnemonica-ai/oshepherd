@@ -23,6 +23,8 @@ class RedisService:
             socket_connect_timeout=5,
             socket_timeout=30,
             max_connections=10,
+            # Redis 6.4+ optimizations
+            socket_keepalive_options={},
         )
 
     def _ensure_connection(self) -> bool:
