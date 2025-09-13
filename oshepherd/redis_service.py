@@ -22,8 +22,7 @@ class RedisService:
             retry_on_timeout=True,
             socket_connect_timeout=5,
             socket_timeout=30,
-            max_connections=3,
-            # Redis 6.4+ optimizations
+            max_connections=5,
             socket_keepalive_options={},
         )
 

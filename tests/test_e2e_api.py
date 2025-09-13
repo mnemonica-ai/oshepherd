@@ -40,7 +40,6 @@ def test_basic_generate_completion_using_ollama():
     client = ollama.Client(host=HOST)
     ollama_res = client.generate(**params)
 
-    # Convert Ollama response object to dict for GenerateResponse initialization
     ollama_dict = ollama_res.model_dump() if hasattr(ollama_res, 'model_dump') else dict(ollama_res)
     ollama_res = GenerateResponse(**ollama_dict)
     assert ollama_res.response, "response should not be empty"
@@ -64,7 +63,6 @@ def test_basic_chat_completion_using_ollama():
     client = ollama.Client(host=HOST)
     ollama_res = client.chat(**params)
 
-    # Convert Ollama response object to dict for ChatResponse initialization
     ollama_dict = ollama_res.model_dump() if hasattr(ollama_res, 'model_dump') else dict(ollama_res)
     ollama_res = ChatResponse(**ollama_dict)
     assert ollama_res.message.content, "response should not be empty"
@@ -104,7 +102,6 @@ def test_basic_embeddings_using_ollama():
     client = ollama.Client(host=HOST)
     ollama_res = client.embeddings(**params)
 
-    # Convert Ollama response object to dict for EmbeddingsResponse initialization
     ollama_dict = ollama_res.model_dump() if hasattr(ollama_res, 'model_dump') else dict(ollama_res)
     ollama_res = EmbeddingsResponse(**ollama_dict)
     assert len(ollama_res.embedding) > 0, "response should not be empty"
@@ -123,7 +120,6 @@ def test_basic_tags_using_ollama():
     client = ollama.Client(host=HOST)
     ollama_res = client.list()
 
-    # Convert Ollama response object to dict for TagsResponse initialization
     ollama_dict = ollama_res.model_dump() if hasattr(ollama_res, 'model_dump') else dict(ollama_res)
     ollama_res = TagsResponse(**ollama_dict)
     assert len(ollama_res.models) > 0, "response should not be empty"

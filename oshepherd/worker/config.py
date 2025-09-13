@@ -9,7 +9,7 @@ class WorkerConfig(BaseModel):
     CONCURRENCY: Optional[int] = 1
     PREFETCH_MULTIPLIER: Optional[int] = 1
     RESULTS_EXPIRES: Optional[int] = 3600
-    # Performance tuning options (Redis Labs free tier optimized)
+    # Performance tuning options
     ENABLE_COMPRESSION: Optional[bool] = False
     CONNECTION_POOL_SIZE: Optional[int] = 3
     REDIS_SOCKET_KEEPALIVE_IDLE: Optional[int] = 240
@@ -22,12 +22,11 @@ class WorkerConfig(BaseModel):
         "interval_max": 2.0,
         "socket_keepalive": True,
         "retry_on_timeout": True,
-        # Optimized for Redis Labs free tier (30 connection limit)
+        # Having in mind 30 connection limit
         "max_connections": 3,
         "socket_timeout": 30,
         "socket_connect_timeout": 5,
         "health_check_interval": 60,
-        # Redis Labs free tier optimizations
         "socket_keepalive_options": {},
     }
     REDIS_RETRY_ON_TIMEOUT: bool = True
