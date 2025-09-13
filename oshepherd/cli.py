@@ -1,5 +1,5 @@
 import click
-from oshepherd.lib import load_and_validate_env
+from oshepherd.common.lib import load_and_validate_env
 from oshepherd.api.app import setup_api_app
 from oshepherd.api.server import setup_api_server
 from oshepherd.api.config import ApiConfig

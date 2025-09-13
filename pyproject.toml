@@ -1,12 +1,12 @@
 [project]
 name = "oshepherd"
-version = "0.0.17"
+version = "0.0.18"
 description = "The Oshepherd guiding the Ollama(s) inference orchestration."
 readme = "README.md"
 authors = [
     {name = "mnemonica.ai", email = "info@mnemonica.ai"},
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.12"
 dependencies = [
     "gunicorn",
     "fastapi[standard]",

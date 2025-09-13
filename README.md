@@ -105,7 +105,7 @@ We welcome contributions! If you find a bug or have suggestions for improvements
 To run and build locally you can use [conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html):
 
 ```sh
-conda create -n oshepherd python=3.8
+conda create -n oshepherd python=3.12
 conda activate oshepherd
 pip install -r requirements.txt
 

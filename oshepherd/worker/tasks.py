@@ -2,6 +2,7 @@ import json
 import ollama
 from oshepherd.worker.app import celery_app
 from oshepherd.worker.ollama_task import OllamaCeleryTask
+from oshepherd.common.ollama import serialize_ollama_res
 
 
 @celery_app.task(
@@ -23,16 +24,18 @@ def exec_completion(self, request_str: str):
         elif req_type == "embeddings":
             response = ollama.embeddings(**req_payload)
 
-        print(f"  $ success {response}")
+        serializable_response = serialize_ollama_res(response)
+
+        print(f"  $ success {serializable_response}")
     except Exception as error:
         print(f"  * error exec_completion {error}")
-        response = {
+        serializable_response = {
             "error": {"type": str(error.__class__.__name__), "message": str(error)}
         }
         print(
-            f"    * error response {response}",
+            f"    * error response {serializable_response}",
         )
 
         raise
 
-    return response
+    return serializable_response

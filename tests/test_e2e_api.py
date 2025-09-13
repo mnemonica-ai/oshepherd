@@ -15,6 +15,7 @@ from oshepherd.api.chat.models import ChatResponse
 from oshepherd.api.embeddings.models import EmbeddingsResponse
 from oshepherd.api.tags.models import TagsResponse
 from oshepherd.api.version.models import VersionResponse
+from oshepherd.common.ollama import serialize_ollama_res
 
 HOST = "http://127.0.0.1:5001"
 GENERATE_ENDPOINT = f"{HOST}/api/generate/"
@@ -40,7 +41,8 @@ def test_basic_generate_completion_using_ollama():
     client = ollama.Client(host=HOST)
     ollama_res = client.generate(**params)
 
-    ollama_res = GenerateResponse(**ollama_res)
+    ollama_dict = serialize_ollama_res(ollama_res)
+    ollama_res = GenerateResponse(**ollama_dict)
     assert ollama_res.response, "response should not be empty"
 
 
@@ -62,7 +64,8 @@ def test_basic_chat_completion_using_ollama():
     client = ollama.Client(host=HOST)
     ollama_res = client.chat(**params)
 
-    ollama_res = ChatResponse(**ollama_res)
+    ollama_dict = serialize_ollama_res(ollama_res)
+    ollama_res = ChatResponse(**ollama_dict)
     assert ollama_res.message.content, "response should not be empty"
 
 
@@ -100,7 +103,8 @@ def test_basic_embeddings_using_ollama():
     client = ollama.Client(host=HOST)
     ollama_res = client.embeddings(**params)
 
-    ollama_res = EmbeddingsResponse(**ollama_res)
+    ollama_dict = serialize_ollama_res(ollama_res)
+    ollama_res = EmbeddingsResponse(**ollama_dict)
     assert len(ollama_res.embedding) > 0, "response should not be empty"
 
 
@@ -117,7 +121,8 @@ def test_basic_tags_using_ollama():
     client = ollama.Client(host=HOST)
     ollama_res = client.list()
 
-    ollama_res = TagsResponse(**ollama_res)
+    ollama_dict = serialize_ollama_res(ollama_res)
+    ollama_res = TagsResponse(**ollama_dict)
     assert len(ollama_res.models) > 0, "response should not be empty"
 
 

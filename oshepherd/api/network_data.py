@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 import json
 from oshepherd.api.config import ApiConfig
-from oshepherd.redis_service import RedisService
+from oshepherd.common.redis_service import RedisService
 
 OSHEPHERD_WORKERS_PATTERN = "oshepherd_worker:*"
 OSHEPHERD_IDLE_WORKER_DELTA = 60  # secs
