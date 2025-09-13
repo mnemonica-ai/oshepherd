@@ -7,7 +7,7 @@ import uuid
 import requests
 from datetime import datetime, timezone
 from oshepherd.worker.config import WorkerConfig
-from oshepherd.redis_service import RedisService
+from oshepherd.common.redis_service import RedisService
 
 OSHEPHERD_WORKER_HOSTNAME = socket.gethostname()
 OSHEPHERD_WORKER_UUID = uuid.uuid4().hex
