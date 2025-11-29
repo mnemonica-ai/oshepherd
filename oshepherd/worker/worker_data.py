@@ -13,7 +13,6 @@ OSHEPHERD_WORKER_HOSTNAME = socket.gethostname()
 OSHEPHERD_WORKER_UUID = uuid.uuid4().hex
 OSHEPHERD_WORKER_DATA_PUSH_INTERVAL = 10  # secs
 OSHEPHERD_WORKERS_PREFIX_KEY = "oshepherd_worker:"
-OLLAMA_BASE_URL = "http://localhost:11434"  # TODO get from env var
 
 
 class WorkerData:
@@ -21,6 +20,7 @@ class WorkerData:
     def __init__(self, config: WorkerConfig):
         self.backend_url = config.CELERY_BACKEND_URL
         self.config = config
+        self.ollama_base_url = config.OLLAMA_BASE_URL
         self.redis_service = RedisService(self.backend_url)
         self.hostname = OSHEPHERD_WORKER_HOSTNAME
         self.worker_uuid = OSHEPHERD_WORKER_UUID
@@ -29,7 +29,7 @@ class WorkerData:
     def get_ollama_version(self):
         res = {}
         try:
-            req_res = requests.get(f"{OLLAMA_BASE_URL}/api/version")
+            req_res = requests.get(f"{self.ollama_base_url}/api/version")
             req_res.raise_for_status()
             res = req_res.json()
         except Exception as error:
