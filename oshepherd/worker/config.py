@@ -5,6 +5,7 @@ from typing import Optional
 class WorkerConfig(BaseModel):
     CELERY_BROKER_URL: str
     CELERY_BACKEND_URL: str
+    OLLAMA_BASE_URL: Optional[str] = "http://localhost:11434"
     LOGLEVEL: Optional[str] = "info"
     CONCURRENCY: Optional[int] = 1
     PREFETCH_MULTIPLIER: Optional[int] = 1
