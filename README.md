@@ -6,6 +6,11 @@
   <img src="https://raw.githubusercontent.com/mnemonica-ai/oshepherd/main/assets/oshepherd_logo.png" alt="oshepherd logo" width="200">
 </p>
 
+<p align="center">
+  <a href="https://pypi.org/project/oshepherd/"><img src="https://img.shields.io/pypi/v/oshepherd" alt="PyPI Version"></a>
+  <a href="https://github.com/mnemonica-ai/oshepherd/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT License"></a>
+</p>
+
 A centralized [FastAPI](https://fastapi.tiangolo.com/) service, using [Celery](https://docs.celeryq.dev) and [Redis](https://redis.com) to orchestrate multiple [Ollama](https://ollama.com) servers as workers.
 
 ### Install
