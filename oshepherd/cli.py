@@ -21,7 +21,7 @@ def main():
 )
 def start_api(env_file):
     """Starts FastAPI serving Ollama model's inference."""
-    config: ApiConfig = load_and_validate_env(env_file, ApiConfig)
+    config: ApiConfig = load_and_validate_env(ApiConfig, env_file)
 
     app = setup_api_app(config)
     server = setup_api_server(app, config)
@@ -36,7 +36,7 @@ def start_api(env_file):
 )
 def start_worker(env_file):
     """Starts the Celery Worker serving local Ollama models."""
-    config: WorkerConfig = load_and_validate_env(env_file, WorkerConfig)
+    config: WorkerConfig = load_and_validate_env(WorkerConfig, env_file)
 
     worker_data = WorkerData(config)
     worker_data.start_data_push()

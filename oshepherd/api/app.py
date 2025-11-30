@@ -20,6 +20,7 @@ def setup_api_app(config: ApiConfig) -> FastAPI:
 
     celery_app = create_celery_app_for_fastapi(config)
     print(" * celery_app ready: ", celery_app)
+    app.celery_app = celery_app
 
     network_data = NetworkData(config)
     print(" * network_data ready: ", network_data)
