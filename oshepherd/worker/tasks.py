@@ -38,8 +38,9 @@ def exec_completion(self, request_str: str):
                     redis_service.publish(
                         stream_channel, json.dumps(serializable_chunk)
                     )
-                    print(f"  > Sending chunk [{task_id}]: done={serializable_chunk.get('done')}")
-                # Return success indicator for the task
+                    # print(f"  > Sending chunk [{task_id}]: done={serializable_chunk.get('done')}")
+
+                # Return success indicator for the celery task
                 serializable_response = {"status": "streaming_completed"}
             else:
                 response = ollama.generate(**req_payload)
@@ -53,8 +54,9 @@ def exec_completion(self, request_str: str):
                     redis_service.publish(
                         stream_channel, json.dumps(serializable_chunk)
                     )
-                    print(f"  > Sending chunk [{task_id}]: done={serializable_chunk.get('done')}")
-                # Return success indicator for the task
+                    # print(f"  > Sending chunk [{task_id}]: done={serializable_chunk.get('done')}")
+
+                # Return success indicator for the celery task
                 serializable_response = {"status": "streaming_completed"}
             else:
                 response = ollama.chat(**req_payload)

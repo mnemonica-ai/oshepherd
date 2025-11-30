@@ -4,7 +4,9 @@ from pydantic import BaseModel, ValidationError
 from typing import Optional
 
 
-def load_and_validate_env(Config: BaseModel, file_path: Optional[str] = None) -> Optional[BaseModel]:
+def load_and_validate_env(
+    Config: BaseModel, file_path: Optional[str] = None
+) -> Optional[BaseModel]:
     if file_path:
         load_dotenv(file_path)
     else:

@@ -45,7 +45,7 @@ def load_chat_routes(app):
                     for chunk in redis_service.subscribe_to_channel(stream_channel):
                         # Each chunk is already a dict from Redis
                         chunk_json = json.dumps(chunk) + "\n"
-                        print(f" > Receiving chunk [{task_id}]: {chunk_json.strip()}")
+                        # print(f" > Receiving chunk [{task_id}]: {chunk_json.strip()}")
                         # Send worker chunk response to client
                         yield chunk_json.encode("utf-8")
 
