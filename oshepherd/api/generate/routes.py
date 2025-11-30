@@ -36,18 +36,17 @@ def load_generate_routes(app):
         if is_streaming:
             print(f" > Streaming mode enabled for task {task_id}")
 
-            # Create async generator for streaming response
             async def stream_generator():
-                # Get Redis connection from app config
                 redis_service = RedisService(app.celery_app.conf.broker_url)
                 stream_channel = f"oshepherd:stream:{task_id}"
-
                 print(f" > Subscribing to channel: {stream_channel}")
 
                 try:
                     for chunk in redis_service.subscribe_to_channel(stream_channel):
                         # Each chunk is already a dict from Redis
                         chunk_json = json.dumps(chunk) + "\n"
+                        print(f" > Receiving chunk [{task_id}]: {chunk_json.strip()}")
+                        # Send worker chunk response to client
                         yield chunk_json.encode("utf-8")
 
                         # Break after receiving the final chunk
@@ -68,7 +67,8 @@ def load_generate_routes(app):
                 status_code=200,
             )
         else:
-            # Non-streaming mode (existing behavior)
+            print(f" > Celery mode enabled for task {task_id}")
+
             while not task.ready():
                 print(" > waiting for response...")
                 time.sleep(1)
