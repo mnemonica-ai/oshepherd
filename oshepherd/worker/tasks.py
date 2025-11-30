@@ -28,7 +28,7 @@ def exec_completion(self, request_str: str):
             config = load_and_validate_env(WorkerConfig)
             redis_service = RedisService(config.CELERY_BACKEND_URL)
             stream_channel = f"oshepherd:stream:{task_id}"
-            print(f"  > Streaming enabled on channel: {stream_channel}")
+            print(f" > Streaming enabled on channel: {stream_channel}")
 
         if req_type == "generate":
             if is_streaming:
@@ -38,7 +38,7 @@ def exec_completion(self, request_str: str):
                     redis_service.publish(
                         stream_channel, json.dumps(serializable_chunk)
                     )
-                    print(f"  > Published chunk: done={serializable_chunk.get('done')}")
+                    print(f"  > Sending chunk [{task_id}]: done={serializable_chunk.get('done')}")
                 # Return success indicator for the task
                 serializable_response = {"status": "streaming_completed"}
             else:
@@ -53,7 +53,7 @@ def exec_completion(self, request_str: str):
                     redis_service.publish(
                         stream_channel, json.dumps(serializable_chunk)
                     )
-                    print(f"  > Published chunk: done={serializable_chunk.get('done')}")
+                    print(f"  > Sending chunk [{task_id}]: done={serializable_chunk.get('done')}")
                 # Return success indicator for the task
                 serializable_response = {"status": "streaming_completed"}
             else:
@@ -61,7 +61,6 @@ def exec_completion(self, request_str: str):
                 serializable_response = serialize_ollama_res(response)
 
         elif req_type == "embeddings":
-            # Embeddings don't support streaming
             response = ollama.embeddings(**req_payload)
             serializable_response = serialize_ollama_res(response)
 
@@ -75,7 +74,6 @@ def exec_completion(self, request_str: str):
             f"    * error response {serializable_response}",
         )
 
-        # If streaming, publish error to channel
         if is_streaming and redis_service:
             try:
                 error_chunk = {
