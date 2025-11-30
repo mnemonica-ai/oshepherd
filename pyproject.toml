@@ -1,6 +1,6 @@
 [project]
 name = "oshepherd"
-version = "0.0.18"
+version = "0.0.19"
 description = "The Oshepherd guiding the Ollama(s) inference orchestration."
 readme = "README.md"
 authors = [
