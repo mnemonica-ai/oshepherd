@@ -93,7 +93,6 @@ class RedisService:
         return self._with_retry(self.redis_client.ping)
 
     def publish(self, channel: str, message: str) -> int:
-        """Publish a message to a Redis Pub/Sub channel."""
         return self._with_retry(self.redis_client.publish, channel, message)
 
     def subscribe_to_channel(
@@ -114,7 +113,6 @@ class RedisService:
             pubsub = self.redis_client.pubsub()
             pubsub.subscribe(channel)
 
-            # Skip the subscription confirmation message
             for message in pubsub.listen():
                 if message["type"] == "subscribe":
                     continue
