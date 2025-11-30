@@ -84,6 +84,73 @@ pip install oshepherd
     }'
     ```
 
+### Streaming Support
+
+Oshepherd now supports **streaming responses** for both `/api/generate` and `/api/chat` endpoints, allowing real-time token-by-token responses from Ollama workers.
+
+#### How it works
+
+1. **Client** sends request with `stream: true`
+2. **API** submits task to Celery and subscribes to Redis Pub/Sub channel
+3. **Worker** executes Ollama inference with streaming enabled
+4. **Worker** publishes each response chunk to Redis Pub/Sub in real-time
+5. **API** streams chunks back to client as newline-delimited JSON (NDJSON)
+
+#### Architecture
+
+- **Task Distribution**: Celery still handles task orchestration and worker selection
+- **Streaming Transport**: Redis Pub/Sub enables real-time chunk delivery from worker to API
+- **Compatibility**: Fully compatible with Ollama's streaming format
+
+#### Example Usage
+
+* **Python (ollama-python)**:
+
+```python
+import ollama
+
+client = ollama.Client(host="http://127.0.0.1:5001")
+
+# Streaming generate
+for chunk in client.generate(model="mistral", prompt="Why is the sky blue?", stream=True):
+    print(chunk['response'], end='', flush=True)
+
+# Streaming chat
+for chunk in client.chat(model="mistral", messages=[{"role": "user", "content": "Hello!"}], stream=True):
+    print(chunk['message']['content'], end='', flush=True)
+```
+
+* **JavaScript (ollama-js)**:
+
+```javascript
+import { Ollama } from "ollama/browser";
+
+const ollama = new Ollama({ host: "http://127.0.0.1:5001" });
+
+// Streaming generate
+const response = await ollama.generate({
+    model: "mistral",
+    prompt: "Why is the sky blue?",
+    stream: true
+});
+
+for await (const chunk of response) {
+    process.stdout.write(chunk.response);
+}
+```
+
+* **Raw HTTP**:
+
+```sh
+curl -X POST -H "Content-Type: application/json" -L http://127.0.0.1:5001/api/generate/ -d '{
+    "model": "mistral",
+    "prompt": "Why is the sky blue?",
+    "stream": true
+}'
+```
+
+**Note**: When `stream: false` or omitted, the API falls back to the original non-streaming behavior (blocking until full response is ready).
+
 ### Disclaimers 🚨
 
 > This package is in alpha, its architecture and api might change in the near future. Currently this is getting tested in a controlled environment by real users, but haven't been audited, nor tested thorugly. Use it at your own risk.
