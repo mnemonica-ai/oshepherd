@@ -60,11 +60,32 @@ class WorkerData:
             )
         return res
 
+    def get_ollama_ps(self):
+        res = {}
+        try:
+            ollama_response = ollama.ps()
+            # Convert ProcessResponse to dict for JSON serialization
+            res = (
+                ollama_response.model_dump()
+                if hasattr(ollama_response, "model_dump")
+                else dict(ollama_response)
+            )
+        except Exception as error:
+            res = {
+                "error": {"type": str(error.__class__.__name__), "message": str(error)}
+            }
+            print(
+                f" *** error ollama ps fn: {res}",
+            )
+        return res
+
     def get_data(self):
         version_res = self.get_ollama_version()
         serialized_version_res = json.dumps(version_res, default=str)
         list_res = self.get_ollama_list()
         serialized_list_res = json.dumps(list_res, default=str)
+        ps_res = self.get_ollama_ps()
+        serialized_ps_res = json.dumps(ps_res, default=str)
         now = datetime.now(timezone.utc).isoformat()
 
         return {
@@ -73,6 +94,7 @@ class WorkerData:
             "uuid": self.worker_uuid,
             "version": serialized_version_res,
             "tags": serialized_list_res,
+            "ps": serialized_ps_res,
             "heartbeat": now,
         }
 

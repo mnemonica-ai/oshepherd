@@ -8,6 +8,8 @@ from oshepherd.api.generate.routes import load_generate_routes
 from oshepherd.api.embeddings.routes import load_embeddings_routes
 from oshepherd.api.chat.routes import load_chat_routes
 from oshepherd.api.tags.routes import load_tags_routes
+from oshepherd.api.show.routes import load_show_routes
+from oshepherd.api.ps.routes import load_ps_routes
 import logging
 
 # disable uvicorn access logs
@@ -32,5 +34,7 @@ def setup_api_app(config: ApiConfig) -> FastAPI:
     load_embeddings_routes(app)
     load_chat_routes(app)
     load_tags_routes(app)
+    load_show_routes(app)
+    load_ps_routes(app)
 
     return app
