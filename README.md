@@ -60,8 +60,16 @@ pip install oshepherd
     import ollama
 
     client = ollama.Client(host="http://127.0.0.1:5001")
-    ollama_response = client.generate({"model": "mistral", "prompt": "Why is the sky blue?"})
+
+    # Standard request
+    response = client.generate(model="mistral", prompt="Why is the sky blue?")
+
+    # Streaming request
+    for chunk in client.generate(model="mistral", prompt="Why is the sky blue?", stream=True):
+        print(chunk['response'], end='', flush=True)
     ```
+
+    For a complete Python example with streaming support, see [examples/pretty_streaming.py](examples/pretty_streaming.py).
 
     * [ollama-js](https://github.com/ollama/ollama-js) client:
 
@@ -69,19 +77,33 @@ pip install oshepherd
     import { Ollama } from "ollama/browser";
 
     const ollama = new Ollama({ host: "http://127.0.0.1:5001" });
-    const ollamaResponse = await ollama.generate({
+
+    // Standard request
+    const response = await ollama.generate({
         model: "mistral",
         prompt: "Why is the sky blue?",
     });
+
+    // Streaming request
+    const streamResponse = await ollama.generate({
+        model: "mistral",
+        prompt: "Why is the sky blue?",
+        stream: true
+    });
+
+    for await (const chunk of streamResponse) {
+        process.stdout.write(chunk.response);
+    }
     ```
+
+    For a complete TypeScript/JavaScript example with streaming support, see [examples/ts-scripts/README.md](examples/ts-scripts/README.md).
 
     * Raw http request:
 
     ```sh
-    curl -X POST -H "Content-Type: application/json" -L http://127.0.0.1:5001/api/generate/ -d '{
-        "model": "mistral",
-        "prompt":"Why is the sky blue?"
-    }'
+    curl -X POST -H "Content-Type: application/json" -L http://127.0.0.1:5001/api/generate/ \
+    -d '{"model":"mistral","prompt":"Why is the sky blue?","stream":true}' \
+    --no-buffer
     ```
 
 ### Disclaimers 🚨

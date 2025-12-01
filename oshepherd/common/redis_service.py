@@ -1,7 +1,8 @@
 import threading
-from typing import Any, Optional, Dict, Iterator
+from typing import Any, Optional, Dict, Iterator, Generator
 from redis import Redis
 from redis.exceptions import ConnectionError as RedisConnectionError
+import json
 
 
 class RedisService:
@@ -90,3 +91,46 @@ class RedisService:
 
     def ping(self) -> bool:
         return self._with_retry(self.redis_client.ping)
+
+    def publish(self, channel: str, message: str) -> int:
+        return self._with_retry(self.redis_client.publish, channel, message)
+
+    def subscribe_to_channel(
+        self, channel: str, timeout: Optional[float] = None
+    ) -> Generator[Dict[str, Any], None, None]:
+        """
+        Subscribe to a Redis Pub/Sub channel and yield messages.
+
+        Args:
+            channel: The channel name to subscribe to
+            timeout: Optional timeout in seconds for listening to messages
+
+        Yields:
+            Dict containing the message data
+        """
+        pubsub = None
+        try:
+            pubsub = self.redis_client.pubsub()
+            pubsub.subscribe(channel)
+
+            for message in pubsub.listen():
+                if message["type"] == "subscribe":
+                    continue
+                elif message["type"] == "message":
+                    try:
+                        data = json.loads(message["data"])
+                        yield data
+
+                        # Check if this is the end marker
+                        if data.get("done") is True:
+                            break
+                    except json.JSONDecodeError:
+                        print(f" ! Failed to decode message: {message['data']}")
+                        continue
+        except Exception as e:
+            print(f" ! Error in subscribe_to_channel: {e}")
+            raise
+        finally:
+            if pubsub:
+                pubsub.unsubscribe(channel)
+                pubsub.close()
