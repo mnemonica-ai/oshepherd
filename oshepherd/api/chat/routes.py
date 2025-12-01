@@ -36,7 +36,7 @@ def load_chat_routes(app):
         if is_streaming:
             print(f" > Streaming mode enabled for task {task_id}")
 
-            async def stream_generator():
+            def stream_generator():
                 redis_service = RedisService(app.celery_app.conf.broker_url)
                 stream_channel = f"oshepherd:stream:{task_id}"
                 print(f" > Subscribing to channel: {stream_channel}")
