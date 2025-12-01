@@ -21,13 +21,6 @@ def print_user_message(prompt, model):
     print("💬 Assistant: ", end="", flush=True)
 
 
-def stream_response(client, model, prompt):
-    """Stream and display the response in real-time."""
-    for chunk in client.generate(model=model, prompt=prompt, stream=True):
-        response_text = chunk['response']
-        print(response_text, end='', flush=True)
-
-
 def print_footer():
     """Display the completion footer."""
     print("\n\n" + "-" * 60)
@@ -47,8 +40,10 @@ def main():
     print_header()
     print_user_message(prompt, model)
 
-    # Stream the response
-    stream_response(client, model, prompt)
+    # Stream and display the response in real-time
+    for chunk in client.generate(model=model, prompt=prompt, stream=True):
+        response_text = chunk["response"]
+        print(response_text, end="", flush=True)
 
     print_footer()
 
