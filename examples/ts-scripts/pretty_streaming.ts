@@ -1,6 +1,6 @@
 /**
- * Example script demonstrating streaming requests to an Ollama server.
- * Displays a chatbot-style interface with real-time streaming responses.
+ * This script will send requests to the Oshepherd API, which will orchestrate Ollama models inference execution
+ * on available Oshepherd Workers using streaming mode.
  */
 
 import { Ollama } from "ollama";
@@ -15,22 +15,6 @@ function printUserMessage(prompt: string, model: string): void {
   console.log(`📝 You: ${prompt}`);
   console.log(`🧠 Model: ${model}\n`);
   process.stdout.write("💬 Assistant: ");
-}
-
-async function streamResponse(
-  client: Ollama,
-  model: string,
-  prompt: string
-): Promise<void> {
-  const response = await client.generate({
-    model: model,
-    prompt: prompt,
-    stream: true,
-  });
-
-  for await (const chunk of response) {
-    process.stdout.write(chunk.response);
-  }
 }
 
 function printFooter(): void {
@@ -52,7 +36,15 @@ async function main(): Promise<void> {
   printUserMessage(prompt, model);
 
   // Stream the response
-  await streamResponse(client, model, prompt);
+  const response = await client.generate({
+    model: model,
+    prompt: prompt,
+    stream: true,
+  });
+
+  for await (const chunk of response) {
+    process.stdout.write(chunk.response);
+  }
 
   printFooter();
 }

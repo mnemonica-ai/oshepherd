@@ -1,7 +1,7 @@
 {
-  "name": "oshepherd-streaming-example",
-  "version": "1.0.0",
-  "description": "Example script demonstrating Oshepherd streaming",
+  "name": "oshepherd-ts-scripts",
+  "version": "0.0.1",
+  "description": "Oshepherd in JavaScript/TypeScript",
   "main": "dist/pretty_streaming.js",
   "scripts": {
     "build": "tsc",
