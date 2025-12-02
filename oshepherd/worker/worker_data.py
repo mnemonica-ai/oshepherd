@@ -99,25 +99,26 @@ class WorkerData:
             )
         return res
 
-    def push_show_data(self):
-        """Push show data for all available models to Redis."""
+    def get_ollama_show_map(self):
+        """Get show information for all available models."""
+        show_map = {}
         try:
             list_res = self.get_ollama_list()
             models = list_res.get("models", [])
 
             for model in models:
-                model_name = model.get("name")
+                model_name = model.get("model")
                 if model_name:
                     show_res = self.get_ollama_show(model_name)
-                    serialized_show_res = json.dumps(show_res, default=str)
-                    show_key = f"{OSHEPHERD_WORKERS_PREFIX_KEY}{self.worker_id}:show:{model_name}"
-                    self.redis_service.set(show_key, serialized_show_res)
-                    # Set expiration to 2x the push interval to ensure data freshness
-                    self.redis_service.expire(show_key, OSHEPHERD_WORKER_DATA_PUSH_INTERVAL * 2)
+                    show_map[model_name] = show_res
 
-            print(f" >>> worker {self.worker_id} show data pushed for {len(models)} models")
+            print(
+                f" >>> worker {self.worker_id} fetched show data for {len(show_map)} models"
+            )
         except Exception as e:
-            print(f" ! Show data push failed: {e}")
+            print(f" ! Failed to fetch show data: {e}")
+
+        return show_map
 
     def get_data(self):
         version_res = self.get_ollama_version()
@@ -126,6 +127,8 @@ class WorkerData:
         serialized_list_res = json.dumps(list_res, default=str)
         ps_res = self.get_ollama_ps()
         serialized_ps_res = json.dumps(ps_res, default=str)
+        show_map = self.get_ollama_show_map()
+        serialized_show_map = json.dumps(show_map, default=str)
         now = datetime.now(timezone.utc).isoformat()
 
         return {
@@ -135,6 +138,7 @@ class WorkerData:
             "version": serialized_version_res,
             "tags": serialized_list_res,
             "ps": serialized_ps_res,
+            "show": serialized_show_map,
             "heartbeat": now,
         }
 
@@ -145,9 +149,6 @@ class WorkerData:
                 f"{OSHEPHERD_WORKERS_PREFIX_KEY}{self.worker_id}", mapping=worker_data
             )
             print(f" >>> worker {self.worker_id} data pushed")
-
-            # Also push show data for all models
-            self.push_show_data()
         except Exception as e:
             print(f" ! Data push failed: {e}")
 

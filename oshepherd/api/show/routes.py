@@ -24,7 +24,9 @@ def load_show_routes(app):
 
         status = 200
         if ollama_res.get("error"):
-            status = 404 if "not found" in ollama_res.get("message", "").lower() else 500
+            status = (
+                404 if "not found" in ollama_res.get("message", "").lower() else 500
+            )
 
         print(f" $ ollama response [{status}]: {ollama_res}")
 
