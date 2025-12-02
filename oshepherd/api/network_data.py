@@ -96,6 +96,29 @@ class NetworkData:
 
         return {"models": models_list}
 
+    def get_model_info(self, model_name):
+        """Get show information for a specific model from any active worker."""
+        show_pattern = f"{self.workers_pattern}:show:{model_name}"
+
+        # Search for this model across all workers
+        for key in self.redis_service.scan_iter(match=show_pattern):
+            show_data_raw = self.redis_service.get(key)
+            if show_data_raw:
+                # Decode if bytes
+                if isinstance(show_data_raw, bytes):
+                    show_data_raw = show_data_raw.decode("utf-8")
+                show_data = json.loads(show_data_raw)
+
+                # Check if this is valid data (not an error)
+                if not show_data.get("error"):
+                    return show_data
+
+        # If no valid data found, return error
+        return {
+            "error": "Model not found",
+            "message": f"Model '{model_name}' not found on any active worker",
+        }
+
     def is_worker_idle(self, heartbeat):
         heartbeat_time = datetime.fromisoformat(heartbeat)
         current_time = datetime.now(timezone.utc)

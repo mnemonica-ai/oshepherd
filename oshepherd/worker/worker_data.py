@@ -79,6 +79,46 @@ class WorkerData:
             )
         return res
 
+    def get_ollama_show(self, model_name):
+        """Get show information for a specific model."""
+        res = {}
+        try:
+            ollama_response = ollama.show(model_name)
+            # Convert ShowResponse to dict for JSON serialization
+            res = (
+                ollama_response.model_dump()
+                if hasattr(ollama_response, "model_dump")
+                else dict(ollama_response)
+            )
+        except Exception as error:
+            res = {
+                "error": {"type": str(error.__class__.__name__), "message": str(error)}
+            }
+            print(
+                f" *** error ollama show fn for model {model_name}: {res}",
+            )
+        return res
+
+    def push_show_data(self):
+        """Push show data for all available models to Redis."""
+        try:
+            list_res = self.get_ollama_list()
+            models = list_res.get("models", [])
+
+            for model in models:
+                model_name = model.get("name")
+                if model_name:
+                    show_res = self.get_ollama_show(model_name)
+                    serialized_show_res = json.dumps(show_res, default=str)
+                    show_key = f"{OSHEPHERD_WORKERS_PREFIX_KEY}{self.worker_id}:show:{model_name}"
+                    self.redis_service.set(show_key, serialized_show_res)
+                    # Set expiration to 2x the push interval to ensure data freshness
+                    self.redis_service.expire(show_key, OSHEPHERD_WORKER_DATA_PUSH_INTERVAL * 2)
+
+            print(f" >>> worker {self.worker_id} show data pushed for {len(models)} models")
+        except Exception as e:
+            print(f" ! Show data push failed: {e}")
+
     def get_data(self):
         version_res = self.get_ollama_version()
         serialized_version_res = json.dumps(version_res, default=str)
@@ -105,6 +145,9 @@ class WorkerData:
                 f"{OSHEPHERD_WORKERS_PREFIX_KEY}{self.worker_id}", mapping=worker_data
             )
             print(f" >>> worker {self.worker_id} data pushed")
+
+            # Also push show data for all models
+            self.push_show_data()
         except Exception as e:
             print(f" ! Data push failed: {e}")
 

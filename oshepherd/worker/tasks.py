@@ -66,10 +66,6 @@ def exec_completion(self, request_str: str):
             response = ollama.embeddings(**req_payload)
             serializable_response = serialize_ollama_res(response)
 
-        elif req_type == "show":
-            response = ollama.show(**req_payload)
-            serializable_response = serialize_ollama_res(response)
-
         print(f"  $ success {serializable_response}")
     except Exception as error:
         print(f"  * error exec_completion {error}")

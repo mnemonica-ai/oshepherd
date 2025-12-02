@@ -23,6 +23,8 @@ CHAT_ENDPOINT = f"{HOST}/api/chat/"
 EMBEDDINGS_ENDPOINT = f"{HOST}/api/embeddings/"
 TAGS_ENDPOINT = f"{HOST}/api/tags/"
 VERSION_ENDPOINT = f"{HOST}/api/version/"
+SHOW_ENDPOINT = f"{HOST}/api/show/"
+PS_ENDPOINT = f"{HOST}/api/ps/"
 
 req_headers = {"Content-Type": "application/json"}
 
@@ -133,3 +135,44 @@ def test_basic_version_using_requests():
     assert "error" not in response
     ollama_res = VersionResponse(**response.json())
     assert ollama_res.version, "version should not be an empty string"
+
+
+def test_basic_show_using_requests():
+    data = {"model": "mistral"}
+    response = requests.post(SHOW_ENDPOINT, headers=req_headers, data=json.dumps(data))
+
+    assert response.status_code == 200
+    res_json = response.json()
+    assert "error" not in res_json
+    # Check for expected fields in show response
+    assert "modelfile" in res_json or "license" in res_json or "parameters" in res_json, "response should contain model information"
+
+
+def test_basic_show_using_ollama():
+    client = ollama.Client(host=HOST)
+    ollama_res = client.show("mistral")
+
+    ollama_dict = serialize_ollama_res(ollama_res)
+    # Check for expected fields in show response
+    assert "modelfile" in ollama_dict or "license" in ollama_dict or "parameters" in ollama_dict, "response should contain model information"
+
+
+def test_basic_ps_using_requests():
+    response = requests.get(PS_ENDPOINT, headers=req_headers)
+
+    assert response.status_code == 200
+    res_json = response.json()
+    assert "error" not in res_json
+    assert "models" in res_json, "response should contain models array"
+    # Running models list can be empty if no models are currently loaded
+    assert isinstance(res_json["models"], list), "models should be a list"
+
+
+def test_basic_ps_using_ollama():
+    client = ollama.Client(host=HOST)
+    ollama_res = client.ps()
+
+    ollama_dict = serialize_ollama_res(ollama_res)
+    assert "models" in ollama_dict, "response should contain models array"
+    # Running models list can be empty if no models are currently loaded
+    assert isinstance(ollama_dict["models"], list), "models should be a list"
