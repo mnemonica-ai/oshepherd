@@ -5,6 +5,7 @@ Ollama endpoint reference: https://github.com/ollama/ollama/blob/main/docs/api.m
 """
 
 import time
+import json
 from fastapi import Request
 from oshepherd.api.utils import streamify_json
 from oshepherd.api.show.models import ShowRequest
@@ -25,7 +26,7 @@ def load_show_routes(app):
             "type": "show",
             "payload": show_request.model_dump(),
         }
-        task_request_json_str = str(task_request).replace("'", '"')
+        task_request_json_str = json.dumps(task_request)
         print(f" # show task request: {task_request_json_str}")
 
         # Queue request to remote ollama api server
