@@ -138,19 +138,20 @@ def test_basic_version_using_requests():
 
 
 def test_basic_show_using_requests():
-    data = {"model": "mistral"}
+    data = {"model": "mistral:latest"}
     response = requests.post(SHOW_ENDPOINT, headers=req_headers, data=json.dumps(data))
 
     assert response.status_code == 200
     res_json = response.json()
     assert "error" not in res_json
-    # Check for expected fields in show response
-    assert "modelfile" in res_json or "license" in res_json or "parameters" in res_json, "response should contain model information"
+    # Check for expected fields in show response (nested under model_info)
+    model_info = res_json.get("model_info", {})
+    assert "modelfile" in model_info or "license" in model_info or "parameters" in model_info, "response should contain model information"
 
 
 def test_basic_show_using_ollama():
     client = ollama.Client(host=HOST)
-    ollama_res = client.show("mistral")
+    ollama_res = client.show("mistral:latest")
 
     ollama_dict = serialize_ollama_res(ollama_res)
     # Check for expected fields in show response
