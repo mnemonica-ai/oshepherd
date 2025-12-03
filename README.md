@@ -119,10 +119,10 @@ pip install oshepherd
 - [x] **Generate Embeddings:** `POST /api/embeddings`
 - [x] **List Local Models:** `GET /api/tags`
 - [x] **Version:** `GET /api/version`
-- [ ] **Show Model Information:** `POST /api/show` (pending)
-- [ ] **List Running Models:** `GET /api/ps` (pending)
+- [x] **Show Model Information:** `POST /api/show` (pending)
+- [x] **List Running Models:** `GET /api/ps` (pending)
 
-Oshepherd API server has been designed to maintain compatibility with the endpoints defined by Ollama, ensuring that any official client (i.e.: [ollama-python](https://github.com/ollama/ollama-python), [ollama-js](https://github.com/ollama/ollama-js)) can use this server as host and receive expected responses. For more details on the full API specifications, refer to the official [Ollama API documentation](https://github.com/ollama/ollama/blob/main/docs/api.md#api).
+Oshepherd API server currently supports the endpoints listed above, enabling full compatibility with official Ollama clients (i.e.: [ollama-python](https://github.com/ollama/ollama-python), [ollama-js](https://github.com/ollama/ollama-js)). These endpoints provide comprehensive functionality for the most common use cases. Additional endpoints from the official Ollama API are not planned for the near future. For more details on the full Ollama API specifications, refer to the [Ollama API documentation](https://github.com/ollama/ollama/blob/main/docs/api.md#api).
 
 ### Contribution guidelines
 

@@ -60,11 +60,75 @@ class WorkerData:
             )
         return res
 
+    def get_ollama_ps(self):
+        res = {}
+        try:
+            ollama_response = ollama.ps()
+            # Convert ProcessResponse to dict for JSON serialization
+            res = (
+                ollama_response.model_dump()
+                if hasattr(ollama_response, "model_dump")
+                else dict(ollama_response)
+            )
+        except Exception as error:
+            res = {
+                "error": {"type": str(error.__class__.__name__), "message": str(error)}
+            }
+            print(
+                f" *** error ollama ps fn: {res}",
+            )
+        return res
+
+    def get_ollama_show(self, model_name):
+        """Get show information for a specific model."""
+        res = {}
+        try:
+            ollama_response = ollama.show(model_name)
+            # Convert ShowResponse to dict for JSON serialization
+            res = (
+                ollama_response.model_dump()
+                if hasattr(ollama_response, "model_dump")
+                else dict(ollama_response)
+            )
+        except Exception as error:
+            res = {
+                "error": {"type": str(error.__class__.__name__), "message": str(error)}
+            }
+            print(
+                f" *** error ollama show fn for model {model_name}: {res}",
+            )
+        return res
+
+    def get_ollama_show_map(self):
+        """Get show information for all available models."""
+        show_map = {}
+        try:
+            list_res = self.get_ollama_list()
+            models = list_res.get("models", [])
+
+            for model in models:
+                model_name = model.get("model")
+                if model_name:
+                    show_res = self.get_ollama_show(model_name)
+                    show_map[model_name] = show_res
+
+            print(
+                f" >>> worker {self.worker_id} fetched show data for {len(show_map)} models"
+            )
+        except Exception as e:
+            print(f" ! Failed to fetch show data: {e}")
+
+        return show_map
+
     def get_data(self):
         version_res = self.get_ollama_version()
         serialized_version_res = json.dumps(version_res, default=str)
-        list_res = self.get_ollama_list()
-        serialized_list_res = json.dumps(list_res, default=str)
+        tags_list_res = self.get_ollama_list()
+        serialized_tags_list_res = json.dumps(tags_list_res, default=str)
+        ps_res = self.get_ollama_ps()
+        serialized_ps_res = json.dumps(ps_res, default=str)
+        show_map = self.get_ollama_show_map()
+        serialized_show_map = json.dumps(show_map, default=str)
         now = datetime.now(timezone.utc).isoformat()
 
         return {
@@ -72,7 +136,9 @@ class WorkerData:
             "hostname": self.hostname,
             "uuid": self.worker_uuid,
             "version": serialized_version_res,
-            "tags": serialized_list_res,
+            "tags": serialized_tags_list_res,
+            "ps": serialized_ps_res,
+            "show": serialized_show_map,
             "heartbeat": now,
         }
 

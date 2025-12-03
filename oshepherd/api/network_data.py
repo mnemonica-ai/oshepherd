@@ -68,6 +68,71 @@ class NetworkData:
         tags_res["models"] = list(tags_dict.values())
         return tags_res
 
+    def get_running_models(self):
+        """Get list of running models from all active workers."""
+
+        models_list = []
+        for key in self.redis_service.scan_iter(match=self.workers_pattern):
+            data = self.redis_service.hgetall(key)
+            # Decode bytes to strings
+            decoded_data = {
+                k.decode("utf-8"): v.decode("utf-8") for k, v in data.items()
+            }
+
+            worker_id = decoded_data.get("worker_id")
+            heartbeat = decoded_data.get("heartbeat")
+            if not heartbeat:
+                print(f" * worker [{worker_id}] has no heartbeat, skipped")
+                continue
+
+            if self.is_worker_idle(heartbeat):
+                print(f" * worker [{worker_id}] is idle, skipped")
+                continue
+
+            ps_data = json.loads(decoded_data.get("ps", "{}"))
+            if "models" in ps_data:
+                models_list.extend(ps_data["models"])
+
+        return {"models": models_list}
+
+    def get_model_info(self, model_name):
+        """Get show information for a specific model from any active worker."""
+
+        for key in self.redis_service.scan_iter(match=self.workers_pattern):
+            data = self.redis_service.hgetall(key)
+            # Decode bytes to strings
+            decoded_data = {
+                k.decode("utf-8"): v.decode("utf-8") for k, v in data.items()
+            }
+
+            worker_id = decoded_data.get("worker_id")
+            heartbeat = decoded_data.get("heartbeat")
+            if not heartbeat:
+                print(f" * worker [{worker_id}] has no heartbeat, skipped")
+                continue
+
+            if self.is_worker_idle(heartbeat):
+                print(f" * worker [{worker_id}] is idle, skipped")
+                continue
+
+            show_data_raw = decoded_data.get("show")
+            if show_data_raw:
+                try:
+                    show_map = json.loads(show_data_raw)
+                    if model_name in show_map:
+                        model_info = show_map[model_name]
+                        if not model_info.get("error"):
+                            # Wrap model_info in the format expected by ollama.Client
+                            return {"model_info": model_info}
+                except json.JSONDecodeError:
+                    print(f" * worker [{worker_id}] has invalid show data, skipped")
+                    continue
+
+        return {
+            "error": "Model not found",
+            "message": f"Model '{model_name}' not found on any active worker",
+        }
+
     def is_worker_idle(self, heartbeat):
         heartbeat_time = datetime.fromisoformat(heartbeat)
         current_time = datetime.now(timezone.utc)
