@@ -70,8 +70,8 @@ class NetworkData:
 
     def get_running_models(self):
         """Get list of running models from all active workers."""
-        models_list = []
 
+        models_list = []
         for key in self.redis_service.scan_iter(match=self.workers_pattern):
             data = self.redis_service.hgetall(key)
             # Decode bytes to strings
@@ -90,7 +90,6 @@ class NetworkData:
                 continue
 
             ps_data = json.loads(decoded_data.get("ps", "{}"))
-            # Aggregate running models from all workers
             if "models" in ps_data:
                 models_list.extend(ps_data["models"])
 
@@ -98,7 +97,7 @@ class NetworkData:
 
     def get_model_info(self, model_name):
         """Get show information for a specific model from any active worker."""
-        # Search for this model across all workers in their show data
+
         for key in self.redis_service.scan_iter(match=self.workers_pattern):
             data = self.redis_service.hgetall(key)
             # Decode bytes to strings
@@ -116,15 +115,12 @@ class NetworkData:
                 print(f" * worker [{worker_id}] is idle, skipped")
                 continue
 
-            # Get show data from the worker hash
             show_data_raw = decoded_data.get("show")
             if show_data_raw:
                 try:
                     show_map = json.loads(show_data_raw)
-                    # Look for the requested model in the show map
                     if model_name in show_map:
                         model_info = show_map[model_name]
-                        # Check if this is valid data (not an error)
                         if not model_info.get("error"):
                             # Wrap model_info in the format expected by ollama.Client
                             return {"model_info": model_info}
@@ -132,7 +128,6 @@ class NetworkData:
                     print(f" * worker [{worker_id}] has invalid show data, skipped")
                     continue
 
-        # If no valid data found, return error
         return {
             "error": "Model not found",
             "message": f"Model '{model_name}' not found on any active worker",

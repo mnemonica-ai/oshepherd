@@ -19,7 +19,6 @@ def load_show_routes(app):
         print(f" # show request: {request_json}")
         show_request = ShowRequest(**request_json)
 
-        # Get model information from Redis (aggregated from all workers)
         ollama_res = network_data.get_model_info(show_request.model)
 
         status = 200

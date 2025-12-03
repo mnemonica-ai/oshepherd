@@ -123,8 +123,8 @@ class WorkerData:
     def get_data(self):
         version_res = self.get_ollama_version()
         serialized_version_res = json.dumps(version_res, default=str)
-        list_res = self.get_ollama_list()
-        serialized_list_res = json.dumps(list_res, default=str)
+        tags_list_res = self.get_ollama_list()
+        serialized_tags_list_res = json.dumps(tags_list_res, default=str)
         ps_res = self.get_ollama_ps()
         serialized_ps_res = json.dumps(ps_res, default=str)
         show_map = self.get_ollama_show_map()
@@ -136,7 +136,7 @@ class WorkerData:
             "hostname": self.hostname,
             "uuid": self.worker_uuid,
             "version": serialized_version_res,
-            "tags": serialized_list_res,
+            "tags": serialized_tags_list_res,
             "ps": serialized_ps_res,
             "show": serialized_show_map,
             "heartbeat": now,
