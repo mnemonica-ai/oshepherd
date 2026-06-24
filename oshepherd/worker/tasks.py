@@ -63,7 +63,13 @@ def exec_completion(self, request_str: str):
                 serializable_response = serialize_ollama_res(response)
 
         elif req_type == "embeddings":
-            response = ollama.embeddings(**req_payload)
+            # ponytail: use deprecated /api/embeddings instead of /api/embed — newer endpoint requires --embeddings server flag
+            response = ollama.embeddings(
+                model=req_payload["model"],
+                prompt=req_payload.get("input", ""),
+                options=req_payload.get("options"),
+                keep_alive=req_payload.get("keep_alive"),
+            )
             serializable_response = serialize_ollama_res(response)
 
         print(f"  $ success {serializable_response}")

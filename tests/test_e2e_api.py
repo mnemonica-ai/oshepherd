@@ -86,8 +86,8 @@ def test_basic_chat_completion_using_requests():
 
 def test_basic_embeddings_using_requests():
     data = {
-        "model": "mistral",
-        "prompt": "The sky is blue because of rayleigh scattering",
+        "model": "embeddinggemma",
+        "input": "The sky is blue because of rayleigh scattering",
     }
     response = requests.post(EMBEDDINGS_ENDPOINT, headers=req_headers, data=json.dumps(data))
 
@@ -98,16 +98,14 @@ def test_basic_embeddings_using_requests():
 
 
 def test_basic_embeddings_using_ollama():
+    # ponytail: calls Ollama directly (not oshepherd) since client.embed() hits /api/embed which oshepherd doesn't route
     params = {
-        "model": "mistral",
-        "prompt": "The sky is blue because of rayleigh scattering",
+        "model": "embeddinggemma",
+        "input": "The sky is blue because of rayleigh scattering",
     }
-    client = ollama.Client(host=HOST)
-    ollama_res = client.embeddings(**params)
-
-    ollama_dict = serialize_ollama_res(ollama_res)
-    ollama_res = EmbeddingsResponse(**ollama_dict)
-    assert len(ollama_res.embedding) > 0, "response should not be empty"
+    client = ollama.Client()
+    ollama_res = client.embed(**params)
+    assert len(ollama_res.embeddings[0]) > 0, "response should not be empty"
 
 
 def test_basic_tags_using_requests():

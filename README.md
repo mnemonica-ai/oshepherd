@@ -144,7 +144,14 @@ pip install -e .
 
 ##### Tests
 
-Follow usage instructions to start api server and celery worker using a local ollama, and then run the tests:
+The e2e tests require the following models to be available on your local Ollama instance:
+
+```sh
+ollama pull mistral        # used by generate, chat, and show tests
+ollama pull embeddinggemma # used by embeddings tests
+```
+
+Then follow the usage instructions to start the API server and Celery worker, and run:
 
 ```sh
 pytest -s tests/

@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="oshepherd",
-    version="0.0.21",
+    version="0.0.22",
     description="The Oshepherd guiding the Ollama(s) inference orchestration.",
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
@@ -11,7 +11,7 @@ setup(
     packages=find_packages(),
     python_requires=">=3.12",
     install_requires=[
-        "gunicorn",
+        "uvicorn",
         "fastapi[standard]",
         "celery",
         "click",

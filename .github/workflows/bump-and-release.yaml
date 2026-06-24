@@ -1,6 +1,6 @@
 name: bump & release
 
-on: 
+on:
   push:
     branches:
       - main
@@ -11,7 +11,24 @@ jobs:
     env:
       GITHUB_TOKEN: ${{ secrets.OSHEPHERD_TOKEN }}
     steps:
-      - uses: rymndhng/release-on-push-action@master
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.OSHEPHERD_TOKEN }}
+
+      - id: release
+        uses: rymndhng/release-on-push-action@aebba2bbce07a9474bf95e8710e5ee8a9e922fe2 # master
         with:
           bump_version_scheme: patch
           max_commits: 250
+          prerelease: true
+
+      - name: bump version in package files
+        if: steps.release.outputs.version != ''
+        run: |
+          sed -i "s/^version = .*/version = \"${{ steps.release.outputs.version }}\"/" pyproject.toml
+          sed -i "s/    version=.*/    version=\"${{ steps.release.outputs.version }}\",/" setup.py
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add pyproject.toml setup.py
+          git commit -m "chore: bump version to ${{ steps.release.outputs.version }} [skip ci]"
+          git push

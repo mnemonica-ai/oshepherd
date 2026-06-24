@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 class EmbeddingsPayload(BaseModel):
     model: str
-    prompt: str
+    input: str
     options: Optional[dict] = None
     keep_alive: Optional[str] = "5m"
 
