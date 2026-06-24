@@ -11,7 +11,7 @@ setup(
     packages=find_packages(),
     python_requires=">=3.12",
     install_requires=[
-        "gunicorn",
+        "uvicorn",
         "fastapi[standard]",
         "celery",
         "click",
