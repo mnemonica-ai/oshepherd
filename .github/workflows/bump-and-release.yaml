@@ -16,7 +16,7 @@ jobs:
           token: ${{ secrets.OSHEPHERD_TOKEN }}
 
       - id: release
-        uses: rymndhng/release-on-push-action@master
+        uses: rymndhng/release-on-push-action@aebba2bbce07a9474bf95e8710e5ee8a9e922fe2 # master
         with:
           bump_version_scheme: patch
           max_commits: 250
