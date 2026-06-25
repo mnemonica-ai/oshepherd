@@ -74,7 +74,7 @@ UVICORN_ACCESS_LOG=true
 Request and response payload bodies are only logged at `debug` level because
 they may contain prompts, model output, or other sensitive data.
 
-4. Now you're ready to execute Ollama completions remotely. You can point your Ollama client to your oshepherd api server by setting the `host`, and it will return your requested completions from any of the workers:
+4. Now you're ready to execute Ollama completions remotely. You can point your Ollama client to your `oshepherd` api server by setting the `host`, and it will return your requested completions from any of the workers:
 
     * [ollama-python](https://github.com/ollama/ollama-python) client:
 
@@ -130,12 +130,10 @@ they may contain prompts, model output, or other sensitive data.
 
 ### Example: PyCon Austria 2025
 
-For a practical example of how oshepherd can be used to orchestrate on-premise
-open-source LLMs, see the companion repository from the PyCon Austria 2025 talk
-["Beyond the Cloud: On-Premise Orchestration for Open-Source LLMs"](https://2025.pycon.at/talks/beyond-the-cloud-on-premise-orchestration-for-open-source-llms/):
+For a practical example of how `oshepherd` can be used to orchestrate on-premise open-source LLMs, see the companion repository from the PyCon Austria 2025 talk ["Beyond the Cloud: On-Premise Orchestration for Open-Source LLMs"](https://2025.pycon.at/talks/beyond-the-cloud-on-premise-orchestration-for-open-source-llms/):
 
 - Repository: https://github.com/mnemonica-ai/on-premise-orchestration-os-llms
-- Slides: https://speakerdeck.com/p1nox/beyond-the-cloud-on-premise-orchestration-for-open-source-llms
+- Deck: https://speakerdeck.com/p1nox/beyond-the-cloud-on-premise-orchestration-for-open-source-llms
 
 ### Disclaimers 🚨
 
