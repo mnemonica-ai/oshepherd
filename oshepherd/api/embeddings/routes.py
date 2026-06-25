@@ -5,9 +5,12 @@ Ollama endpoint reference: https://github.com/ollama/ollama/blob/main/docs/api.m
 """
 
 import time
+import logging
 from fastapi import Request
 from oshepherd.api.utils import streamify_json
 from oshepherd.api.embeddings.models import EmbeddingsRequest
+
+logger = logging.getLogger(__name__)
 
 
 def load_embeddings_routes(app):
@@ -17,17 +20,23 @@ def load_embeddings_routes(app):
         from oshepherd.worker.tasks import exec_completion
 
         request_json = await request.json()
-        print(f" # request json: {request_json}")
+        logger.debug("embeddings request payload=%s", request_json)
         embeddings_request = EmbeddingsRequest(**{"payload": request_json})
 
         # req as json string ready to be sent through broker
         embeddings_request_json_str = embeddings_request.model_dump_json()
-        print(f" # embeddings request {embeddings_request_json_str}")
+        logger.debug("embeddings task payload=%s", embeddings_request_json_str)
 
         # queue request to remote ollama api server
         task = exec_completion.delay(embeddings_request_json_str)
+        task_id = task.id
+        logger.info(
+            "embeddings request queued task_id=%s model=%s",
+            task_id,
+            request_json.get("model"),
+        )
         while not task.ready():
-            print(" > waiting for response...")
+            logger.debug("waiting for response task_id=%s", task_id)
             time.sleep(1)
         ollama_res = task.get(timeout=1)
 
@@ -39,7 +48,7 @@ def load_embeddings_routes(app):
             }
             status = 500
 
-        print(f" $ ollama response {status}: {ollama_res}")
+        logger.info("ollama response received task_id=%s status=%s", task_id, status)
 
         return streamify_json(ollama_res, status)
 

@@ -1,4 +1,5 @@
 import json
+import logging
 import ollama
 import socket
 import threading
@@ -13,6 +14,7 @@ OSHEPHERD_WORKER_HOSTNAME = socket.gethostname()
 OSHEPHERD_WORKER_UUID = uuid.uuid4().hex
 OSHEPHERD_WORKER_DATA_PUSH_INTERVAL = 10  # secs
 OSHEPHERD_WORKERS_PREFIX_KEY = "oshepherd_worker:"
+logger = logging.getLogger(__name__)
 
 
 class WorkerData:
@@ -36,8 +38,10 @@ class WorkerData:
             res = {
                 "error": {"type": str(error.__class__.__name__), "message": str(error)}
             }
-            print(
-                f" *** error ollama version fn: {res}",
+            logger.warning(
+                "error fetching Ollama version error_type=%s error=%s",
+                error.__class__.__name__,
+                error,
             )
         return res
 
@@ -55,8 +59,10 @@ class WorkerData:
             res = {
                 "error": {"type": str(error.__class__.__name__), "message": str(error)}
             }
-            print(
-                f" *** error ollama list fn: {res}",
+            logger.warning(
+                "error fetching Ollama list error_type=%s error=%s",
+                error.__class__.__name__,
+                error,
             )
         return res
 
@@ -74,8 +80,10 @@ class WorkerData:
             res = {
                 "error": {"type": str(error.__class__.__name__), "message": str(error)}
             }
-            print(
-                f" *** error ollama ps fn: {res}",
+            logger.warning(
+                "error fetching Ollama ps error_type=%s error=%s",
+                error.__class__.__name__,
+                error,
             )
         return res
 
@@ -94,8 +102,11 @@ class WorkerData:
             res = {
                 "error": {"type": str(error.__class__.__name__), "message": str(error)}
             }
-            print(
-                f" *** error ollama show fn for model {model_name}: {res}",
+            logger.warning(
+                "error fetching Ollama show model=%s error_type=%s error=%s",
+                model_name,
+                error.__class__.__name__,
+                error,
             )
         return res
 
@@ -112,11 +123,13 @@ class WorkerData:
                     show_res = self.get_ollama_show(model_name)
                     show_map[model_name] = show_res
 
-            print(
-                f" >>> worker {self.worker_id} fetched show data for {len(show_map)} models"
+            logger.debug(
+                "worker fetched show data worker_id=%s models=%s",
+                self.worker_id,
+                len(show_map),
             )
         except Exception as e:
-            print(f" ! Failed to fetch show data: {e}")
+            logger.exception("failed to fetch show data error=%s", e)
 
         return show_map
 
@@ -148,12 +161,14 @@ class WorkerData:
             self.redis_service.hset(
                 f"{OSHEPHERD_WORKERS_PREFIX_KEY}{self.worker_id}", mapping=worker_data
             )
-            print(f" >>> worker {self.worker_id} data pushed")
+            logger.debug("worker data pushed worker_id=%s", self.worker_id)
         except Exception as e:
-            print(f" ! Data push failed: {e}")
+            logger.exception(
+                "data push failed worker_id=%s error=%s", self.worker_id, e
+            )
 
     def start_data_push(self):
-        print(f" > worker {self.worker_id} data push setup starting")
+        logger.info("worker data push setup starting worker_id=%s", self.worker_id)
 
         def run_periodically():
             while True:
@@ -164,4 +179,4 @@ class WorkerData:
         thread.daemon = True
         thread.start()
 
-        print(f" > worker {self.worker_id} data push setup finished")
+        logger.info("worker data push setup finished worker_id=%s", self.worker_id)

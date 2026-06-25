@@ -1,8 +1,11 @@
 import threading
+import logging
 from typing import Any, Optional, Dict, Iterator, Generator
 from redis import Redis
 from redis.exceptions import ConnectionError as RedisConnectionError
 import json
+
+logger = logging.getLogger(__name__)
 
 
 class RedisService:
@@ -38,15 +41,17 @@ class RedisService:
             TimeoutError,
             BrokenPipeError,
         ) as e:
-            print(f" ! Redis connection lost: {e}")
+            logger.warning("Redis connection lost error=%s", e)
             with self._connection_lock:
                 try:
                     self.redis_client = self._create_redis_client()
                     self.redis_client.ping()
-                    print(" > Redis connection restored")
+                    logger.info("Redis connection restored")
                     return True
                 except Exception as reconnect_error:
-                    print(f" ! Failed to reconnect to Redis: {reconnect_error}")
+                    logger.exception(
+                        "failed to reconnect to Redis error=%s", reconnect_error
+                    )
                     return False
 
     def _with_retry(self, operation: Any, *args: Any, **kwargs: Any) -> Any:
@@ -62,12 +67,14 @@ class RedisService:
             TimeoutError,
             BrokenPipeError,
         ) as e:
-            print(f" ! Redis operation failed: {e}")
+            logger.warning("Redis operation failed error=%s", e)
             if self._ensure_connection():
                 try:
                     return operation(*args, **kwargs)
                 except Exception as retry_error:
-                    print(f" ! Operation failed after reconnection: {retry_error}")
+                    logger.exception(
+                        "operation failed after reconnection error=%s", retry_error
+                    )
                     raise
             else:
                 raise RedisConnectionError("Could not recover Redis connection")
@@ -125,10 +132,14 @@ class RedisService:
                         if data.get("done") is True:
                             break
                     except json.JSONDecodeError:
-                        print(f" ! Failed to decode message: {message['data']}")
+                        logger.warning(
+                            "failed to decode Redis message channel=%s", channel
+                        )
                         continue
         except Exception as e:
-            print(f" ! Error in subscribe_to_channel: {e}")
+            logger.exception(
+                "error subscribing to Redis channel=%s error=%s", channel, e
+            )
             raise
         finally:
             if pubsub:

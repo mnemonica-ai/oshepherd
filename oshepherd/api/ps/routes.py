@@ -4,9 +4,12 @@ API implementation of `GET /api/ps` endpoint, listing models currently loaded in
 Ollama endpoint reference: https://github.com/ollama/ollama/blob/main/docs/api.md#list-running-models
 """
 
+import logging
 from fastapi import Request
 from oshepherd.api.utils import streamify_json
 from oshepherd.api.network_data import NetworkData
+
+logger = logging.getLogger(__name__)
 
 
 def load_ps_routes(app):
@@ -14,7 +17,7 @@ def load_ps_routes(app):
 
     @app.get("/api/ps")
     async def ps(request: Request):
-        print(" # ps request")
+        logger.info("ps request received")
 
         ollama_res = network_data.get_running_models()
         status = 200
@@ -25,7 +28,7 @@ def load_ps_routes(app):
             }
             status = 500
 
-        print(f" $ ollama response [{status}]: {ollama_res}")
+        logger.info("ps response status=%s", status)
 
         return streamify_json(ollama_res, status)
 

@@ -6,6 +6,7 @@ from oshepherd.api.config import ApiConfig
 from oshepherd.worker.config import WorkerConfig
 from oshepherd.worker.worker_data import WorkerData
 from oshepherd.worker.app import create_celery_app
+from oshepherd.common.logging_config import configure_logging
 
 
 @click.group()
@@ -22,6 +23,10 @@ def main():
 def start_api(env_file):
     """Starts FastAPI serving Ollama model's inference."""
     config: ApiConfig = load_and_validate_env(ApiConfig, env_file)
+    if config is None:
+        raise click.ClickException("Invalid API configuration")
+
+    configure_logging("api", config.LOGLEVEL)
 
     app = setup_api_app(config)
     server = setup_api_server(app, config)
@@ -37,6 +42,10 @@ def start_api(env_file):
 def start_worker(env_file):
     """Starts the Celery Worker serving local Ollama models."""
     config: WorkerConfig = load_and_validate_env(WorkerConfig, env_file)
+    if config is None:
+        raise click.ClickException("Invalid worker configuration")
+
+    configure_logging("worker", config.LOGLEVEL)
 
     worker_data = WorkerData(config)
     worker_data.start_data_push()

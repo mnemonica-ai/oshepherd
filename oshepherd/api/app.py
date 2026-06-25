@@ -12,20 +12,18 @@ from oshepherd.api.show.routes import load_show_routes
 from oshepherd.api.ps.routes import load_ps_routes
 import logging
 
-# disable uvicorn access logs
-logging.getLogger("uvicorn.access").disabled = True
-logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
+logger = logging.getLogger(__name__)
 
 
 def setup_api_app(config: ApiConfig) -> FastAPI:
     app = FastAPI()
 
     celery_app = create_celery_app_for_fastapi(config)
-    print(" * celery_app ready: ", celery_app)
+    logger.info("celery app ready")
     app.celery_app = celery_app
 
     network_data = NetworkData(config)
-    print(" * network_data ready: ", network_data)
+    logger.info("network data ready")
     app.network_data = network_data
 
     load_health_routes(app)

@@ -1,7 +1,10 @@
 import os
+import logging
 from dotenv import load_dotenv
 from pydantic import BaseModel, ValidationError
 from typing import Optional
+
+logger = logging.getLogger(__name__)
 
 
 def load_and_validate_env(
@@ -21,7 +24,7 @@ def load_and_validate_env(
     try:
         config = Config(**env_vars)
     except ValidationError as e:
-        print(f"Invalid configuration: {e}")
+        logger.error("invalid configuration error=%s", e)
         return None
 
     return config
