@@ -1,4 +1,5 @@
 import json
+import logging
 import ollama
 from oshepherd.worker.app import celery_app
 from oshepherd.worker.ollama_task import OllamaCeleryTask
@@ -7,6 +8,8 @@ from oshepherd.common.redis_service import RedisService
 from oshepherd.worker.config import WorkerConfig
 from oshepherd.common.lib import load_and_validate_env
 
+logger = logging.getLogger(__name__)
+
 
 @celery_app.task(
     name="oshepherd.worker.tasks.exec_completion",
@@ -14,21 +17,32 @@ from oshepherd.common.lib import load_and_validate_env
     base=OllamaCeleryTask,
 )
 def exec_completion(self, request_str: str):
+    is_streaming = False
+    redis_service = None
+    stream_channel = None
+    task_id = self.request.id
     try:
         request = json.loads(request_str)
-        print(f"# exec_completion request {request}")
+        logger.debug("exec_completion request task_id=%s payload=%s", task_id, request)
         req_type = request["type"]
         req_payload = request["payload"]
-        task_id = self.request.id
         is_streaming = req_payload.get("stream", False)
+        logger.info(
+            "exec_completion started task_id=%s type=%s stream=%s model=%s",
+            task_id,
+            req_type,
+            is_streaming,
+            req_payload.get("model"),
+        )
 
         # Initialize Redis service for streaming
-        redis_service = None
         if is_streaming:
             config = load_and_validate_env(WorkerConfig)
             redis_service = RedisService(config.CELERY_BACKEND_URL)
             stream_channel = f"oshepherd:stream:{task_id}"
-            print(f" > Streaming enabled on channel: {stream_channel}")
+            logger.debug(
+                "streaming enabled task_id=%s channel=%s", task_id, stream_channel
+            )
 
         if req_type == "generate":
             if is_streaming:
@@ -38,7 +52,6 @@ def exec_completion(self, request_str: str):
                     redis_service.publish(
                         stream_channel, json.dumps(serializable_chunk)
                     )
-                    # print(f"  > Sending chunk [{task_id}]: done={serializable_chunk.get('done')}")
 
                 # Return success indicator for the celery task
                 serializable_response = {"status": "streaming_completed"}
@@ -54,7 +67,6 @@ def exec_completion(self, request_str: str):
                     redis_service.publish(
                         stream_channel, json.dumps(serializable_chunk)
                     )
-                    # print(f"  > Sending chunk [{task_id}]: done={serializable_chunk.get('done')}")
 
                 # Return success indicator for the celery task
                 serializable_response = {"status": "streaming_completed"}
@@ -71,16 +83,20 @@ def exec_completion(self, request_str: str):
                 keep_alive=req_payload.get("keep_alive"),
             )
             serializable_response = serialize_ollama_res(response)
+        else:
+            raise ValueError(f"Unsupported request type: {req_type}")
 
-        print(f"  $ success {serializable_response}")
+        logger.info("exec_completion completed task_id=%s type=%s", task_id, req_type)
     except Exception as error:
-        print(f"  * error exec_completion {error}")
+        logger.exception(
+            "exec_completion failed task_id=%s error_type=%s error=%s",
+            task_id,
+            error.__class__.__name__,
+            error,
+        )
         serializable_response = {
             "error": {"type": str(error.__class__.__name__), "message": str(error)}
         }
-        print(
-            f"    * error response {serializable_response}",
-        )
 
         if is_streaming and redis_service:
             try:
@@ -90,7 +106,11 @@ def exec_completion(self, request_str: str):
                 }
                 redis_service.publish(stream_channel, json.dumps(error_chunk))
             except Exception as publish_error:
-                print(f"  * error publishing error to stream: {publish_error}")
+                logger.exception(
+                    "error publishing failure to stream task_id=%s error=%s",
+                    task_id,
+                    publish_error,
+                )
 
         raise
 

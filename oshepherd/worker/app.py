@@ -4,10 +4,12 @@ from oshepherd.worker.config import WorkerConfig
 import redis
 import time
 import threading
+import logging
 
 TASKS_MODULE = "oshepherd.worker.tasks"
 
 celery_app = None
+logger = logging.getLogger(__name__)
 
 
 def create_celery_app(config: WorkerConfig):
@@ -45,6 +47,7 @@ def create_celery_app(config: WorkerConfig):
         task_serializer="json",
         result_serializer="json",
         accept_content=["json"],
+        worker_hijack_root_logger=False,
         # Redis-specific optimizations
         result_backend_transport_options={
             "retry_policy": {"timeout": 5.0},
@@ -64,12 +67,12 @@ def setup_connection_monitoring(app, config: WorkerConfig):
 
     @worker_ready.connect
     def worker_ready_handler(sender=None, **kwargs):
-        print(" > Worker ready - starting connection monitoring")
+        logger.info("worker ready - starting connection monitoring")
         start_connection_monitor(app, config)
 
     @worker_process_init.connect
     def worker_process_init_handler(sender=None, **kwargs):
-        print(" > Worker process initialized - refreshing connections")
+        logger.info("worker process initialized - refreshing connections")
         refresh_all_connections(app, config)
 
 
@@ -78,20 +81,20 @@ def refresh_all_connections(app, config: WorkerConfig):
     try:
         with app.connection() as connection:
             connection.ensure_connection(max_retries=3)
-            print(" > Broker connection refreshed")
+            logger.info("broker connection refreshed")
 
         if hasattr(app.backend, "ensure_connection"):
             app.backend.ensure_connection(max_retries=3)
-            print(" > Backend connection refreshed")
+            logger.info("backend connection refreshed")
 
         # Test Redis connection directly
         redis_client = redis.Redis.from_url(config.CELERY_BACKEND_URL)
         redis_client.ping()
         redis_client.close()
-        print(" > Direct Redis connection verified")
+        logger.info("direct Redis connection verified")
 
     except Exception as e:
-        print(f" ! Connection refresh failed: {e}")
+        logger.exception("connection refresh failed")
         raise
 
 
@@ -126,29 +129,32 @@ def start_connection_monitor(app, config: WorkerConfig):
 
             except Exception as e:
                 consecutive_failures += 1
-                print(
-                    f" ! Connection monitor detected failure #{consecutive_failures}: {e}"
+                logger.warning(
+                    "connection monitor detected failure count=%s error=%s",
+                    consecutive_failures,
+                    e,
                 )
 
                 # More aggressive recovery
                 if consecutive_failures >= 2:
-                    print(
-                        " > Connection issues detected, attempting immediate refresh..."
+                    logger.warning(
+                        "connection issues detected, attempting immediate refresh"
                     )
                     try:
                         refresh_all_connections(app, config)
-                        print(" > Connection refresh successful")
+                        logger.info("connection refresh successful")
                         consecutive_failures = 0
                     except Exception as refresh_error:
-                        print(f" ! Connection refresh failed: {refresh_error}")
+                        logger.exception("connection refresh failed")
                         if consecutive_failures >= 4:
-                            print(
-                                " ! Multiple refresh failures - consider restarting worker"
+                            logger.error(
+                                "multiple refresh failures - consider restarting worker error=%s",
+                                refresh_error,
                             )
 
     monitor_thread = threading.Thread(target=monitor_connections, daemon=True)
     monitor_thread.start()
-    print(" > Connection monitor started")
+    logger.info("connection monitor started")
 
 
 def create_celery_app_for_fastapi(config):

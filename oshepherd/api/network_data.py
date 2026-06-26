@@ -1,10 +1,12 @@
 from datetime import datetime, timedelta, timezone
 import json
+import logging
 from oshepherd.api.config import ApiConfig
 from oshepherd.common.redis_service import RedisService
 
 OSHEPHERD_WORKERS_PATTERN = "oshepherd_worker:*"
 OSHEPHERD_IDLE_WORKER_DELTA = 60  # secs
+logger = logging.getLogger(__name__)
 
 
 class NetworkData:
@@ -26,11 +28,11 @@ class NetworkData:
             worker_id = decoded_data.get("worker_id")
             heartbeat = decoded_data.get("heartbeat")
             if not heartbeat:
-                print(f" * worker [{worker_id}] has no heartbeat, skipped")
+                logger.debug("worker has no heartbeat, skipped worker_id=%s", worker_id)
                 continue
 
             if self.is_worker_idle(heartbeat):
-                print(f" * worker [{worker_id}] is idle, skipped")
+                logger.debug("worker is idle, skipped worker_id=%s", worker_id)
                 continue
 
             version = decoded_data.get("version")
@@ -53,11 +55,11 @@ class NetworkData:
             worker_id = decoded_data.get("worker_id")
             heartbeat = decoded_data.get("heartbeat")
             if not heartbeat:
-                print(f" * worker [{worker_id}] has no heartbeat, skipped")
+                logger.debug("worker has no heartbeat, skipped worker_id=%s", worker_id)
                 continue
 
             if self.is_worker_idle(heartbeat):
-                print(f" * worker [{worker_id}] is idle, skipped")
+                logger.debug("worker is idle, skipped worker_id=%s", worker_id)
                 continue
 
             tags = json.loads(decoded_data.get("tags", "[]"))
@@ -82,11 +84,11 @@ class NetworkData:
             worker_id = decoded_data.get("worker_id")
             heartbeat = decoded_data.get("heartbeat")
             if not heartbeat:
-                print(f" * worker [{worker_id}] has no heartbeat, skipped")
+                logger.debug("worker has no heartbeat, skipped worker_id=%s", worker_id)
                 continue
 
             if self.is_worker_idle(heartbeat):
-                print(f" * worker [{worker_id}] is idle, skipped")
+                logger.debug("worker is idle, skipped worker_id=%s", worker_id)
                 continue
 
             ps_data = json.loads(decoded_data.get("ps", "{}"))
@@ -108,11 +110,11 @@ class NetworkData:
             worker_id = decoded_data.get("worker_id")
             heartbeat = decoded_data.get("heartbeat")
             if not heartbeat:
-                print(f" * worker [{worker_id}] has no heartbeat, skipped")
+                logger.debug("worker has no heartbeat, skipped worker_id=%s", worker_id)
                 continue
 
             if self.is_worker_idle(heartbeat):
-                print(f" * worker [{worker_id}] is idle, skipped")
+                logger.debug("worker is idle, skipped worker_id=%s", worker_id)
                 continue
 
             show_data_raw = decoded_data.get("show")
@@ -125,7 +127,10 @@ class NetworkData:
                             # Wrap model_info in the format expected by ollama.Client
                             return {"model_info": model_info}
                 except json.JSONDecodeError:
-                    print(f" * worker [{worker_id}] has invalid show data, skipped")
+                    logger.warning(
+                        "worker has invalid show data, skipped worker_id=%s",
+                        worker_id,
+                    )
                     continue
 
         return {

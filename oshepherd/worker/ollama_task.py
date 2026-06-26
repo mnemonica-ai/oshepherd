@@ -2,6 +2,9 @@ from celery import Task as CeleryTask
 from redis.exceptions import ConnectionError as RedisConnectionError
 from amqp.exceptions import RecoverableConnectionError as AMQPConnectionError
 from httpx import ConnectError
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class OllamaCeleryTask(CeleryTask):
@@ -34,31 +37,43 @@ class OllamaCeleryTask(CeleryTask):
         """Refresh all worker connections when connection errors occur."""
         try:
             with self.app.connection() as connection:
-                print(" > Refresh broker connection")
+                logger.info("refresh broker connection")
                 connection.ensure_connection(max_retries=3)
 
             if hasattr(self.app.backend, "ensure_connection"):
-                print(" > Refresh backend connection")
+                logger.info("refresh backend connection")
                 self.app.backend.ensure_connection(max_retries=3)
 
             # Force connection pool refresh
             if hasattr(self.app.backend, "client"):
                 self.app.backend.client.connection_pool.disconnect()
-                print(" > Backend connection pool refreshed")
+                logger.info("backend connection pool refreshed")
 
         except Exception as e:
-            print(f" ! Connection refresh failed: {e}")
-            print(" ! Worker connections may be in bad state - consider restart")
+            logger.exception("connection refresh failed error=%s", e)
+            logger.error("worker connections may be in bad state - consider restart")
 
     def on_retry(self, exc, task_id, args, kwargs, einfo):
-        print(f"Retrying task {self.name}:{task_id}, attempt {self.request.retries}")
+        logger.warning(
+            "retrying task name=%s task_id=%s attempt=%s error=%s",
+            self.name,
+            task_id,
+            self.request.retries,
+            exc,
+        )
         self.refresh_connections()
 
     def on_success(self, retval, task_id, args, kwargs):
-        print(f"Completed task {self.name}:{task_id} successfully")
+        logger.info("completed task name=%s task_id=%s", self.name, task_id)
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
-        print(f"Failed task {self.name}:{task_id} due to {exc} - {einfo}")
+        logger.error(
+            "failed task name=%s task_id=%s error=%s traceback=%s",
+            self.name,
+            task_id,
+            exc,
+            einfo,
+        )
 
     def run(self, *args, **kwargs):
         raise NotImplementedError("Tasks must implement its run method")
