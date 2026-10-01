@@ -12,7 +12,7 @@ dependencies = [
     "fastapi[standard]",
     "celery",
     "click",
-    "ollama",
+    "ollama>=0.6.3",
     "amqp",
     "redis",
     "pydantic",
@@ -27,7 +27,8 @@ classifiers = [
 
 [project.optional-dependencies]
 dev = [
-    "packageName[tests, lint]",
+    "pytest",
+    "black",
     "build",
     "twine"
 ]

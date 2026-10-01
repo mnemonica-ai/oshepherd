@@ -14,6 +14,9 @@ HOST = "http://127.0.0.1:5001"
 GENERATE_ENDPOINT = f"{HOST}/api/generate/"
 CHAT_ENDPOINT = f"{HOST}/api/chat/"
 MODEL = "mistral"
+# Keep smoke-test inference bounded, including with older model revisions that
+# may repeat tokens instead of stopping naturally on newer Ollama servers.
+OPTIONS = {"num_predict": 128}
 req_headers = {"Content-Type": "application/json"}
 
 
@@ -23,6 +26,7 @@ def test_streaming_generate_completion_using_ollama():
         "model": MODEL,
         "prompt": "Why is the sky blue?",
         "stream": True,
+        "options": OPTIONS,
     }
     client = ollama.Client(host=HOST)
 
@@ -60,6 +64,7 @@ def test_streaming_generate_completion_using_requests():
         "model": MODEL,
         "prompt": "Why is the sky blue?",
         "stream": True,
+        "options": OPTIONS,
     }
     response = requests.post(
         GENERATE_ENDPOINT,
@@ -109,6 +114,7 @@ def test_streaming_chat_completion_using_ollama():
         "model": MODEL,
         "messages": [{"role": "user", "content": "why is the sky blue?"}],
         "stream": True,
+        "options": OPTIONS,
     }
     client = ollama.Client(host=HOST)
 
@@ -147,6 +153,7 @@ def test_streaming_chat_completion_using_requests():
         "model": MODEL,
         "messages": [{"role": "user", "content": "why is the sky blue?"}],
         "stream": True,
+        "options": OPTIONS,
     }
     response = requests.post(
         CHAT_ENDPOINT,

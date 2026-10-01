@@ -26,7 +26,7 @@ def exec_completion(self, request_str: str):
         logger.debug("exec_completion request task_id=%s payload=%s", task_id, request)
         req_type = request["type"]
         req_payload = request["payload"]
-        is_streaming = req_payload.get("stream", False)
+        is_streaming = req_type != "systemone" and req_payload.get("stream", False)
         logger.info(
             "exec_completion started task_id=%s type=%s stream=%s model=%s",
             task_id,
@@ -73,6 +73,14 @@ def exec_completion(self, request_str: str):
             else:
                 response = ollama.chat(**req_payload)
                 serializable_response = serialize_ollama_res(response)
+
+        elif req_type == "systemone":
+            # ponytail: systemone() in ollama-python 0.6.3 validates question
+            # types and rejects extra parameters. Preserve upstream passthrough.
+            with ollama.Client() as client:
+                serializable_response = client._request_raw(
+                    "POST", "/v1/systemone", json=req_payload
+                ).json()
 
         elif req_type == "embeddings":
             # ponytail: use deprecated /api/embeddings instead of /api/embed — newer endpoint requires --embeddings server flag

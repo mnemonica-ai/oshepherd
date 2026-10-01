@@ -128,6 +128,59 @@ they may contain prompts, model output, or other sensitive data.
     --no-buffer
     ```
 
+### Decision models (System One)
+
+`POST /v1/systemone` queues decision requests to workers and returns a single JSON
+response. Workers serving decision models need Ollama **0.35 or later** and the
+requested model pulled, for example `ollama pull tev1:4b` or
+`ollama pull nimble:latest`. Any worker can receive a request, so ensure every
+worker consuming the queue has the models your clients request. Set `OLLAMA_HOST`
+on workers to use an Ollama server at a different address.
+
+Use the optional [TypeSafe Python SDK](https://pypi.org/project/typesafe-sdk/):
+
+```sh
+uv pip install typesafe-sdk  # or: pip install typesafe-sdk
+export TYPESAFE_BASE_URL=http://127.0.0.1:5001
+export TYPESAFE_API_KEY=ollama
+export TYPESAFE_DEFAULT_MODEL=tev1:4b
+```
+
+```python
+from typesafe_sdk import Choice, Noul, Score, TypeSafeClient
+
+with TypeSafeClient(timeout=180) as client:
+    result = client.system_one(
+        state={"ticket": "I was charged twice. Please refund the extra payment."},
+        questions={
+            "team": Choice(
+                instructions="Which team should handle this ticket?",
+                criteria={
+                    "billing": "Payments and refunds",
+                    "technical": "Bugs and integrations",
+                    "other": "None of the above",
+                },
+            ),
+            "refund": Noul(
+                instructions="Does the customer explicitly ask for a refund?",
+            ),
+            "urgency": Score(
+                instructions="How urgent is this ticket?",
+                criteria=["Routine", "Soon", "Urgent"],
+            ),
+        },
+    )
+
+print(result.choices["team"].choice)
+print(result.nouls["refund"].noul)
+print(result.scores["urgency"].score)
+```
+
+The SDK's `system_one()` call uses only `/v1/systemone`. Its separate
+`client.models.list()` call to `/v1/models` is not supported; use `/api/tags` to
+list the workers' models. The SDK requires an API key, but oshepherd does not
+authenticate it. System One does not support streaming.
+
 ### Example: PyCon Austria 2025
 
 For a practical example of how `oshepherd` can be used to orchestrate on-premise open-source LLMs, see the companion repository from the PyCon Austria 2025 talk ["Beyond the Cloud: On-Premise Orchestration for Open-Source LLMs"](https://2025.pycon.at/talks/beyond-the-cloud-on-premise-orchestration-for-open-source-llms/):
@@ -146,6 +199,7 @@ For a practical example of how `oshepherd` can be used to orchestrate on-premise
 - [x] **Generate a completion:** `POST /api/generate`
 - [x] **Generate a chat completion:** `POST /api/chat`
 - [x] **Generate Embeddings:** `POST /api/embeddings`
+- [x] **Decision models:** `POST /v1/systemone`
 - [x] **List Local Models:** `GET /api/tags`
 - [x] **Version:** `GET /api/version`
 - [x] **Show Model Information:** `POST /api/show`
@@ -190,12 +244,20 @@ The e2e tests require the following models to be available on your local Ollama 
 ```sh
 ollama pull mistral        # used by generate, chat, and show tests
 ollama pull embeddinggemma # used by embeddings tests
+ollama pull tev1:4b         # used by System One tests; requires Ollama 0.35+
+ollama pull nimble:latest   # used by System One tests; requires Ollama 0.35+
 ```
 
 Then follow the usage instructions to start the API server and Celery worker, and run:
 
 ```sh
 pytest -s tests/
+```
+
+The focused System One tests need no running services:
+
+```sh
+pytest -q tests/test_systemone.py
 ```
 
 ### Author

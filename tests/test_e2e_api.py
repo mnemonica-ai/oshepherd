@@ -16,6 +16,7 @@ from oshepherd.api.embeddings.models import EmbeddingsResponse
 from oshepherd.api.tags.models import TagsResponse
 from oshepherd.api.version.models import VersionResponse
 from oshepherd.common.ollama import serialize_ollama_res
+from tests.systemone_example import ticket_request, assert_ticket_response
 
 HOST = "http://127.0.0.1:5001"
 GENERATE_ENDPOINT = f"{HOST}/api/generate/"
@@ -27,6 +28,33 @@ SHOW_ENDPOINT = f"{HOST}/api/show/"
 PS_ENDPOINT = f"{HOST}/api/ps/"
 
 req_headers = {"Content-Type": "application/json"}
+
+
+def test_systemone_tev1_using_requests():
+    response = requests.post(
+        f"{HOST}/v1/systemone", json=ticket_request("tev1:4b"), timeout=180
+    )
+    assert response.status_code == 200, response.text
+    assert_ticket_response(response.json())
+
+
+def test_systemone_nimble_using_requests():
+    response = requests.post(
+        f"{HOST}/v1/systemone", json=ticket_request("nimble:latest"), timeout=180
+    )
+    assert response.status_code == 200, response.text
+    assert_ticket_response(response.json())
+
+
+def test_systemone_missing_model_using_requests():
+    response = requests.post(
+        f"{HOST}/v1/systemone",
+        json=ticket_request("oshepherd-missing-systemone-test-model:latest"),
+        timeout=30,
+    )
+    assert response.status_code == 500, response.text
+    assert response.json()["error"] == "Internal Server Error"
+    assert "not found" in response.json()["message"]
 
 
 def test_health_endpoint():

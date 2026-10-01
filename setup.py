@@ -15,7 +15,7 @@ setup(
         "fastapi[standard]",
         "celery",
         "click",
-        "ollama",
+        "ollama>=0.6.3",
         "amqp",
         "redis",
         "pydantic",
@@ -24,7 +24,8 @@ setup(
     ],
     extras_require={
         'dev': [
-            "packageName[tests, lint]",
+            "pytest",
+            "black",
             "build",
             "twine"
         ],
