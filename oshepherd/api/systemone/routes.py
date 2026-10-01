@@ -2,8 +2,6 @@
 
 import logging
 
-from fastapi.concurrency import run_in_threadpool
-
 from oshepherd.api.systemone.models import SystemOneRequest, SystemOneRequestPayload
 from oshepherd.api.utils import streamify_json
 
@@ -12,22 +10,24 @@ logger = logging.getLogger(__name__)
 
 def load_systemone_routes(app):
     @app.post("/v1/systemone")
-    async def systemone(payload: SystemOneRequestPayload):
+    def systemone(payload: SystemOneRequestPayload):
         from oshepherd.worker.tasks import exec_completion
 
         # This endpoint never uses Redis Pub/Sub, even if an extra stream field
         # is supplied. Ollama validates question contents and extra parameters.
         request = SystemOneRequest(payload=payload)
-        task = exec_completion.delay(request.model_dump_json())
-        logger.info(
-            "systemone request queued task_id=%s model=%s", task.id, payload.model
-        )
-
+        task_id = None
         try:
-            # Celery waits synchronously; keep the API's event loop available.
-            response = await run_in_threadpool(task.get)
+            # FastAPI runs this sync route in its thread pool. Keep publishing
+            # and result waiting together: Celery's backend is thread-local.
+            task = exec_completion.delay(request.model_dump_json())
+            task_id = task.id
+            logger.info(
+                "systemone request queued task_id=%s model=%s", task_id, payload.model
+            )
+            response = task.get()
         except Exception as error:
-            logger.exception("systemone task failed task_id=%s", task.id)
+            logger.exception("systemone task failed task_id=%s", task_id)
             response = {"error": {"message": str(error)}}
 
         if response.get("error"):
@@ -39,7 +39,7 @@ def load_systemone_routes(app):
                 500,
             )
 
-        logger.info("systemone response received task_id=%s", task.id)
+        logger.info("systemone response received task_id=%s", task_id)
         return streamify_json(response)
 
     return app

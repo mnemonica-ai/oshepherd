@@ -1,8 +1,10 @@
 """Decision request validation, passthrough, and Celery failure handling."""
 
 import json
+import threading
 from unittest.mock import MagicMock
 
+import httpx
 import ollama
 import pytest
 from fastapi.testclient import TestClient
@@ -47,10 +49,93 @@ def test_route_queues_payload_and_preserves_extras(api, monkeypatch):
 
 
 @pytest.mark.parametrize(
+    "state",
+    [
+        "Please refund this payment.",
+        {"ticket": "Please refund this payment."},
+        ["Please refund this payment.", {"payment_id": 42}],
+    ],
+    ids=["text", "object", "array"],
+)
+def test_official_client_preserves_supported_state_types(api, monkeypatch, state):
+    from oshepherd.worker.tasks import exec_completion
+
+    task = MagicMock(id="test-task")
+    task.get.return_value = {
+        "model": "tev1:4b",
+        "answers": {"refund": {"type": "noul", "noul": 0.9}},
+        "usage": {"input_tokens": 20, "output_tokens": 1},
+    }
+    delay = MagicMock(return_value=task)
+    monkeypatch.setattr(exec_completion, "delay", delay)
+
+    def forward(request):
+        response = api.request(
+            request.method,
+            request.url.path,
+            content=request.content,
+            headers={"Content-Type": "application/json"},
+        )
+        return httpx.Response(response.status_code, json=response.json())
+
+    with ollama.Client(
+        host="http://oshepherd.test", transport=httpx.MockTransport(forward)
+    ) as client:
+        result = client.systemone(
+            model="tev1:4b",
+            state=state,
+            questions={
+                "refund": {"type": "noul", "instructions": "Is a refund requested?"}
+            },
+        )
+
+    assert result.answers["refund"].noul == 0.9
+    assert result.usage.input_tokens == 20
+    assert json.loads(delay.call_args.args[0])["payload"]["state"] == state
+
+
+def test_celery_result_stays_on_the_thread_that_created_it(api, monkeypatch):
+    from oshepherd.worker.tasks import exec_completion
+
+    def delay(request):
+        # Celery's default backend is thread-local. AsyncResult retains the
+        # backend from its creation thread, so get() must run there too.
+        creation_thread = threading.get_ident()
+        task = MagicMock(id="test-task")
+
+        def get():
+            assert threading.get_ident() == creation_thread
+            return {"model": "tev1:4b", "answers": {}, "usage": {}}
+
+        task.get.side_effect = get
+        return task
+
+    monkeypatch.setattr(exec_completion, "delay", delay)
+    result = api.post("/v1/systemone", json=ticket_request("tev1:4b"))
+    assert result.status_code == 200, result.text
+
+
+def test_queue_failure_returns_json(api, monkeypatch):
+    from oshepherd.worker.tasks import exec_completion
+
+    monkeypatch.setattr(
+        exec_completion,
+        "delay",
+        MagicMock(side_effect=ConnectionError("broker unavailable")),
+    )
+    response = api.post("/v1/systemone", json=ticket_request("tev1:4b"))
+    assert response.status_code == 500
+    assert response.json() == {
+        "error": "Internal Server Error",
+        "message": "error executing completion: broker unavailable",
+    }
+
+
+@pytest.mark.parametrize(
     "payload",
     [
         {},
-        {"model": "tev1:4b", "state": [], "questions": {}},
+        {"model": "tev1:4b", "state": None, "questions": {}},
         {"model": "tev1:4b", "state": {}, "questions": []},
     ],
 )

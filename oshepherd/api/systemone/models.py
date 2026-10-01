@@ -7,7 +7,7 @@ class SystemOneRequestPayload(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     model: str
-    state: dict[str, Any]
+    state: str | dict[str, Any] | list[Any]
     questions: dict[str, Any]
 
 

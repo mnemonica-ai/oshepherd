@@ -75,7 +75,7 @@ def exec_completion(self, request_str: str):
                 serializable_response = serialize_ollama_res(response)
 
         elif req_type == "systemone":
-            # ponytail: systemone() in ollama-python 0.6.3 validates question
+            # systemone() in ollama-python 0.6.3 validates question
             # types and rejects extra parameters. Preserve upstream passthrough.
             with ollama.Client() as client:
                 serializable_response = client._request_raw(
@@ -83,7 +83,7 @@ def exec_completion(self, request_str: str):
                 ).json()
 
         elif req_type == "embeddings":
-            # ponytail: use deprecated /api/embeddings instead of /api/embed — newer endpoint requires --embeddings server flag
+            # use deprecated /api/embeddings instead of /api/embed — newer endpoint requires --embeddings server flag
             response = ollama.embeddings(
                 model=req_payload["model"],
                 prompt=req_payload.get("input", ""),
