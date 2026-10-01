@@ -170,6 +170,19 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
+##### uv Support
+
+Or you can use [uv](https://docs.astral.sh/uv/getting-started/installation/):
+
+```sh
+uv venv --python 3.12
+source .venv/bin/activate
+uv pip install -r requirements.txt
+
+# install oshepherd
+uv pip install -e .
+```
+
 ##### Tests
 
 The e2e tests require the following models to be available on your local Ollama instance:
