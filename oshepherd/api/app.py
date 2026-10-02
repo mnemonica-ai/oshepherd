@@ -10,6 +10,7 @@ from oshepherd.api.chat.routes import load_chat_routes
 from oshepherd.api.tags.routes import load_tags_routes
 from oshepherd.api.show.routes import load_show_routes
 from oshepherd.api.ps.routes import load_ps_routes
+from oshepherd.api.systemone.routes import load_systemone_routes
 import logging
 
 logger = logging.getLogger(__name__)
@@ -34,5 +35,6 @@ def setup_api_app(config: ApiConfig) -> FastAPI:
     load_tags_routes(app)
     load_show_routes(app)
     load_ps_routes(app)
+    load_systemone_routes(app)
 
     return app

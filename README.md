@@ -13,7 +13,7 @@
   <a href="https://github.com/mnemonica-ai/oshepherd/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT License"></a>
 </p>
 
-A centralized [FastAPI](https://fastapi.tiangolo.com/) service, using [Celery](https://docs.celeryq.dev) and [Redis](https://redis.com) to orchestrate multiple [Ollama](https://ollama.com) servers as workers.
+A centralized [FastAPI](https://fastapi.tiangolo.com/) service that uses [Celery](https://docs.celeryq.dev) and [Redis](https://redis.com) to orchestrate multiple [Ollama](https://ollama.com) servers as workers.
 
 ### Install
 
@@ -23,11 +23,11 @@ pip install oshepherd
 
 ### Usage
 
-1. Setup Redis:
+1. Set up Redis:
 
-    [Celery](https://docs.celeryq.dev) uses [Redis](https://docs.celeryq.dev/en/stable/getting-started/backends-and-brokers/index.html#redis) as message broker and backend. You'll need a Redis instance, which you can provision for free in [redislabs.com](https://app.redislabs.com).
+    [Celery](https://docs.celeryq.dev) uses [Redis](https://docs.celeryq.dev/en/stable/getting-started/backends-and-brokers/index.html#redis) as a message broker and backend. You'll need a Redis instance, which you can provision for free at [redislabs.com](https://app.redislabs.com).
 
-2. Setup FastAPI Server:
+2. Set up the FastAPI server:
 
     ```sh
     # define configuration env file
@@ -38,7 +38,7 @@ pip install oshepherd
     oshepherd start-api --env-file .api.env
     ```
 
-3. Setup Celery/Ollama Worker(s):
+3. Set up the Celery/Ollama workers:
 
     ```sh
     # install ollama https://ollama.com/download
@@ -74,7 +74,7 @@ UVICORN_ACCESS_LOG=true
 Request and response payload bodies are only logged at `debug` level because
 they may contain prompts, model output, or other sensitive data.
 
-4. Now you're ready to execute Ollama completions remotely. You can point your Ollama client to your `oshepherd` api server by setting the `host`, and it will return your requested completions from any of the workers:
+4. Now you're ready to execute Ollama completions remotely. Point your Ollama client at your `oshepherd` API server by setting the `host`. The server will return the requested completions from one of the workers:
 
     * [ollama-python](https://github.com/ollama/ollama-python) client:
 
@@ -120,13 +120,89 @@ they may contain prompts, model output, or other sensitive data.
 
     For a complete TypeScript/JavaScript example with streaming support, see [examples/ts-scripts/README.md](examples/ts-scripts/README.md).
 
-    * Raw http request:
+    * Raw HTTP request:
 
     ```sh
     curl -X POST -H "Content-Type: application/json" -L http://127.0.0.1:5001/api/generate/ \
     -d '{"model":"mistral","prompt":"Why is the sky blue?","stream":true}' \
     --no-buffer
     ```
+
+### Decision models (System One)
+
+`POST /v1/systemone` queues decision requests to workers and returns a single JSON response. Workers serving decision models must run Ollama **0.35 or later** and have the requested model pulled. For example, pull a model with `ollama pull tev1:4b` or `ollama pull nimble:latest`.
+
+Use the official [Ollama Python client](https://github.com/ollama/ollama-python), which supports `client.systemone()` starting with version **0.6.3**:
+
+```sh
+uv pip install --upgrade 'ollama>=0.6.3'  # or: pip install --upgrade 'ollama>=0.6.3'
+```
+
+```python
+from ollama import Client
+
+state = {"ticket": "I was charged twice. Please refund the extra payment."}
+questions = {
+    "team": {
+        "type": "choice",
+        "instructions": "Which team should handle this ticket?",
+        "criteria": {
+            "billing": "Payments and refunds",
+            "technical": "Bugs and integrations",
+            "other": "None of the above",
+        },
+    },
+    "refund": {
+        "type": "noul",
+        "instructions": "Does the customer explicitly ask for a refund?",
+    },
+    "urgency": {
+        "type": "score",
+        "instructions": "How urgent is this ticket?",
+        "criteria": ["Routine", "Soon", "Urgent"],
+    },
+}
+
+with Client(host="http://127.0.0.1:5001", timeout=180) as client:
+    result = client.systemone(
+        model="tev1:4b",
+        state=state,
+        questions=questions,
+    )
+
+print(result.answers["team"].choice)
+print(result.answers["refund"].noul)
+print(result.answers["urgency"].score)
+```
+
+`state` can be text, a JSON object, or an array. Responses contain named `answers`
+and token `usage`. System One returns a single response and does not support
+streaming.
+
+The optional [TypeSafe Python SDK](https://pypi.org/project/typesafe-sdk/) also works. Install and configure it:
+
+```sh
+uv pip install typesafe-sdk  # or: pip install typesafe-sdk
+export TYPESAFE_BASE_URL=http://127.0.0.1:5001
+export TYPESAFE_API_KEY=ollama
+export TYPESAFE_DEFAULT_MODEL=tev1:4b
+```
+
+Using the same `state` and `questions` from above:
+
+```python
+from typesafe_sdk import TypeSafeClient
+
+with TypeSafeClient(timeout=180) as client:
+    result = client.system_one(state=state, questions=questions)
+
+print(result.choices["team"].choice)
+```
+
+TypeSafe's `system_one()` call uses only `/v1/systemone`. Its separate
+`client.models.list()` call to `/v1/models` is not supported; use `/api/tags` to
+list the workers' models. The SDK requires an API key, but oshepherd does not
+authenticate it.
 
 ### Example: PyCon Austria 2025
 
@@ -137,7 +213,7 @@ For a practical example of how `oshepherd` can be used to orchestrate on-premise
 
 ### Disclaimers 🚨
 
-> This package is in alpha, its architecture and api might change in the near future. Currently this is getting tested in a controlled environment by real users, but haven't been audited, nor tested thorugly. Use it at your own risk.
+> This package is in alpha, and its architecture and API might change in the near future. It is currently being tested by real users in a controlled environment, but it has not been audited or thoroughly tested. Use it at your own risk.
 >
 > As this is an alpha version, **support and responses might be limited**. We'll do our best to address questions and issues as quickly as possible.
 
@@ -146,20 +222,23 @@ For a practical example of how `oshepherd` can be used to orchestrate on-premise
 - [x] **Generate a completion:** `POST /api/generate`
 - [x] **Generate a chat completion:** `POST /api/chat`
 - [x] **Generate Embeddings:** `POST /api/embeddings`
+- [x] **Decision models:** `POST /v1/systemone`
 - [x] **List Local Models:** `GET /api/tags`
 - [x] **Version:** `GET /api/version`
 - [x] **Show Model Information:** `POST /api/show`
 - [x] **List Running Models:** `GET /api/ps`
 
-Oshepherd API server currently supports the endpoints listed above, enabling full compatibility with official Ollama clients (i.e.: [ollama-python](https://github.com/ollama/ollama-python), [ollama-js](https://github.com/ollama/ollama-js)). These endpoints provide comprehensive functionality for the most common use cases. Additional endpoints from the official Ollama API are not planned for the near future. For more details on the full Ollama API specifications, refer to the [Ollama API documentation](https://github.com/ollama/ollama/blob/main/docs/api.md#api).
+Oshepherd supports the endpoints listed above. Official clients such as [ollama-python](https://github.com/ollama/ollama-python) and
+[ollama-js](https://github.com/ollama/ollama-js) can call these routes by pointing their host at oshepherd. Support for individual request fields varies by route; this is not full Ollama API parity. For example, the Python client's `embed()` method calls `/api/embed`, which is not supported. See the [Ollama API documentation](https://github.com/ollama/ollama/blob/main/docs/api.md#api)
+for the upstream API.
 
 ### Contribution guidelines
 
-We welcome contributions! If you find a bug or have suggestions for improvements, please open an [issue](https://github.com/mnemonica-ai/oshepherd/issues) or submit a [pull request](https://github.com/mnemonica-ai/oshepherd/pulls) pointing to `development` branch. Before creating a new issue/pull request, take a moment to search through the existing issues/pull requests to avoid duplicates.
+We welcome contributions! If you find a bug or have suggestions for improvements, please open an [issue](https://github.com/mnemonica-ai/oshepherd/issues) or submit a [pull request](https://github.com/mnemonica-ai/oshepherd/pulls) targeting the `development` branch. Before creating a new issue or pull request, take a moment to search the existing issues and pull requests to avoid duplicates.
 
 ##### Conda Support
 
-To run and build locally you can use [conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html):
+To run and build locally, you can use [conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html):
 
 ```sh
 conda create -n oshepherd python=3.12
@@ -170,6 +249,19 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
+##### uv Support
+
+Or you can use [uv](https://docs.astral.sh/uv/getting-started/installation/):
+
+```sh
+uv venv --python 3.12
+source .venv/bin/activate
+uv pip install -r requirements.txt
+
+# install oshepherd
+uv pip install -e .
+```
+
 ##### Tests
 
 The e2e tests require the following models to be available on your local Ollama instance:
@@ -177,12 +269,20 @@ The e2e tests require the following models to be available on your local Ollama 
 ```sh
 ollama pull mistral        # used by generate, chat, and show tests
 ollama pull embeddinggemma # used by embeddings tests
+ollama pull tev1:4b         # used by System One tests; requires Ollama 0.35+
+ollama pull nimble:latest   # used by System One tests; requires Ollama 0.35+
 ```
 
 Then follow the usage instructions to start the API server and Celery worker, and run:
 
 ```sh
 pytest -s tests/
+```
+
+The focused System One tests need no running services:
+
+```sh
+pytest -q tests/test_systemone.py
 ```
 
 ### Author

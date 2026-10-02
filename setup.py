@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="oshepherd",
-    version="v0.0.23",
+    version="v0.0.24",
     description="The Oshepherd guiding the Ollama(s) inference orchestration.",
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
@@ -15,7 +15,7 @@ setup(
         "fastapi[standard]",
         "celery",
         "click",
-        "ollama",
+        "ollama>=0.6.3",
         "amqp",
         "redis",
         "pydantic",
@@ -24,7 +24,8 @@ setup(
     ],
     extras_require={
         'dev': [
-            "packageName[tests, lint]",
+            "pytest",
+            "black",
             "build",
             "twine"
         ],
