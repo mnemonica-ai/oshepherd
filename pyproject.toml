@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools==80.9.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "oshepherd"
 version = "v0.0.24"
@@ -26,14 +30,22 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
+supabase = [
+    "httpx==0.28.1",
+    "ollama==0.6.3"
+]
 dev = [
     "pytest",
+    "httpx",
+    "jsonschema==4.23.0",
     "black",
     "build",
     "twine"
 ]
 tests = [
-  "pytest"
+  "pytest",
+  "httpx",
+  "jsonschema==4.23.0"
 ]
 lint = [
   "black"
@@ -45,3 +57,16 @@ Issues = "https://github.com/mnemonica-ai/oshepherd/issues"
 
 [project.scripts]
 oshepherd = "oshepherd.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["oshepherd", "oshepherd.*"]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "httpx",
+    "jsonschema==4.23.0",
+    "black",
+    "build",
+    "twine",
+]

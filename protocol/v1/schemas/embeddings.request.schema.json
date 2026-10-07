@@ -1,0 +1,46 @@
+{
+  "properties": {
+    "model": {
+      "title": "Model",
+      "type": "string"
+    },
+    "input": {
+      "title": "Input",
+      "type": "string"
+    },
+    "options": {
+      "anyOf": [
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Options"
+    },
+    "keep_alive": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": "5m",
+      "title": "Keep Alive"
+    }
+  },
+  "required": [
+    "model",
+    "input"
+  ],
+  "title": "EmbeddingsPayload",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:oshepherd:protocol:v1:embeddings:request",
+  "x-extra-behavior": "drop"
+}

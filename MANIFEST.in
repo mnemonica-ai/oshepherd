@@ -1,2 +1,6 @@
 global-exclude *.env
 recursive-exclude tests *
+recursive-exclude .oshepherd *
+global-exclude *.worker-session.json
+recursive-exclude supabase/.temp *
+recursive-exclude supabase/.branches *

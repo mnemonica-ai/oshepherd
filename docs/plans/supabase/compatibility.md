@@ -2,6 +2,8 @@
 
 Companion to the [implementation plan](implementation.md), inspected October 4, 2026. This is a specification and implementation test checklist. Unless explicitly marked as locally verified below, acceptance tests are **planned**, not passing or implemented.
 
+Implementation evidence: the [step 0 local report](experiments/step-0-local-characterization.md) records 67 C01–C09 fixtures, five request schemas, real SDK/worker characterization and the fake upstream. `tests/contracts` plus `tests/test_systemone.py` pass **162 tests**. This verifies the existing Redis-boundary portion of V01; Edge/Supabase, FastAPI/Supabase, JavaScript clients and all hosted gates remain unrun.
+
 ## Product contract
 
 Supabase's default gateway is an Edge Function with declared time/size/concurrency limits. FastAPI with the same Supabase backend supports Vercel and persistent hosting profiles. Persistent hosting is the option for long synchronous work; Vercel has separate finite duration and payload limits. See the [installation plan](installation.md). Existing FastAPI/Celery/Redis installations remain supported with their current CLI defaults. All existing routes are required; Edge limits are accepted and explicit, not grounds to omit a route. Async jobs provide a default-gateway path for longer work and require a different client flow.
@@ -89,8 +91,11 @@ Proposed future commands, after the corresponding fixtures/tests are implemented
 # Existing focused baseline (available now).
 .venv/bin/pytest -q tests/test_systemone.py
 
-# Planned deterministic suites; directories and CLI options do not exist yet.
-pytest -q tests/contracts tests/backends
+# Available service-free characterization suite.
+uv run --locked pytest -q tests/contracts tests/test_systemone.py
+
+# Planned backend suites; these directories do not exist yet.
+pytest -q tests/backends
 pytest -q tests/integration/supabase
 
 # Planned e2e fixtures read backend URL/key and model availability explicitly.

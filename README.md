@@ -18,8 +18,11 @@ A centralized [FastAPI](https://fastapi.tiangolo.com/) service that uses [Celery
 ### Install
 
 ```sh
-pip install oshepherd
+uv tool install --python 3.12 oshepherd
 ```
+
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/) first.
+For a source checkout, use the development setup below.
 
 ### Usage
 
@@ -135,7 +138,7 @@ they may contain prompts, model output, or other sensitive data.
 Use the official [Ollama Python client](https://github.com/ollama/ollama-python), which supports `client.systemone()` starting with version **0.6.3**:
 
 ```sh
-uv pip install --upgrade 'ollama>=0.6.3'  # or: pip install --upgrade 'ollama>=0.6.3'
+uv add 'ollama>=0.6.3'
 ```
 
 ```python
@@ -182,7 +185,7 @@ streaming.
 The optional [TypeSafe Python SDK](https://pypi.org/project/typesafe-sdk/) also works. Install and configure it:
 
 ```sh
-uv pip install typesafe-sdk  # or: pip install typesafe-sdk
+uv add typesafe-sdk
 export TYPESAFE_BASE_URL=http://127.0.0.1:5001
 export TYPESAFE_API_KEY=ollama
 export TYPESAFE_DEFAULT_MODEL=tev1:4b
@@ -236,30 +239,49 @@ for the upstream API.
 
 We welcome contributions! If you find a bug or have suggestions for improvements, please open an [issue](https://github.com/mnemonica-ai/oshepherd/issues) or submit a [pull request](https://github.com/mnemonica-ai/oshepherd/pulls) targeting the `development` branch. Before creating a new issue or pull request, take a moment to search the existing issues and pull requests to avoid duplicates.
 
-##### Conda Support
+##### Development with uv (default)
 
-To run and build locally, you can use [conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html):
+Use [uv](https://docs.astral.sh/uv/getting-started/installation/) for setup,
+commands and builds. Python 3.12 is selected by `.python-version`; the package
+supports Python 3.12 and newer. `uv.lock` records the development dependency
+versions. No environment activation is needed.
 
 ```sh
-conda create -n oshepherd python=3.12
-conda activate oshepherd
-pip install -r requirements.txt
+# Install the project and development tools at their locked versions.
+uv sync --locked
 
-# install oshepherd
-pip install -e .
+# Include the experimental Supabase backend when working on its lifecycle.
+uv sync --locked --extra supabase
+
+uv run --locked oshepherd start-api --env-file .api.env
+uv run --locked oshepherd start-worker --env-file .worker.env
+uv run --locked pytest -q tests/contracts tests/test_systemone.py
+uv build
 ```
 
-##### uv Support
-
-Or you can use [uv](https://docs.astral.sh/uv/getting-started/installation/):
+Dependencies are declared in `pyproject.toml`. Use `uv add <package>` for a new
+runtime dependency or `uv add --dev <package>` for a development tool. Commit
+the updated manifest and lockfile. `requirements.txt` is a compatibility export;
+regenerate it after dependency changes rather than editing its pins:
 
 ```sh
-uv venv --python 3.12
-source .venv/bin/activate
-uv pip install -r requirements.txt
+uv export --locked --all-extras --no-hashes --no-emit-project --output-file requirements.txt
+```
 
-# install oshepherd
-uv pip install -e .
+The [local Supabase runbook](docs/plans/supabase/experiments/local-edge-lifecycle.md)
+uses `uv run --locked python -m scripts.supabase_demo` for setup, supervision and
+requests. It requires the isolated Supabase stack and an existing Ollama model.
+
+##### Conda (optional)
+
+Conda can supply the Python interpreter while uv manages the project's separate
+environment and dependencies. It is not required for the default workflow:
+
+```sh
+conda create -n oshepherd-python python=3.12
+conda activate oshepherd-python
+uv sync --locked --python "$CONDA_PREFIX/bin/python" --extra supabase
+uv run --locked pytest -q tests/contracts tests/test_systemone.py
 ```
 
 ##### Tests
@@ -276,13 +298,13 @@ ollama pull nimble:latest   # used by System One tests; requires Ollama 0.35+
 Then follow the usage instructions to start the API server and Celery worker, and run:
 
 ```sh
-pytest -s tests/
+uv run --locked pytest -s tests/
 ```
 
 The focused System One tests need no running services:
 
 ```sh
-pytest -q tests/test_systemone.py
+uv run --locked pytest -q tests/test_systemone.py
 ```
 
 ### Author

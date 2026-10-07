@@ -115,7 +115,7 @@ oshepherd/worker/executor.py   # shared local Ollama execution
 protocol/                     # versioned schemas and cross-language fixtures
 ```
 
-These are proposed paths; only the planning documents exist from this change. Build release artifacts from these sources, including the standalone template's pinned package/manifest dependencies. Shared API routes and the CLI select an adapter; they must not contain Supabase SQL, enrollment internals or transport-specific state transitions.
+`protocol/` now contains versioned characterization schemas/fixtures; `tests/contracts` and `tests/support` provide service-free checks and a controllable fake upstream. See [step 0 evidence](experiments/step-0-local-characterization.md). The other paths remain implementation targets. Build release artifacts from those sources, including the standalone template's pinned package/manifest dependencies. Shared API routes and the CLI select an adapter; they must not contain Supabase SQL, enrollment internals or transport-specific state transitions.
 
 ### Interfaces and configuration
 

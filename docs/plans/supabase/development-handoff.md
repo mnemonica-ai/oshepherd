@@ -8,19 +8,36 @@ Read the [decisions](index.md), [implementation plan](implementation.md), [compa
 
 Keep Redis as the existing CLI default. Supabase uses Edge by default, includes async jobs, and supports optional FastAPI gateways. All nine existing routes are in scope. Do not substitute a FastAPI-only implementation for a failed Edge spike, broaden Ollama fields incidentally, or implement an automatic cross-backend retry.
 
-No Supabase runtime code, SQL migration, deploy template or new CLI command described in these plans exists yet. Proposed paths and commands are implementation targets. The focused baseline was rerun during this review: `tests/test_systemone.py`, **13 passed**. Current live e2e tests do not establish Supabase behavior.
+Implementation is underway. The [progress ledger](progress.md) records actual
+runtime, SQL, CLI artifacts and verification. SQL remains in an isolated spike,
+outside production migration history. A real local Edge → external worker →
+Ollama lifecycle passed; [repeatable commands and the open disconnect
+gate](experiments/local-edge-lifecycle.md) are documented. Production templates,
+installer and hosted validation remain pending. Persistent local setup,
+supervision, doctor and JSON/NDJSON request commands are available in that runbook;
+the optional FastAPI backend now passes real local routes and socket cancellation.
+Durable Storage cleanup, orphan reconciliation, an independent operator runner
+and actual bounded local Cron execution also passed; see
+[maintenance evidence](experiments/local-maintenance.md).
+
+Implementation started with the local characterization portion of step 0: [versioned route schemas/fixtures](../../../protocol/README.md), a controllable fake Ollama upstream, and a service-free contract suite are available. The combined suite passes **162 tests**. See the [evidence report](experiments/step-0-local-characterization.md) for scope, exact commands, versions and findings. RPC/Auth/async protocol finalization, the isolated relay spike and hosted/installer experiments remain open; step 0 is not complete.
 
 ## Local prerequisites and first work package
 
-Use Python 3.12 or newer, matching [project metadata](../../../pyproject.toml). From a fresh checkout, the existing Python baseline can be prepared with:
+Use uv by default; Conda is optional. Python 3.12 is selected for development,
+matching the minimum in [project metadata](../../../pyproject.toml). From a fresh
+checkout, prepare the locked environment with:
 
 ```sh
-python3 -m venv .venv
-.venv/bin/python -m pip install -e '.[dev]'
-.venv/bin/python -m pytest -q tests/test_systemone.py
+uv sync --locked --extra supabase
+uv run --locked pytest -q tests/test_systemone.py
 ```
 
-Record the actual Python and dependency versions. This repository does not yet pin the future Deno/Supabase CLI/Node test toolchain: choose tested versions in the first infrastructure slice and commit their configuration/locks. Local Supabase integration tests need the CLI and a compatible container runtime; Python characterization fixtures do not. Real Ollama/GPU access is unnecessary for deterministic protocol tests.
+Record actual Python and dependency versions. The experimental toolchain is pinned
+in `supabase/toolchain.json`; release qualification remains pending. Local
+Supabase integration tests need the CLI and a compatible container runtime;
+Python characterization fixtures do not. Real Ollama/GPU access is unnecessary
+for deterministic protocol tests.
 
 The first work package is **characterization fixtures plus a reproducible relay spike**, corresponding to delivery step 0:
 

@@ -1,0 +1,2911 @@
+{
+  "fixture_version": 1,
+  "baseline": "1ed65b0",
+  "cases": [
+    {
+      "id": "generate-defaults",
+      "contract": "C01",
+      "request": {
+        "method": "POST",
+        "path": "/api/generate",
+        "json": {
+          "model": "fixture:latest",
+          "prompt": "Hola 雪"
+        }
+      },
+      "normalized": {
+        "type": "generate",
+        "payload": {
+          "model": "fixture:latest",
+          "prompt": "Hola 雪",
+          "images": null,
+          "format": "json",
+          "options": null,
+          "system": null,
+          "template": null,
+          "context": null,
+          "stream": false,
+          "raw": false,
+          "keep_alive": "5m"
+        }
+      },
+      "response": {
+        "status": 200,
+        "content_type": "application/json",
+        "json": {
+          "model": "fixture:latest",
+          "created_at": "2026-10-04T12:00:00Z",
+          "done": true,
+          "done_reason": "stop",
+          "total_duration": 1200000,
+          "load_duration": 100000,
+          "prompt_eval_count": 2,
+          "prompt_eval_duration": 200000,
+          "eval_count": 3,
+          "eval_duration": 900000,
+          "response": "Sí, 雪 🐑",
+          "thinking": null,
+          "context": [
+            1,
+            2
+          ],
+          "logprobs": null,
+          "image": null,
+          "completed": null,
+          "total": null
+        }
+      },
+      "worker_result": {
+        "model": "fixture:latest",
+        "created_at": "2026-10-04T12:00:00Z",
+        "done": true,
+        "done_reason": "stop",
+        "total_duration": 1200000,
+        "load_duration": 100000,
+        "prompt_eval_count": 2,
+        "prompt_eval_duration": 200000,
+        "eval_count": 3,
+        "eval_duration": 900000,
+        "response": "Sí, 雪 🐑",
+        "thinking": null,
+        "context": [
+          1,
+          2
+        ],
+        "logprobs": null,
+        "image": null,
+        "completed": null,
+        "total": null
+      }
+    },
+    {
+      "id": "generate-false",
+      "contract": "C01",
+      "request": {
+        "method": "POST",
+        "path": "/api/generate",
+        "json": {
+          "model": "fixture:latest",
+          "prompt": "Hola 雪",
+          "stream": false
+        }
+      },
+      "normalized": {
+        "type": "generate",
+        "payload": {
+          "model": "fixture:latest",
+          "prompt": "Hola 雪",
+          "images": null,
+          "format": "json",
+          "options": null,
+          "system": null,
+          "template": null,
+          "context": null,
+          "stream": false,
+          "raw": false,
+          "keep_alive": "5m"
+        }
+      },
+      "response": {
+        "status": 200,
+        "content_type": "application/json",
+        "json": {
+          "model": "fixture:latest",
+          "created_at": "2026-10-04T12:00:00Z",
+          "done": true,
+          "done_reason": "stop",
+          "total_duration": 1200000,
+          "load_duration": 100000,
+          "prompt_eval_count": 2,
+          "prompt_eval_duration": 200000,
+          "eval_count": 3,
+          "eval_duration": 900000,
+          "response": "Sí, 雪 🐑",
+          "thinking": null,
+          "context": [
+            1,
+            2
+          ],
+          "logprobs": null,
+          "image": null,
+          "completed": null,
+          "total": null
+        }
+      },
+      "worker_result": {
+        "model": "fixture:latest",
+        "created_at": "2026-10-04T12:00:00Z",
+        "done": true,
+        "done_reason": "stop",
+        "total_duration": 1200000,
+        "load_duration": 100000,
+        "prompt_eval_count": 2,
+        "prompt_eval_duration": 200000,
+        "eval_count": 3,
+        "eval_duration": 900000,
+        "response": "Sí, 雪 🐑",
+        "thinking": null,
+        "context": [
+          1,
+          2
+        ],
+        "logprobs": null,
+        "image": null,
+        "completed": null,
+        "total": null
+      }
+    },
+    {
+      "id": "generate-fields-extras",
+      "contract": "C01",
+      "request": {
+        "method": "POST",
+        "path": "/api/generate",
+        "json": {
+          "model": "fixture:latest",
+          "prompt": "Hola 雪",
+          "images": [
+            "YWJj"
+          ],
+          "format": "",
+          "options": {
+            "temperature": 0,
+            "num_predict": 3
+          },
+          "system": "Respond briefly",
+          "template": "{{ .Prompt }}",
+          "context": [
+            1,
+            2
+          ],
+          "stream": false,
+          "raw": true,
+          "keep_alive": "0s",
+          "future": "discard me"
+        }
+      },
+      "normalized": {
+        "type": "generate",
+        "payload": {
+          "model": "fixture:latest",
+          "prompt": "Hola 雪",
+          "images": [
+            "YWJj"
+          ],
+          "format": "",
+          "options": {
+            "temperature": 0,
+            "num_predict": 3
+          },
+          "system": "Respond briefly",
+          "template": "{{ .Prompt }}",
+          "context": [
+            1,
+            2
+          ],
+          "stream": false,
+          "raw": true,
+          "keep_alive": "0s"
+        }
+      },
+      "response": {
+        "status": 200,
+        "content_type": "application/json",
+        "json": {
+          "model": "fixture:latest",
+          "created_at": "2026-10-04T12:00:00Z",
+          "done": true,
+          "done_reason": "stop",
+          "total_duration": 1200000,
+          "load_duration": 100000,
+          "prompt_eval_count": 2,
+          "prompt_eval_duration": 200000,
+          "eval_count": 3,
+          "eval_duration": 900000,
+          "response": "Sí, 雪 🐑",
+          "thinking": null,
+          "context": [
+            1,
+            2
+          ],
+          "logprobs": null,
+          "image": null,
+          "completed": null,
+          "total": null
+        }
+      },
+      "worker_result": {
+        "model": "fixture:latest",
+        "created_at": "2026-10-04T12:00:00Z",
+        "done": true,
+        "done_reason": "stop",
+        "total_duration": 1200000,
+        "load_duration": 100000,
+        "prompt_eval_count": 2,
+        "prompt_eval_duration": 200000,
+        "eval_count": 3,
+        "eval_duration": 900000,
+        "response": "Sí, 雪 🐑",
+        "thinking": null,
+        "context": [
+          1,
+          2
+        ],
+        "logprobs": null,
+        "image": null,
+        "completed": null,
+        "total": null
+      }
+    },
+    {
+      "id": "generate-null",
+      "contract": "C01",
+      "request": {
+        "method": "POST",
+        "path": "/api/generate",
+        "json": {
+          "model": "fixture:latest",
+          "prompt": "Hola 雪",
+          "images": null,
+          "format": null,
+          "options": null,
+          "system": null,
+          "template": null,
+          "context": null,
+          "stream": null,
+          "raw": null,
+          "keep_alive": null
+        }
+      },
+      "normalized": {
+        "type": "generate",
+        "payload": {
+          "model": "fixture:latest",
+          "prompt": "Hola 雪",
+          "images": null,
+          "format": null,
+          "options": null,
+          "system": null,
+          "template": null,
+          "context": null,
+          "stream": null,
+          "raw": null,
+          "keep_alive": null
+        }
+      },
+      "response": {
+        "status": 200,
+        "content_type": "application/json",
+        "json": {
+          "model": "fixture:latest",
+          "created_at": "2026-10-04T12:00:00Z",
+          "done": true,
+          "done_reason": "stop",
+          "total_duration": 1200000,
+          "load_duration": 100000,
+          "prompt_eval_count": 2,
+          "prompt_eval_duration": 200000,
+          "eval_count": 3,
+          "eval_duration": 900000,
+          "response": "Sí, 雪 🐑",
+          "thinking": null,
+          "context": [
+            1,
+            2
+          ],
+          "logprobs": null,
+          "image": null,
+          "completed": null,
+          "total": null
+        }
+      },
+      "worker_result": {
+        "model": "fixture:latest",
+        "created_at": "2026-10-04T12:00:00Z",
+        "done": true,
+        "done_reason": "stop",
+        "total_duration": 1200000,
+        "load_duration": 100000,
+        "prompt_eval_count": 2,
+        "prompt_eval_duration": 200000,
+        "eval_count": 3,
+        "eval_duration": 900000,
+        "response": "Sí, 雪 🐑",
+        "thinking": null,
+        "context": [
+          1,
+          2
+        ],
+        "logprobs": null,
+        "image": null,
+        "completed": null,
+        "total": null
+      }
+    },
+    {
+      "id": "chat-defaults",
+      "contract": "C02",
+      "request": {
+        "method": "POST",
+        "path": "/api/chat",
+        "json": {
+          "model": "fixture:latest"
+        }
+      },
+      "normalized": {
+        "type": "chat",
+        "payload": {
+          "model": "fixture:latest",
+          "messages": null,
+          "format": "",
+          "options": {},
+          "stream": false,
+          "keep_alive": null
+        }
+      },
+      "response": {
+        "status": 200,
+        "content_type": "application/json",
+        "json": {
+          "model": "fixture:latest",
+          "created_at": "2026-10-04T12:00:00Z",
+          "done": true,
+          "done_reason": "stop",
+          "total_duration": 1200000,
+          "load_duration": 100000,
+          "prompt_eval_count": 2,
+          "prompt_eval_duration": 200000,
+          "eval_count": 3,
+          "eval_duration": 900000,
+          "message": {
+            "role": "assistant",
+            "content": "Sí, 雪 🐑",
+            "thinking": null,
+            "images": null,
+            "tool_name": null,
+            "tool_calls": null
+          },
+          "logprobs": null
+        }
+      },
+      "worker_result": {
+        "model": "fixture:latest",
+        "created_at": "2026-10-04T12:00:00Z",
+        "done": true,
+        "done_reason": "stop",
+        "total_duration": 1200000,
+        "load_duration": 100000,
+        "prompt_eval_count": 2,
+        "prompt_eval_duration": 200000,
+        "eval_count": 3,
+        "eval_duration": 900000,
+        "message": {
+          "role": "assistant",
+          "content": "Sí, 雪 🐑",
+          "thinking": null,
+          "images": null,
+          "tool_name": null,
+          "tool_calls": null
+        },
+        "logprobs": null
+      }
+    },
+    {
+      "id": "chat-false",
+      "contract": "C02",
+      "request": {
+        "method": "POST",
+        "path": "/api/chat",
+        "json": {
+          "model": "fixture:latest",
+          "stream": false
+        }
+      },
+      "normalized": {
+        "type": "chat",
+        "payload": {
+          "model": "fixture:latest",
+          "messages": null,
+          "format": "",
+          "options": {},
+          "stream": false,
+          "keep_alive": null
+        }
+      },
+      "response": {
+        "status": 200,
+        "content_type": "application/json",
+        "json": {
+          "model": "fixture:latest",
+          "created_at": "2026-10-04T12:00:00Z",
+          "done": true,
+          "done_reason": "stop",
+          "total_duration": 1200000,
+          "load_duration": 100000,
+          "prompt_eval_count": 2,
+          "prompt_eval_duration": 200000,
+          "eval_count": 3,
+          "eval_duration": 900000,
+          "message": {
+            "role": "assistant",
+            "content": "Sí, 雪 🐑",
+            "thinking": null,
+            "images": null,
+            "tool_name": null,
+            "tool_calls": null
+          },
+          "logprobs": null
+        }
+      },
+      "worker_result": {
+        "model": "fixture:latest",
+        "created_at": "2026-10-04T12:00:00Z",
+        "done": true,
+        "done_reason": "stop",
+        "total_duration": 1200000,
+        "load_duration": 100000,
+        "prompt_eval_count": 2,
+        "prompt_eval_duration": 200000,
+        "eval_count": 3,
+        "eval_duration": 900000,
+        "message": {
+          "role": "assistant",
+          "content": "Sí, 雪 🐑",
+          "thinking": null,
+          "images": null,
+          "tool_name": null,
+          "tool_calls": null
+        },
+        "logprobs": null
+      }
+    },
+    {
+      "id": "chat-fields-extras",
+      "contract": "C02",
+      "request": {
+        "method": "POST",
+        "path": "/api/chat",
+        "json": {
+          "model": "fixture:latest",
+          "messages": [
+            {
+              "role": "system",
+              "content": "Hola 雪",
+              "images": [
+                "YWJj"
+              ],
+              "tool_calls": []
+            },
+            {
+              "role": "user",
+              "content": "Hola 雪",
+              "images": [
+                "YWJj"
+              ],
+              "tool_calls": []
+            },
+            {
+              "role": "assistant",
+              "content": "Hola 雪",
+              "images": [
+                "YWJj"
+              ],
+              "tool_calls": []
+            }
+          ],
+          "format": "",
+          "options": {
+            "temperature": 0
+          },
+          "stream": false,
+          "keep_alive": "5m",
+          "tools": [
+            {
+              "type": "function"
+            }
+          ],
+          "future": true
+        }
+      },
+      "normalized": {
+        "type": "chat",
+        "payload": {
+          "model": "fixture:latest",
+          "messages": [
+            {
+              "role": "system",
+              "content": "Hola 雪"
+            },
+            {
+              "role": "user",
+              "content": "Hola 雪"
+            },
+            {
+              "role": "assistant",
+              "content": "Hola 雪"
+            }
+          ],
+          "format": "",
+          "options": {
+            "temperature": 0
+          },
+          "stream": false,
+          "keep_alive": "5m"
+        }
+      },
+      "response": {
+        "status": 200,
+        "content_type": "application/json",
+        "json": {
+          "model": "fixture:latest",
+          "created_at": "2026-10-04T12:00:00Z",
+          "done": true,
+          "done_reason": "stop",
+          "total_duration": 1200000,
+          "load_duration": 100000,
+          "prompt_eval_count": 2,
+          "prompt_eval_duration": 200000,
+          "eval_count": 3,
+          "eval_duration": 900000,
+          "message": {
+            "role": "assistant",
+            "content": "Sí, 雪 🐑",
+            "thinking": null,
+            "images": null,
+            "tool_name": null,
+            "tool_calls": null
+          },
+          "logprobs": null
+        }
+      },
+      "worker_result": {
+        "model": "fixture:latest",
+        "created_at": "2026-10-04T12:00:00Z",
+        "done": true,
+        "done_reason": "stop",
+        "total_duration": 1200000,
+        "load_duration": 100000,
+        "prompt_eval_count": 2,
+        "prompt_eval_duration": 200000,
+        "eval_count": 3,
+        "eval_duration": 900000,
+        "message": {
+          "role": "assistant",
+          "content": "Sí, 雪 🐑",
+          "thinking": null,
+          "images": null,
+          "tool_name": null,
+          "tool_calls": null
+        },
+        "logprobs": null
+      }
+    },
+    {
+      "id": "chat-null",
+      "contract": "C02",
+      "request": {
+        "method": "POST",
+        "path": "/api/chat",
+        "json": {
+          "model": "fixture:latest",
+          "messages": null,
+          "format": null,
+          "options": null,
+          "stream": null,
+          "keep_alive": null
+        }
+      },
+      "normalized": {
+        "type": "chat",
+        "payload": {
+          "model": "fixture:latest",
+          "messages": null,
+          "format": null,
+          "options": null,
+          "stream": null,
+          "keep_alive": null
+        }
+      },
+      "response": {
+        "status": 200,
+        "content_type": "application/json",
+        "json": {
+          "model": "fixture:latest",
+          "created_at": "2026-10-04T12:00:00Z",
+          "done": true,
+          "done_reason": "stop",
+          "total_duration": 1200000,
+          "load_duration": 100000,
+          "prompt_eval_count": 2,
+          "prompt_eval_duration": 200000,
+          "eval_count": 3,
+          "eval_duration": 900000,
+          "message": {
+            "role": "assistant",
+            "content": "Sí, 雪 🐑",
+            "thinking": null,
+            "images": null,
+            "tool_name": null,
+            "tool_calls": null
+          },
+          "logprobs": null
+        }
+      },
+      "worker_result": {
+        "model": "fixture:latest",
+        "created_at": "2026-10-04T12:00:00Z",
+        "done": true,
+        "done_reason": "stop",
+        "total_duration": 1200000,
+        "load_duration": 100000,
+        "prompt_eval_count": 2,
+        "prompt_eval_duration": 200000,
+        "eval_count": 3,
+        "eval_duration": 900000,
+        "message": {
+          "role": "assistant",
+          "content": "Sí, 雪 🐑",
+          "thinking": null,
+          "images": null,
+          "tool_name": null,
+          "tool_calls": null
+        },
+        "logprobs": null
+      }
+    },
+    {
+      "id": "embeddings-defaults",
+      "contract": "C03",
+      "request": {
+        "method": "POST",
+        "path": "/api/embeddings",
+        "json": {
+          "model": "fixture:latest",
+          "input": "Hola 雪"
+        }
+      },
+      "normalized": {
+        "type": "embeddings",
+        "payload": {
+          "model": "fixture:latest",
+          "input": "Hola 雪",
+          "options": null,
+          "keep_alive": "5m"
+        }
+      },
+      "response": {
+        "status": 200,
+        "content_type": "application/json",
+        "json": {
+          "embedding": [
+            0.125,
+            -0.5,
+            0.0,
+            1.25
+          ]
+        }
+      },
+      "worker_result": {
+        "embedding": [
+          0.125,
+          -0.5,
+          0.0,
+          1.25
+        ]
+      }
+    },
+    {
+      "id": "embeddings-fields-extras",
+      "contract": "C03",
+      "request": {
+        "method": "POST",
+        "path": "/api/embeddings",
+        "json": {
+          "model": "fixture:latest",
+          "input": "Hola 雪",
+          "options": {
+            "num_ctx": 1024
+          },
+          "keep_alive": null,
+          "prompt": "dropped"
+        }
+      },
+      "normalized": {
+        "type": "embeddings",
+        "payload": {
+          "model": "fixture:latest",
+          "input": "Hola 雪",
+          "options": {
+            "num_ctx": 1024
+          },
+          "keep_alive": null
+        }
+      },
+      "response": {
+        "status": 200,
+        "content_type": "application/json",
+        "json": {
+          "embedding": [
+            0.125,
+            -0.5,
+            0.0,
+            1.25
+          ]
+        }
+      },
+      "worker_result": {
+        "embedding": [
+          0.125,
+          -0.5,
+          0.0,
+          1.25
+        ]
+      }
+    },
+    {
+      "id": "systemone-text",
+      "contract": "C04",
+      "request": {
+        "method": "POST",
+        "path": "/v1/systemone",
+        "json": {
+          "model": "fixture:latest",
+          "state": "Please refund.",
+          "questions": {
+            "refund": {
+              "type": "noul",
+              "instructions": "Is a refund requested?"
+            }
+          }
+        }
+      },
+      "normalized": {
+        "type": "systemone",
+        "payload": {
+          "model": "fixture:latest",
+          "state": "Please refund.",
+          "questions": {
+            "refund": {
+              "type": "noul",
+              "instructions": "Is a refund requested?"
+            }
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "content_type": "application/json",
+        "json": {
+          "model": "fixture:latest",
+          "answers": {
+            "refund": {
+              "type": "noul",
+              "noul": 0.875
+            }
+          },
+          "usage": {
+            "input_tokens": 20,
+            "output_tokens": 1
+          }
+        }
+      },
+      "worker_result": {
+        "model": "fixture:latest",
+        "answers": {
+          "refund": {
+            "type": "noul",
+            "noul": 0.875
+          }
+        },
+        "usage": {
+          "input_tokens": 20,
+          "output_tokens": 1
+        }
+      }
+    },
+    {
+      "id": "systemone-object",
+      "contract": "C04",
+      "request": {
+        "method": "POST",
+        "path": "/v1/systemone",
+        "json": {
+          "model": "fixture:latest",
+          "state": {
+            "ticket": "雪"
+          },
+          "questions": {
+            "refund": {
+              "type": "noul",
+              "instructions": "Is a refund requested?"
+            }
+          }
+        }
+      },
+      "normalized": {
+        "type": "systemone",
+        "payload": {
+          "model": "fixture:latest",
+          "state": {
+            "ticket": "雪"
+          },
+          "questions": {
+            "refund": {
+              "type": "noul",
+              "instructions": "Is a refund requested?"
+            }
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "content_type": "application/json",
+        "json": {
+          "model": "fixture:latest",
+          "answers": {
+            "refund": {
+              "type": "noul",
+              "noul": 0.875
+            }
+          },
+          "usage": {
+            "input_tokens": 20,
+            "output_tokens": 1
+          }
+        }
+      },
+      "worker_result": {
+        "model": "fixture:latest",
+        "answers": {
+          "refund": {
+            "type": "noul",
+            "noul": 0.875
+          }
+        },
+        "usage": {
+          "input_tokens": 20,
+          "output_tokens": 1
+        }
+      }
+    },
+    {
+      "id": "systemone-array",
+      "contract": "C04",
+      "request": {
+        "method": "POST",
+        "path": "/v1/systemone",
+        "json": {
+          "model": "fixture:latest",
+          "state": [
+            "refund",
+            {
+              "ticket": 42
+            }
+          ],
+          "questions": {
+            "refund": {
+              "type": "noul",
+              "instructions": "Is a refund requested?"
+            }
+          }
+        }
+      },
+      "normalized": {
+        "type": "systemone",
+        "payload": {
+          "model": "fixture:latest",
+          "state": [
+            "refund",
+            {
+              "ticket": 42
+            }
+          ],
+          "questions": {
+            "refund": {
+              "type": "noul",
+              "instructions": "Is a refund requested?"
+            }
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "content_type": "application/json",
+        "json": {
+          "model": "fixture:latest",
+          "answers": {
+            "refund": {
+              "type": "noul",
+              "noul": 0.875
+            }
+          },
+          "usage": {
+            "input_tokens": 20,
+            "output_tokens": 1
+          }
+        }
+      },
+      "worker_result": {
+        "model": "fixture:latest",
+        "answers": {
+          "refund": {
+            "type": "noul",
+            "noul": 0.875
+          }
+        },
+        "usage": {
+          "input_tokens": 20,
+          "output_tokens": 1
+        }
+      }
+    },
+    {
+      "id": "systemone-extras-always-nonstream",
+      "contract": "C04",
+      "request": {
+        "method": "POST",
+        "path": "/v1/systemone",
+        "json": {
+          "model": "fixture:latest",
+          "state": "Please refund.",
+          "questions": {
+            "future": {
+              "type": "unknown",
+              "extra": [
+                1,
+                null
+              ]
+            }
+          },
+          "stream": true,
+          "future_parameter": {
+            "value": true
+          }
+        }
+      },
+      "normalized": {
+        "type": "systemone",
+        "payload": {
+          "model": "fixture:latest",
+          "state": "Please refund.",
+          "questions": {
+            "future": {
+              "type": "unknown",
+              "extra": [
+                1,
+                null
+              ]
+            }
+          },
+          "stream": true,
+          "future_parameter": {
+            "value": true
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "content_type": "application/json",
+        "json": {
+          "model": "fixture:latest",
+          "answers": {
+            "refund": {
+              "type": "noul",
+              "noul": 0.875
+            }
+          },
+          "usage": {
+            "input_tokens": 20,
+            "output_tokens": 1
+          }
+        }
+      },
+      "worker_result": {
+        "model": "fixture:latest",
+        "answers": {
+          "refund": {
+            "type": "noul",
+            "noul": 0.875
+          }
+        },
+        "usage": {
+          "input_tokens": 20,
+          "output_tokens": 1
+        }
+      }
+    },
+    {
+      "id": "generate-stream",
+      "contract": "C01",
+      "request": {
+        "method": "POST",
+        "path": "/api/generate",
+        "json": {
+          "model": "fixture:latest",
+          "stream": true,
+          "prompt": "Hola 雪"
+        }
+      },
+      "normalized": {
+        "type": "generate",
+        "payload": {
+          "model": "fixture:latest",
+          "prompt": "Hola 雪",
+          "images": null,
+          "format": "json",
+          "options": null,
+          "system": null,
+          "template": null,
+          "context": null,
+          "stream": true,
+          "raw": false,
+          "keep_alive": "5m"
+        }
+      },
+      "records": [
+        {
+          "model": "fixture:latest",
+          "created_at": "2026-10-04T12:00:00Z",
+          "done": false,
+          "done_reason": null,
+          "total_duration": null,
+          "load_duration": null,
+          "prompt_eval_count": null,
+          "prompt_eval_duration": null,
+          "eval_count": null,
+          "eval_duration": null,
+          "response": "Sí, 雪 🐑",
+          "thinking": null,
+          "context": null,
+          "logprobs": null,
+          "image": null,
+          "completed": null,
+          "total": null
+        },
+        {
+          "model": "fixture:latest",
+          "created_at": "2026-10-04T12:00:00Z",
+          "done": true,
+          "done_reason": "stop",
+          "total_duration": 1200000,
+          "load_duration": 100000,
+          "prompt_eval_count": 2,
+          "prompt_eval_duration": 200000,
+          "eval_count": 3,
+          "eval_duration": 900000,
+          "response": "",
+          "thinking": null,
+          "context": [
+            1,
+            2
+          ],
+          "logprobs": null,
+          "image": null,
+          "completed": null,
+          "total": null
+        }
+      ],
+      "response": {
+        "status": 200,
+        "content_type": "application/x-ndjson",
+        "body_file": "generate.legacy.ndjson"
+      }
+    },
+    {
+      "id": "generate-stream-relay-error",
+      "contract": "C01",
+      "request": {
+        "method": "POST",
+        "path": "/api/generate",
+        "json": {
+          "model": "fixture:latest",
+          "stream": true,
+          "prompt": "Hola 雪"
+        }
+      },
+      "normalized": {
+        "type": "generate",
+        "payload": {
+          "model": "fixture:latest",
+          "prompt": "Hola 雪",
+          "images": null,
+          "format": "json",
+          "options": null,
+          "system": null,
+          "template": null,
+          "context": null,
+          "stream": true,
+          "raw": false,
+          "keep_alive": "5m"
+        }
+      },
+      "records": [],
+      "stream_failure": "fixture read failed",
+      "response": {
+        "status": 200,
+        "content_type": "application/x-ndjson",
+        "body": "{\"error\": \"Streaming error: fixture read failed\", \"done\": true}\n"
+      }
+    },
+    {
+      "id": "generate-stream-worker-error",
+      "contract": "C01",
+      "request": {
+        "method": "POST",
+        "path": "/api/generate",
+        "json": {
+          "model": "fixture:latest",
+          "stream": true,
+          "prompt": "Hola 雪"
+        }
+      },
+      "normalized": {
+        "type": "generate",
+        "payload": {
+          "model": "fixture:latest",
+          "prompt": "Hola 雪",
+          "images": null,
+          "format": "json",
+          "options": null,
+          "system": null,
+          "template": null,
+          "context": null,
+          "stream": true,
+          "raw": false,
+          "keep_alive": "5m"
+        }
+      },
+      "records": [
+        {
+          "error": "fixture model missing",
+          "done": true
+        }
+      ],
+      "response": {
+        "status": 200,
+        "content_type": "application/x-ndjson",
+        "body": "{\"error\": \"fixture model missing\", \"done\": true}\n"
+      }
+    },
+    {
+      "id": "chat-stream",
+      "contract": "C02",
+      "request": {
+        "method": "POST",
+        "path": "/api/chat",
+        "json": {
+          "model": "fixture:latest",
+          "stream": true
+        }
+      },
+      "normalized": {
+        "type": "chat",
+        "payload": {
+          "model": "fixture:latest",
+          "messages": null,
+          "format": "",
+          "options": {},
+          "stream": true,
+          "keep_alive": null
+        }
+      },
+      "records": [
+        {
+          "model": "fixture:latest",
+          "created_at": "2026-10-04T12:00:00Z",
+          "done": false,
+          "done_reason": null,
+          "total_duration": null,
+          "load_duration": null,
+          "prompt_eval_count": null,
+          "prompt_eval_duration": null,
+          "eval_count": null,
+          "eval_duration": null,
+          "message": {
+            "role": "assistant",
+            "content": "Sí, 雪 🐑",
+            "thinking": null,
+            "images": null,
+            "tool_name": null,
+            "tool_calls": null
+          },
+          "logprobs": null
+        },
+        {
+          "model": "fixture:latest",
+          "created_at": "2026-10-04T12:00:00Z",
+          "done": true,
+          "done_reason": "stop",
+          "total_duration": 1200000,
+          "load_duration": 100000,
+          "prompt_eval_count": 2,
+          "prompt_eval_duration": 200000,
+          "eval_count": 3,
+          "eval_duration": 900000,
+          "message": {
+            "role": "assistant",
+            "content": "",
+            "thinking": null,
+            "images": null,
+            "tool_name": null,
+            "tool_calls": null
+          },
+          "logprobs": null
+        }
+      ],
+      "response": {
+        "status": 200,
+        "content_type": "application/x-ndjson",
+        "body_file": "chat.legacy.ndjson"
+      }
+    },
+    {
+      "id": "chat-stream-relay-error",
+      "contract": "C02",
+      "request": {
+        "method": "POST",
+        "path": "/api/chat",
+        "json": {
+          "model": "fixture:latest",
+          "stream": true
+        }
+      },
+      "normalized": {
+        "type": "chat",
+        "payload": {
+          "model": "fixture:latest",
+          "messages": null,
+          "format": "",
+          "options": {},
+          "stream": true,
+          "keep_alive": null
+        }
+      },
+      "records": [],
+      "stream_failure": "fixture read failed",
+      "response": {
+        "status": 200,
+        "content_type": "application/x-ndjson",
+        "body": "{\"error\": \"Streaming error: fixture read failed\", \"done\": true}\n"
+      }
+    },
+    {
+      "id": "chat-stream-worker-error",
+      "contract": "C02",
+      "request": {
+        "method": "POST",
+        "path": "/api/chat",
+        "json": {
+          "model": "fixture:latest",
+          "stream": true
+        }
+      },
+      "normalized": {
+        "type": "chat",
+        "payload": {
+          "model": "fixture:latest",
+          "messages": null,
+          "format": "",
+          "options": {},
+          "stream": true,
+          "keep_alive": null
+        }
+      },
+      "records": [
+        {
+          "error": "fixture model missing",
+          "done": true
+        }
+      ],
+      "response": {
+        "status": 200,
+        "content_type": "application/x-ndjson",
+        "body": "{\"error\": \"fixture model missing\", \"done\": true}\n"
+      }
+    },
+    {
+      "id": "generate-worker-error",
+      "contract": "C01",
+      "request": {
+        "method": "POST",
+        "path": "/api/generate",
+        "json": {
+          "model": "fixture:latest",
+          "prompt": "Hola 雪",
+          "images": null,
+          "format": "json",
+          "options": null,
+          "system": null,
+          "template": null,
+          "context": null,
+          "stream": false,
+          "raw": false,
+          "keep_alive": "5m"
+        }
+      },
+      "normalized": {
+        "type": "generate",
+        "payload": {
+          "model": "fixture:latest",
+          "prompt": "Hola 雪",
+          "images": null,
+          "format": "json",
+          "options": null,
+          "system": null,
+          "template": null,
+          "context": null,
+          "stream": false,
+          "raw": false,
+          "keep_alive": "5m"
+        }
+      },
+      "response": {
+        "status": 500,
+        "content_type": "application/json",
+        "json": {
+          "error": "Internal Server Error",
+          "message": "error executing completion: fixture model missing"
+        }
+      },
+      "worker_result": {
+        "error": {
+          "message": "fixture model missing"
+        }
+      }
+    },
+    {
+      "id": "generate-submit-exception",
+      "contract": "C01",
+      "request": {
+        "method": "POST",
+        "path": "/api/generate",
+        "json": {
+          "model": "fixture:latest",
+          "prompt": "Hola 雪",
+          "images": null,
+          "format": "json",
+          "options": null,
+          "system": null,
+          "template": null,
+          "context": null,
+          "stream": false,
+          "raw": false,
+          "keep_alive": "5m"
+        }
+      },
+      "queued": true,
+      "failure": {
+        "at": "submit",
+        "message": "fixture transport failed"
+      },
+      "response": {
+        "status": 500,
+        "content_type": "text/plain; charset=utf-8",
+        "body": "Internal Server Error"
+      }
+    },
+    {
+      "id": "generate-result-exception",
+      "contract": "C01",
+      "request": {
+        "method": "POST",
+        "path": "/api/generate",
+        "json": {
+          "model": "fixture:latest",
+          "prompt": "Hola 雪",
+          "images": null,
+          "format": "json",
+          "options": null,
+          "system": null,
+          "template": null,
+          "context": null,
+          "stream": false,
+          "raw": false,
+          "keep_alive": "5m"
+        }
+      },
+      "queued": true,
+      "failure": {
+        "at": "result",
+        "message": "fixture transport failed"
+      },
+      "response": {
+        "status": 500,
+        "content_type": "text/plain; charset=utf-8",
+        "body": "Internal Server Error"
+      }
+    },
+    {
+      "id": "chat-worker-error",
+      "contract": "C02",
+      "request": {
+        "method": "POST",
+        "path": "/api/chat",
+        "json": {
+          "model": "fixture:latest",
+          "messages": null,
+          "format": "",
+          "options": {},
+          "stream": false,
+          "keep_alive": null
+        }
+      },
+      "normalized": {
+        "type": "chat",
+        "payload": {
+          "model": "fixture:latest",
+          "messages": null,
+          "format": "",
+          "options": {},
+          "stream": false,
+          "keep_alive": null
+        }
+      },
+      "response": {
+        "status": 500,
+        "content_type": "application/json",
+        "json": {
+          "error": "Internal Server Error",
+          "message": "error executing completion: fixture model missing"
+        }
+      },
+      "worker_result": {
+        "error": {
+          "message": "fixture model missing"
+        }
+      }
+    },
+    {
+      "id": "chat-submit-exception",
+      "contract": "C02",
+      "request": {
+        "method": "POST",
+        "path": "/api/chat",
+        "json": {
+          "model": "fixture:latest",
+          "messages": null,
+          "format": "",
+          "options": {},
+          "stream": false,
+          "keep_alive": null
+        }
+      },
+      "queued": true,
+      "failure": {
+        "at": "submit",
+        "message": "fixture transport failed"
+      },
+      "response": {
+        "status": 500,
+        "content_type": "text/plain; charset=utf-8",
+        "body": "Internal Server Error"
+      }
+    },
+    {
+      "id": "chat-result-exception",
+      "contract": "C02",
+      "request": {
+        "method": "POST",
+        "path": "/api/chat",
+        "json": {
+          "model": "fixture:latest",
+          "messages": null,
+          "format": "",
+          "options": {},
+          "stream": false,
+          "keep_alive": null
+        }
+      },
+      "queued": true,
+      "failure": {
+        "at": "result",
+        "message": "fixture transport failed"
+      },
+      "response": {
+        "status": 500,
+        "content_type": "text/plain; charset=utf-8",
+        "body": "Internal Server Error"
+      }
+    },
+    {
+      "id": "embeddings-worker-error",
+      "contract": "C03",
+      "request": {
+        "method": "POST",
+        "path": "/api/embeddings",
+        "json": {
+          "model": "fixture:latest",
+          "input": "Hola 雪",
+          "options": null,
+          "keep_alive": "5m"
+        }
+      },
+      "normalized": {
+        "type": "embeddings",
+        "payload": {
+          "model": "fixture:latest",
+          "input": "Hola 雪",
+          "options": null,
+          "keep_alive": "5m"
+        }
+      },
+      "response": {
+        "status": 500,
+        "content_type": "application/json",
+        "json": {
+          "error": "Internal Server Error",
+          "message": "error executing completion: fixture model missing"
+        }
+      },
+      "worker_result": {
+        "error": {
+          "message": "fixture model missing"
+        }
+      }
+    },
+    {
+      "id": "embeddings-submit-exception",
+      "contract": "C03",
+      "request": {
+        "method": "POST",
+        "path": "/api/embeddings",
+        "json": {
+          "model": "fixture:latest",
+          "input": "Hola 雪",
+          "options": null,
+          "keep_alive": "5m"
+        }
+      },
+      "queued": true,
+      "failure": {
+        "at": "submit",
+        "message": "fixture transport failed"
+      },
+      "response": {
+        "status": 500,
+        "content_type": "text/plain; charset=utf-8",
+        "body": "Internal Server Error"
+      }
+    },
+    {
+      "id": "embeddings-result-exception",
+      "contract": "C03",
+      "request": {
+        "method": "POST",
+        "path": "/api/embeddings",
+        "json": {
+          "model": "fixture:latest",
+          "input": "Hola 雪",
+          "options": null,
+          "keep_alive": "5m"
+        }
+      },
+      "queued": true,
+      "failure": {
+        "at": "result",
+        "message": "fixture transport failed"
+      },
+      "response": {
+        "status": 500,
+        "content_type": "text/plain; charset=utf-8",
+        "body": "Internal Server Error"
+      }
+    },
+    {
+      "id": "systemone-worker-error",
+      "contract": "C04",
+      "request": {
+        "method": "POST",
+        "path": "/v1/systemone",
+        "json": {
+          "model": "fixture:latest",
+          "state": "Please refund.",
+          "questions": {
+            "refund": {
+              "type": "noul",
+              "instructions": "Is a refund requested?"
+            }
+          }
+        }
+      },
+      "normalized": {
+        "type": "systemone",
+        "payload": {
+          "model": "fixture:latest",
+          "state": "Please refund.",
+          "questions": {
+            "refund": {
+              "type": "noul",
+              "instructions": "Is a refund requested?"
+            }
+          }
+        }
+      },
+      "response": {
+        "status": 500,
+        "content_type": "application/json",
+        "json": {
+          "error": "Internal Server Error",
+          "message": "error executing completion: fixture model missing"
+        }
+      },
+      "worker_result": {
+        "error": {
+          "message": "fixture model missing"
+        }
+      }
+    },
+    {
+      "id": "systemone-submit-exception",
+      "contract": "C04",
+      "request": {
+        "method": "POST",
+        "path": "/v1/systemone",
+        "json": {
+          "model": "fixture:latest",
+          "state": "Please refund.",
+          "questions": {
+            "refund": {
+              "type": "noul",
+              "instructions": "Is a refund requested?"
+            }
+          }
+        }
+      },
+      "queued": true,
+      "failure": {
+        "at": "submit",
+        "message": "fixture transport failed"
+      },
+      "response": {
+        "status": 500,
+        "content_type": "application/json",
+        "json": {
+          "error": "Internal Server Error",
+          "message": "error executing completion: fixture transport failed"
+        }
+      }
+    },
+    {
+      "id": "systemone-result-exception",
+      "contract": "C04",
+      "request": {
+        "method": "POST",
+        "path": "/v1/systemone",
+        "json": {
+          "model": "fixture:latest",
+          "state": "Please refund.",
+          "questions": {
+            "refund": {
+              "type": "noul",
+              "instructions": "Is a refund requested?"
+            }
+          }
+        }
+      },
+      "queued": true,
+      "failure": {
+        "at": "result",
+        "message": "fixture transport failed"
+      },
+      "response": {
+        "status": 500,
+        "content_type": "application/json",
+        "json": {
+          "error": "Internal Server Error",
+          "message": "error executing completion: fixture transport failed"
+        }
+      }
+    },
+    {
+      "id": "generate-missing-prompt",
+      "contract": "C01",
+      "request": {
+        "method": "POST",
+        "path": "/api/generate",
+        "json": {
+          "model": "fixture:latest"
+        }
+      },
+      "response": {
+        "status": 500,
+        "content_type": "text/plain; charset=utf-8",
+        "body": "Internal Server Error"
+      }
+    },
+    {
+      "id": "generate-format-object",
+      "contract": "C01",
+      "request": {
+        "method": "POST",
+        "path": "/api/generate",
+        "json": {
+          "model": "fixture:latest",
+          "prompt": "Hola 雪",
+          "images": null,
+          "format": {
+            "type": "object"
+          },
+          "options": null,
+          "system": null,
+          "template": null,
+          "context": null,
+          "stream": false,
+          "raw": false,
+          "keep_alive": "5m"
+        }
+      },
+      "response": {
+        "status": 500,
+        "content_type": "text/plain; charset=utf-8",
+        "body": "Internal Server Error"
+      }
+    },
+    {
+      "id": "chat-tool-role",
+      "contract": "C02",
+      "request": {
+        "method": "POST",
+        "path": "/api/chat",
+        "json": {
+          "model": "fixture:latest",
+          "messages": [
+            {
+              "role": "tool",
+              "content": "x"
+            }
+          ],
+          "format": "",
+          "options": {},
+          "stream": false,
+          "keep_alive": null
+        }
+      },
+      "response": {
+        "status": 500,
+        "content_type": "text/plain; charset=utf-8",
+        "body": "Internal Server Error"
+      }
+    },
+    {
+      "id": "chat-format-object",
+      "contract": "C02",
+      "request": {
+        "method": "POST",
+        "path": "/api/chat",
+        "json": {
+          "model": "fixture:latest",
+          "messages": null,
+          "format": {
+            "type": "object"
+          },
+          "options": {},
+          "stream": false,
+          "keep_alive": null
+        }
+      },
+      "response": {
+        "status": 500,
+        "content_type": "text/plain; charset=utf-8",
+        "body": "Internal Server Error"
+      }
+    },
+    {
+      "id": "embeddings-prompt-only",
+      "contract": "C03",
+      "request": {
+        "method": "POST",
+        "path": "/api/embeddings",
+        "json": {
+          "model": "fixture:latest",
+          "prompt": "x"
+        }
+      },
+      "response": {
+        "status": 500,
+        "content_type": "text/plain; charset=utf-8",
+        "body": "Internal Server Error"
+      }
+    },
+    {
+      "id": "show-missing-model",
+      "contract": "C07",
+      "request": {
+        "method": "POST",
+        "path": "/api/show",
+        "json": {}
+      },
+      "response": {
+        "status": 500,
+        "content_type": "text/plain; charset=utf-8",
+        "body": "Internal Server Error"
+      }
+    },
+    {
+      "id": "generate-malformed-json",
+      "contract": "C01",
+      "request": {
+        "method": "POST",
+        "path": "/api/generate",
+        "raw": "{broken"
+      },
+      "response": {
+        "status": 500,
+        "content_type": "text/plain; charset=utf-8",
+        "body": "Internal Server Error"
+      }
+    },
+    {
+      "id": "chat-malformed-json",
+      "contract": "C02",
+      "request": {
+        "method": "POST",
+        "path": "/api/chat",
+        "raw": "{broken"
+      },
+      "response": {
+        "status": 500,
+        "content_type": "text/plain; charset=utf-8",
+        "body": "Internal Server Error"
+      }
+    },
+    {
+      "id": "embeddings-malformed-json",
+      "contract": "C03",
+      "request": {
+        "method": "POST",
+        "path": "/api/embeddings",
+        "raw": "{broken"
+      },
+      "response": {
+        "status": 500,
+        "content_type": "text/plain; charset=utf-8",
+        "body": "Internal Server Error"
+      }
+    },
+    {
+      "id": "show-malformed-json",
+      "contract": "C07",
+      "request": {
+        "method": "POST",
+        "path": "/api/show",
+        "raw": "{broken"
+      },
+      "response": {
+        "status": 500,
+        "content_type": "text/plain; charset=utf-8",
+        "body": "Internal Server Error"
+      }
+    },
+    {
+      "id": "systemone-missing",
+      "contract": "C04",
+      "request": {
+        "method": "POST",
+        "path": "/v1/systemone",
+        "json": {}
+      },
+      "response": {
+        "status": 422,
+        "content_type": "application/json",
+        "validation_locations": [
+          [
+            "body",
+            "model"
+          ],
+          [
+            "body",
+            "state"
+          ],
+          [
+            "body",
+            "questions"
+          ]
+        ],
+        "json": {
+          "detail": [
+            {
+              "type": "missing",
+              "loc": [
+                "body",
+                "model"
+              ],
+              "msg": "Field required",
+              "input": {}
+            },
+            {
+              "type": "missing",
+              "loc": [
+                "body",
+                "state"
+              ],
+              "msg": "Field required",
+              "input": {}
+            },
+            {
+              "type": "missing",
+              "loc": [
+                "body",
+                "questions"
+              ],
+              "msg": "Field required",
+              "input": {}
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "systemone-invalid-questions",
+      "contract": "C04",
+      "request": {
+        "method": "POST",
+        "path": "/v1/systemone",
+        "json": {
+          "model": "fixture:latest",
+          "state": "Please refund.",
+          "questions": []
+        }
+      },
+      "response": {
+        "status": 422,
+        "content_type": "application/json",
+        "validation_locations": [
+          [
+            "body",
+            "questions"
+          ]
+        ],
+        "json": {
+          "detail": [
+            {
+              "type": "dict_type",
+              "loc": [
+                "body",
+                "questions"
+              ],
+              "msg": "Input should be a valid dictionary",
+              "input": []
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "tags-live",
+      "contract": "C05",
+      "request": {
+        "method": "GET",
+        "path": "/api/tags"
+      },
+      "workers": [
+        {
+          "worker_id": "stale",
+          "heartbeat": "2026-10-04T11:58:00+00:00",
+          "tags": "{\"models\": [{\"name\": \"offline\"}]}",
+          "ps": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"size_vram\": 24, \"expires_at\": \"2026-10-04T12:05:00Z\", \"details\": {\"family\": \"fixture\"}}]}",
+          "version": "{\"version\": \"0.6.3-fixture\"}",
+          "show": "{\"fixture:latest\": {\"license\": \"fixture license\", \"modelfile\": \"FROM fixture\", \"parameters\": \"num_ctx 1024\", \"template\": \"{{ .Prompt }}\", \"details\": {\"family\": \"fixture\"}, \"model_info\": {\"fixture.context_length\": 1024}}}"
+        },
+        {
+          "worker_id": "no-heartbeat",
+          "tags": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"modified_at\": \"2026-10-04T12:00:00Z\", \"details\": {\"format\": \"gguf\", \"family\": \"fixture\", \"parameter_size\": \"1B\", \"quantization_level\": \"Q4_0\"}}]}",
+          "ps": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"size_vram\": 24, \"expires_at\": \"2026-10-04T12:05:00Z\", \"details\": {\"family\": \"fixture\"}}]}",
+          "version": "{\"version\": \"0.6.3-fixture\"}",
+          "show": "{\"fixture:latest\": {\"license\": \"fixture license\", \"modelfile\": \"FROM fixture\", \"parameters\": \"num_ctx 1024\", \"template\": \"{{ .Prompt }}\", \"details\": {\"family\": \"fixture\"}, \"model_info\": {\"fixture.context_length\": 1024}}}"
+        },
+        {
+          "worker_id": "live-a",
+          "heartbeat": "2026-10-04T12:00:00+00:00",
+          "tags": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"modified_at\": \"2026-10-04T12:00:00Z\", \"details\": {\"format\": \"gguf\", \"family\": \"fixture\", \"parameter_size\": \"1B\", \"quantization_level\": \"Q4_0\"}}]}",
+          "ps": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"size_vram\": 24, \"expires_at\": \"2026-10-04T12:05:00Z\", \"details\": {\"family\": \"fixture\"}}]}",
+          "version": "{\"version\": \"0.6.3-fixture\"}",
+          "show": "{\"fixture:latest\": {\"license\": \"fixture license\", \"modelfile\": \"FROM fixture\", \"parameters\": \"num_ctx 1024\", \"template\": \"{{ .Prompt }}\", \"details\": {\"family\": \"fixture\"}, \"model_info\": {\"fixture.context_length\": 1024}}}"
+        },
+        {
+          "worker_id": "live-b",
+          "heartbeat": "2026-10-04T12:00:00+00:00",
+          "tags": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"modified_at\": \"2026-10-04T12:00:00Z\", \"details\": {\"format\": \"gguf\", \"family\": \"fixture\", \"parameter_size\": \"1B\", \"quantization_level\": \"Q4_0\"}}]}",
+          "ps": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"size_vram\": 24, \"expires_at\": \"2026-10-04T12:05:00Z\", \"details\": {\"family\": \"fixture\"}}]}",
+          "version": "{\"version\": \"second-worker\"}",
+          "show": "{\"fixture:latest\": {\"license\": \"fixture license\", \"modelfile\": \"FROM fixture\", \"parameters\": \"num_ctx 1024\", \"template\": \"{{ .Prompt }}\", \"details\": {\"family\": \"fixture\"}, \"model_info\": {\"fixture.context_length\": 1024}}}"
+        }
+      ],
+      "response": {
+        "status": 200,
+        "content_type": "application/json",
+        "json": {
+          "models": [
+            {
+              "name": "fixture:latest",
+              "model": "fixture:latest",
+              "digest": "sha256:fixture-a",
+              "size": 42,
+              "modified_at": "2026-10-04T12:00:00Z",
+              "details": {
+                "format": "gguf",
+                "family": "fixture",
+                "parameter_size": "1B",
+                "quantization_level": "Q4_0"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "tags-empty",
+      "contract": "C05",
+      "request": {
+        "method": "GET",
+        "path": "/api/tags"
+      },
+      "workers": [],
+      "response": {
+        "status": 200,
+        "content_type": "application/json",
+        "json": {
+          "models": []
+        }
+      }
+    },
+    {
+      "id": "tags-offline",
+      "contract": "C05",
+      "request": {
+        "method": "GET",
+        "path": "/api/tags"
+      },
+      "workers": [
+        {
+          "worker_id": "stale",
+          "heartbeat": "2026-10-04T11:58:00+00:00",
+          "tags": "{\"models\": [{\"name\": \"offline\"}]}",
+          "ps": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"size_vram\": 24, \"expires_at\": \"2026-10-04T12:05:00Z\", \"details\": {\"family\": \"fixture\"}}]}",
+          "version": "{\"version\": \"0.6.3-fixture\"}",
+          "show": "{\"fixture:latest\": {\"license\": \"fixture license\", \"modelfile\": \"FROM fixture\", \"parameters\": \"num_ctx 1024\", \"template\": \"{{ .Prompt }}\", \"details\": {\"family\": \"fixture\"}, \"model_info\": {\"fixture.context_length\": 1024}}}"
+        },
+        {
+          "worker_id": "no-heartbeat",
+          "tags": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"modified_at\": \"2026-10-04T12:00:00Z\", \"details\": {\"format\": \"gguf\", \"family\": \"fixture\", \"parameter_size\": \"1B\", \"quantization_level\": \"Q4_0\"}}]}",
+          "ps": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"size_vram\": 24, \"expires_at\": \"2026-10-04T12:05:00Z\", \"details\": {\"family\": \"fixture\"}}]}",
+          "version": "{\"version\": \"0.6.3-fixture\"}",
+          "show": "{\"fixture:latest\": {\"license\": \"fixture license\", \"modelfile\": \"FROM fixture\", \"parameters\": \"num_ctx 1024\", \"template\": \"{{ .Prompt }}\", \"details\": {\"family\": \"fixture\"}, \"model_info\": {\"fixture.context_length\": 1024}}}"
+        }
+      ],
+      "response": {
+        "status": 200,
+        "content_type": "application/json",
+        "json": {
+          "models": []
+        }
+      }
+    },
+    {
+      "id": "ps-live",
+      "contract": "C06",
+      "request": {
+        "method": "GET",
+        "path": "/api/ps"
+      },
+      "workers": [
+        {
+          "worker_id": "stale",
+          "heartbeat": "2026-10-04T11:58:00+00:00",
+          "tags": "{\"models\": [{\"name\": \"offline\"}]}",
+          "ps": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"size_vram\": 24, \"expires_at\": \"2026-10-04T12:05:00Z\", \"details\": {\"family\": \"fixture\"}}]}",
+          "version": "{\"version\": \"0.6.3-fixture\"}",
+          "show": "{\"fixture:latest\": {\"license\": \"fixture license\", \"modelfile\": \"FROM fixture\", \"parameters\": \"num_ctx 1024\", \"template\": \"{{ .Prompt }}\", \"details\": {\"family\": \"fixture\"}, \"model_info\": {\"fixture.context_length\": 1024}}}"
+        },
+        {
+          "worker_id": "no-heartbeat",
+          "tags": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"modified_at\": \"2026-10-04T12:00:00Z\", \"details\": {\"format\": \"gguf\", \"family\": \"fixture\", \"parameter_size\": \"1B\", \"quantization_level\": \"Q4_0\"}}]}",
+          "ps": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"size_vram\": 24, \"expires_at\": \"2026-10-04T12:05:00Z\", \"details\": {\"family\": \"fixture\"}}]}",
+          "version": "{\"version\": \"0.6.3-fixture\"}",
+          "show": "{\"fixture:latest\": {\"license\": \"fixture license\", \"modelfile\": \"FROM fixture\", \"parameters\": \"num_ctx 1024\", \"template\": \"{{ .Prompt }}\", \"details\": {\"family\": \"fixture\"}, \"model_info\": {\"fixture.context_length\": 1024}}}"
+        },
+        {
+          "worker_id": "live-a",
+          "heartbeat": "2026-10-04T12:00:00+00:00",
+          "tags": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"modified_at\": \"2026-10-04T12:00:00Z\", \"details\": {\"format\": \"gguf\", \"family\": \"fixture\", \"parameter_size\": \"1B\", \"quantization_level\": \"Q4_0\"}}]}",
+          "ps": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"size_vram\": 24, \"expires_at\": \"2026-10-04T12:05:00Z\", \"details\": {\"family\": \"fixture\"}}]}",
+          "version": "{\"version\": \"0.6.3-fixture\"}",
+          "show": "{\"fixture:latest\": {\"license\": \"fixture license\", \"modelfile\": \"FROM fixture\", \"parameters\": \"num_ctx 1024\", \"template\": \"{{ .Prompt }}\", \"details\": {\"family\": \"fixture\"}, \"model_info\": {\"fixture.context_length\": 1024}}}"
+        },
+        {
+          "worker_id": "live-b",
+          "heartbeat": "2026-10-04T12:00:00+00:00",
+          "tags": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"modified_at\": \"2026-10-04T12:00:00Z\", \"details\": {\"format\": \"gguf\", \"family\": \"fixture\", \"parameter_size\": \"1B\", \"quantization_level\": \"Q4_0\"}}]}",
+          "ps": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"size_vram\": 24, \"expires_at\": \"2026-10-04T12:05:00Z\", \"details\": {\"family\": \"fixture\"}}]}",
+          "version": "{\"version\": \"second-worker\"}",
+          "show": "{\"fixture:latest\": {\"license\": \"fixture license\", \"modelfile\": \"FROM fixture\", \"parameters\": \"num_ctx 1024\", \"template\": \"{{ .Prompt }}\", \"details\": {\"family\": \"fixture\"}, \"model_info\": {\"fixture.context_length\": 1024}}}"
+        }
+      ],
+      "response": {
+        "status": 200,
+        "content_type": "application/json",
+        "json": {
+          "models": [
+            {
+              "name": "fixture:latest",
+              "model": "fixture:latest",
+              "digest": "sha256:fixture-a",
+              "size": 42,
+              "size_vram": 24,
+              "expires_at": "2026-10-04T12:05:00Z",
+              "details": {
+                "family": "fixture"
+              }
+            },
+            {
+              "name": "fixture:latest",
+              "model": "fixture:latest",
+              "digest": "sha256:fixture-a",
+              "size": 42,
+              "size_vram": 24,
+              "expires_at": "2026-10-04T12:05:00Z",
+              "details": {
+                "family": "fixture"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "ps-empty",
+      "contract": "C06",
+      "request": {
+        "method": "GET",
+        "path": "/api/ps"
+      },
+      "workers": [],
+      "response": {
+        "status": 200,
+        "content_type": "application/json",
+        "json": {
+          "models": []
+        }
+      }
+    },
+    {
+      "id": "ps-offline",
+      "contract": "C06",
+      "request": {
+        "method": "GET",
+        "path": "/api/ps"
+      },
+      "workers": [
+        {
+          "worker_id": "stale",
+          "heartbeat": "2026-10-04T11:58:00+00:00",
+          "tags": "{\"models\": [{\"name\": \"offline\"}]}",
+          "ps": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"size_vram\": 24, \"expires_at\": \"2026-10-04T12:05:00Z\", \"details\": {\"family\": \"fixture\"}}]}",
+          "version": "{\"version\": \"0.6.3-fixture\"}",
+          "show": "{\"fixture:latest\": {\"license\": \"fixture license\", \"modelfile\": \"FROM fixture\", \"parameters\": \"num_ctx 1024\", \"template\": \"{{ .Prompt }}\", \"details\": {\"family\": \"fixture\"}, \"model_info\": {\"fixture.context_length\": 1024}}}"
+        },
+        {
+          "worker_id": "no-heartbeat",
+          "tags": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"modified_at\": \"2026-10-04T12:00:00Z\", \"details\": {\"format\": \"gguf\", \"family\": \"fixture\", \"parameter_size\": \"1B\", \"quantization_level\": \"Q4_0\"}}]}",
+          "ps": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"size_vram\": 24, \"expires_at\": \"2026-10-04T12:05:00Z\", \"details\": {\"family\": \"fixture\"}}]}",
+          "version": "{\"version\": \"0.6.3-fixture\"}",
+          "show": "{\"fixture:latest\": {\"license\": \"fixture license\", \"modelfile\": \"FROM fixture\", \"parameters\": \"num_ctx 1024\", \"template\": \"{{ .Prompt }}\", \"details\": {\"family\": \"fixture\"}, \"model_info\": {\"fixture.context_length\": 1024}}}"
+        }
+      ],
+      "response": {
+        "status": 200,
+        "content_type": "application/json",
+        "json": {
+          "models": []
+        }
+      }
+    },
+    {
+      "id": "version-live",
+      "contract": "C08",
+      "request": {
+        "method": "GET",
+        "path": "/api/version"
+      },
+      "workers": [
+        {
+          "worker_id": "stale",
+          "heartbeat": "2026-10-04T11:58:00+00:00",
+          "tags": "{\"models\": [{\"name\": \"offline\"}]}",
+          "ps": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"size_vram\": 24, \"expires_at\": \"2026-10-04T12:05:00Z\", \"details\": {\"family\": \"fixture\"}}]}",
+          "version": "{\"version\": \"0.6.3-fixture\"}",
+          "show": "{\"fixture:latest\": {\"license\": \"fixture license\", \"modelfile\": \"FROM fixture\", \"parameters\": \"num_ctx 1024\", \"template\": \"{{ .Prompt }}\", \"details\": {\"family\": \"fixture\"}, \"model_info\": {\"fixture.context_length\": 1024}}}"
+        },
+        {
+          "worker_id": "no-heartbeat",
+          "tags": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"modified_at\": \"2026-10-04T12:00:00Z\", \"details\": {\"format\": \"gguf\", \"family\": \"fixture\", \"parameter_size\": \"1B\", \"quantization_level\": \"Q4_0\"}}]}",
+          "ps": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"size_vram\": 24, \"expires_at\": \"2026-10-04T12:05:00Z\", \"details\": {\"family\": \"fixture\"}}]}",
+          "version": "{\"version\": \"0.6.3-fixture\"}",
+          "show": "{\"fixture:latest\": {\"license\": \"fixture license\", \"modelfile\": \"FROM fixture\", \"parameters\": \"num_ctx 1024\", \"template\": \"{{ .Prompt }}\", \"details\": {\"family\": \"fixture\"}, \"model_info\": {\"fixture.context_length\": 1024}}}"
+        },
+        {
+          "worker_id": "live-a",
+          "heartbeat": "2026-10-04T12:00:00+00:00",
+          "tags": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"modified_at\": \"2026-10-04T12:00:00Z\", \"details\": {\"format\": \"gguf\", \"family\": \"fixture\", \"parameter_size\": \"1B\", \"quantization_level\": \"Q4_0\"}}]}",
+          "ps": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"size_vram\": 24, \"expires_at\": \"2026-10-04T12:05:00Z\", \"details\": {\"family\": \"fixture\"}}]}",
+          "version": "{\"version\": \"0.6.3-fixture\"}",
+          "show": "{\"fixture:latest\": {\"license\": \"fixture license\", \"modelfile\": \"FROM fixture\", \"parameters\": \"num_ctx 1024\", \"template\": \"{{ .Prompt }}\", \"details\": {\"family\": \"fixture\"}, \"model_info\": {\"fixture.context_length\": 1024}}}"
+        },
+        {
+          "worker_id": "live-b",
+          "heartbeat": "2026-10-04T12:00:00+00:00",
+          "tags": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"modified_at\": \"2026-10-04T12:00:00Z\", \"details\": {\"format\": \"gguf\", \"family\": \"fixture\", \"parameter_size\": \"1B\", \"quantization_level\": \"Q4_0\"}}]}",
+          "ps": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"size_vram\": 24, \"expires_at\": \"2026-10-04T12:05:00Z\", \"details\": {\"family\": \"fixture\"}}]}",
+          "version": "{\"version\": \"second-worker\"}",
+          "show": "{\"fixture:latest\": {\"license\": \"fixture license\", \"modelfile\": \"FROM fixture\", \"parameters\": \"num_ctx 1024\", \"template\": \"{{ .Prompt }}\", \"details\": {\"family\": \"fixture\"}, \"model_info\": {\"fixture.context_length\": 1024}}}"
+        }
+      ],
+      "response": {
+        "status": 200,
+        "content_type": "application/json",
+        "json": {
+          "version": "0.6.3-fixture"
+        }
+      }
+    },
+    {
+      "id": "version-empty",
+      "contract": "C08",
+      "request": {
+        "method": "GET",
+        "path": "/api/version"
+      },
+      "workers": [],
+      "response": {
+        "status": 200,
+        "content_type": "application/json",
+        "json": {}
+      }
+    },
+    {
+      "id": "version-offline",
+      "contract": "C08",
+      "request": {
+        "method": "GET",
+        "path": "/api/version"
+      },
+      "workers": [
+        {
+          "worker_id": "stale",
+          "heartbeat": "2026-10-04T11:58:00+00:00",
+          "tags": "{\"models\": [{\"name\": \"offline\"}]}",
+          "ps": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"size_vram\": 24, \"expires_at\": \"2026-10-04T12:05:00Z\", \"details\": {\"family\": \"fixture\"}}]}",
+          "version": "{\"version\": \"0.6.3-fixture\"}",
+          "show": "{\"fixture:latest\": {\"license\": \"fixture license\", \"modelfile\": \"FROM fixture\", \"parameters\": \"num_ctx 1024\", \"template\": \"{{ .Prompt }}\", \"details\": {\"family\": \"fixture\"}, \"model_info\": {\"fixture.context_length\": 1024}}}"
+        },
+        {
+          "worker_id": "no-heartbeat",
+          "tags": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"modified_at\": \"2026-10-04T12:00:00Z\", \"details\": {\"format\": \"gguf\", \"family\": \"fixture\", \"parameter_size\": \"1B\", \"quantization_level\": \"Q4_0\"}}]}",
+          "ps": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"size_vram\": 24, \"expires_at\": \"2026-10-04T12:05:00Z\", \"details\": {\"family\": \"fixture\"}}]}",
+          "version": "{\"version\": \"0.6.3-fixture\"}",
+          "show": "{\"fixture:latest\": {\"license\": \"fixture license\", \"modelfile\": \"FROM fixture\", \"parameters\": \"num_ctx 1024\", \"template\": \"{{ .Prompt }}\", \"details\": {\"family\": \"fixture\"}, \"model_info\": {\"fixture.context_length\": 1024}}}"
+        }
+      ],
+      "response": {
+        "status": 200,
+        "content_type": "application/json",
+        "json": {}
+      }
+    },
+    {
+      "id": "tags-name-dedup-last-wins",
+      "contract": "C05",
+      "request": {
+        "method": "GET",
+        "path": "/api/tags"
+      },
+      "workers": [
+        {
+          "worker_id": "live-a",
+          "heartbeat": "2026-10-04T12:00:00+00:00",
+          "tags": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"modified_at\": \"2026-10-04T12:00:00Z\", \"details\": {\"format\": \"gguf\", \"family\": \"fixture\", \"parameter_size\": \"1B\", \"quantization_level\": \"Q4_0\"}}]}",
+          "ps": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"size_vram\": 24, \"expires_at\": \"2026-10-04T12:05:00Z\", \"details\": {\"family\": \"fixture\"}}]}",
+          "version": "{\"version\": \"0.6.3-fixture\"}",
+          "show": "{\"fixture:latest\": {\"license\": \"fixture license\", \"modelfile\": \"FROM fixture\", \"parameters\": \"num_ctx 1024\", \"template\": \"{{ .Prompt }}\", \"details\": {\"family\": \"fixture\"}, \"model_info\": {\"fixture.context_length\": 1024}}}"
+        },
+        {
+          "worker_id": "b",
+          "heartbeat": "2026-10-04T12:00:00+00:00",
+          "tags": "{\"models\": [{\"name\": \"fixture:latest\", \"digest\": \"different\"}]}",
+          "ps": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"size_vram\": 24, \"expires_at\": \"2026-10-04T12:05:00Z\", \"details\": {\"family\": \"fixture\"}}]}",
+          "version": "{\"version\": \"0.6.3-fixture\"}",
+          "show": "{\"fixture:latest\": {\"license\": \"fixture license\", \"modelfile\": \"FROM fixture\", \"parameters\": \"num_ctx 1024\", \"template\": \"{{ .Prompt }}\", \"details\": {\"family\": \"fixture\"}, \"model_info\": {\"fixture.context_length\": 1024}}}"
+        }
+      ],
+      "response": {
+        "status": 200,
+        "content_type": "application/json",
+        "json": {
+          "models": [
+            {
+              "name": "fixture:latest",
+              "digest": "different"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "show-verbose-false",
+      "contract": "C07",
+      "request": {
+        "method": "POST",
+        "path": "/api/show",
+        "json": {
+          "model": "fixture:latest",
+          "verbose": false
+        }
+      },
+      "workers": [
+        {
+          "worker_id": "stale",
+          "heartbeat": "2026-10-04T11:58:00+00:00",
+          "tags": "{\"models\": [{\"name\": \"offline\"}]}",
+          "ps": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"size_vram\": 24, \"expires_at\": \"2026-10-04T12:05:00Z\", \"details\": {\"family\": \"fixture\"}}]}",
+          "version": "{\"version\": \"0.6.3-fixture\"}",
+          "show": "{\"fixture:latest\": {\"license\": \"fixture license\", \"modelfile\": \"FROM fixture\", \"parameters\": \"num_ctx 1024\", \"template\": \"{{ .Prompt }}\", \"details\": {\"family\": \"fixture\"}, \"model_info\": {\"fixture.context_length\": 1024}}}"
+        },
+        {
+          "worker_id": "no-heartbeat",
+          "tags": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"modified_at\": \"2026-10-04T12:00:00Z\", \"details\": {\"format\": \"gguf\", \"family\": \"fixture\", \"parameter_size\": \"1B\", \"quantization_level\": \"Q4_0\"}}]}",
+          "ps": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"size_vram\": 24, \"expires_at\": \"2026-10-04T12:05:00Z\", \"details\": {\"family\": \"fixture\"}}]}",
+          "version": "{\"version\": \"0.6.3-fixture\"}",
+          "show": "{\"fixture:latest\": {\"license\": \"fixture license\", \"modelfile\": \"FROM fixture\", \"parameters\": \"num_ctx 1024\", \"template\": \"{{ .Prompt }}\", \"details\": {\"family\": \"fixture\"}, \"model_info\": {\"fixture.context_length\": 1024}}}"
+        },
+        {
+          "worker_id": "live-a",
+          "heartbeat": "2026-10-04T12:00:00+00:00",
+          "tags": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"modified_at\": \"2026-10-04T12:00:00Z\", \"details\": {\"format\": \"gguf\", \"family\": \"fixture\", \"parameter_size\": \"1B\", \"quantization_level\": \"Q4_0\"}}]}",
+          "ps": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"size_vram\": 24, \"expires_at\": \"2026-10-04T12:05:00Z\", \"details\": {\"family\": \"fixture\"}}]}",
+          "version": "{\"version\": \"0.6.3-fixture\"}",
+          "show": "{\"fixture:latest\": {\"license\": \"fixture license\", \"modelfile\": \"FROM fixture\", \"parameters\": \"num_ctx 1024\", \"template\": \"{{ .Prompt }}\", \"details\": {\"family\": \"fixture\"}, \"model_info\": {\"fixture.context_length\": 1024}}}"
+        },
+        {
+          "worker_id": "live-b",
+          "heartbeat": "2026-10-04T12:00:00+00:00",
+          "tags": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"modified_at\": \"2026-10-04T12:00:00Z\", \"details\": {\"format\": \"gguf\", \"family\": \"fixture\", \"parameter_size\": \"1B\", \"quantization_level\": \"Q4_0\"}}]}",
+          "ps": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"size_vram\": 24, \"expires_at\": \"2026-10-04T12:05:00Z\", \"details\": {\"family\": \"fixture\"}}]}",
+          "version": "{\"version\": \"second-worker\"}",
+          "show": "{\"fixture:latest\": {\"license\": \"fixture license\", \"modelfile\": \"FROM fixture\", \"parameters\": \"num_ctx 1024\", \"template\": \"{{ .Prompt }}\", \"details\": {\"family\": \"fixture\"}, \"model_info\": {\"fixture.context_length\": 1024}}}"
+        }
+      ],
+      "response": {
+        "status": 200,
+        "content_type": "application/json",
+        "json": {
+          "model_info": {
+            "license": "fixture license",
+            "modelfile": "FROM fixture",
+            "parameters": "num_ctx 1024",
+            "template": "{{ .Prompt }}",
+            "details": {
+              "family": "fixture"
+            },
+            "model_info": {
+              "fixture.context_length": 1024
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "show-verbose-true",
+      "contract": "C07",
+      "request": {
+        "method": "POST",
+        "path": "/api/show",
+        "json": {
+          "model": "fixture:latest",
+          "verbose": true
+        }
+      },
+      "workers": [
+        {
+          "worker_id": "stale",
+          "heartbeat": "2026-10-04T11:58:00+00:00",
+          "tags": "{\"models\": [{\"name\": \"offline\"}]}",
+          "ps": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"size_vram\": 24, \"expires_at\": \"2026-10-04T12:05:00Z\", \"details\": {\"family\": \"fixture\"}}]}",
+          "version": "{\"version\": \"0.6.3-fixture\"}",
+          "show": "{\"fixture:latest\": {\"license\": \"fixture license\", \"modelfile\": \"FROM fixture\", \"parameters\": \"num_ctx 1024\", \"template\": \"{{ .Prompt }}\", \"details\": {\"family\": \"fixture\"}, \"model_info\": {\"fixture.context_length\": 1024}}}"
+        },
+        {
+          "worker_id": "no-heartbeat",
+          "tags": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"modified_at\": \"2026-10-04T12:00:00Z\", \"details\": {\"format\": \"gguf\", \"family\": \"fixture\", \"parameter_size\": \"1B\", \"quantization_level\": \"Q4_0\"}}]}",
+          "ps": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"size_vram\": 24, \"expires_at\": \"2026-10-04T12:05:00Z\", \"details\": {\"family\": \"fixture\"}}]}",
+          "version": "{\"version\": \"0.6.3-fixture\"}",
+          "show": "{\"fixture:latest\": {\"license\": \"fixture license\", \"modelfile\": \"FROM fixture\", \"parameters\": \"num_ctx 1024\", \"template\": \"{{ .Prompt }}\", \"details\": {\"family\": \"fixture\"}, \"model_info\": {\"fixture.context_length\": 1024}}}"
+        },
+        {
+          "worker_id": "live-a",
+          "heartbeat": "2026-10-04T12:00:00+00:00",
+          "tags": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"modified_at\": \"2026-10-04T12:00:00Z\", \"details\": {\"format\": \"gguf\", \"family\": \"fixture\", \"parameter_size\": \"1B\", \"quantization_level\": \"Q4_0\"}}]}",
+          "ps": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"size_vram\": 24, \"expires_at\": \"2026-10-04T12:05:00Z\", \"details\": {\"family\": \"fixture\"}}]}",
+          "version": "{\"version\": \"0.6.3-fixture\"}",
+          "show": "{\"fixture:latest\": {\"license\": \"fixture license\", \"modelfile\": \"FROM fixture\", \"parameters\": \"num_ctx 1024\", \"template\": \"{{ .Prompt }}\", \"details\": {\"family\": \"fixture\"}, \"model_info\": {\"fixture.context_length\": 1024}}}"
+        },
+        {
+          "worker_id": "live-b",
+          "heartbeat": "2026-10-04T12:00:00+00:00",
+          "tags": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"modified_at\": \"2026-10-04T12:00:00Z\", \"details\": {\"format\": \"gguf\", \"family\": \"fixture\", \"parameter_size\": \"1B\", \"quantization_level\": \"Q4_0\"}}]}",
+          "ps": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"size_vram\": 24, \"expires_at\": \"2026-10-04T12:05:00Z\", \"details\": {\"family\": \"fixture\"}}]}",
+          "version": "{\"version\": \"second-worker\"}",
+          "show": "{\"fixture:latest\": {\"license\": \"fixture license\", \"modelfile\": \"FROM fixture\", \"parameters\": \"num_ctx 1024\", \"template\": \"{{ .Prompt }}\", \"details\": {\"family\": \"fixture\"}, \"model_info\": {\"fixture.context_length\": 1024}}}"
+        }
+      ],
+      "response": {
+        "status": 200,
+        "content_type": "application/json",
+        "json": {
+          "model_info": {
+            "license": "fixture license",
+            "modelfile": "FROM fixture",
+            "parameters": "num_ctx 1024",
+            "template": "{{ .Prompt }}",
+            "details": {
+              "family": "fixture"
+            },
+            "model_info": {
+              "fixture.context_length": 1024
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "show-verbose-none",
+      "contract": "C07",
+      "request": {
+        "method": "POST",
+        "path": "/api/show",
+        "json": {
+          "model": "fixture:latest",
+          "verbose": null
+        }
+      },
+      "workers": [
+        {
+          "worker_id": "stale",
+          "heartbeat": "2026-10-04T11:58:00+00:00",
+          "tags": "{\"models\": [{\"name\": \"offline\"}]}",
+          "ps": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"size_vram\": 24, \"expires_at\": \"2026-10-04T12:05:00Z\", \"details\": {\"family\": \"fixture\"}}]}",
+          "version": "{\"version\": \"0.6.3-fixture\"}",
+          "show": "{\"fixture:latest\": {\"license\": \"fixture license\", \"modelfile\": \"FROM fixture\", \"parameters\": \"num_ctx 1024\", \"template\": \"{{ .Prompt }}\", \"details\": {\"family\": \"fixture\"}, \"model_info\": {\"fixture.context_length\": 1024}}}"
+        },
+        {
+          "worker_id": "no-heartbeat",
+          "tags": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"modified_at\": \"2026-10-04T12:00:00Z\", \"details\": {\"format\": \"gguf\", \"family\": \"fixture\", \"parameter_size\": \"1B\", \"quantization_level\": \"Q4_0\"}}]}",
+          "ps": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"size_vram\": 24, \"expires_at\": \"2026-10-04T12:05:00Z\", \"details\": {\"family\": \"fixture\"}}]}",
+          "version": "{\"version\": \"0.6.3-fixture\"}",
+          "show": "{\"fixture:latest\": {\"license\": \"fixture license\", \"modelfile\": \"FROM fixture\", \"parameters\": \"num_ctx 1024\", \"template\": \"{{ .Prompt }}\", \"details\": {\"family\": \"fixture\"}, \"model_info\": {\"fixture.context_length\": 1024}}}"
+        },
+        {
+          "worker_id": "live-a",
+          "heartbeat": "2026-10-04T12:00:00+00:00",
+          "tags": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"modified_at\": \"2026-10-04T12:00:00Z\", \"details\": {\"format\": \"gguf\", \"family\": \"fixture\", \"parameter_size\": \"1B\", \"quantization_level\": \"Q4_0\"}}]}",
+          "ps": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"size_vram\": 24, \"expires_at\": \"2026-10-04T12:05:00Z\", \"details\": {\"family\": \"fixture\"}}]}",
+          "version": "{\"version\": \"0.6.3-fixture\"}",
+          "show": "{\"fixture:latest\": {\"license\": \"fixture license\", \"modelfile\": \"FROM fixture\", \"parameters\": \"num_ctx 1024\", \"template\": \"{{ .Prompt }}\", \"details\": {\"family\": \"fixture\"}, \"model_info\": {\"fixture.context_length\": 1024}}}"
+        },
+        {
+          "worker_id": "live-b",
+          "heartbeat": "2026-10-04T12:00:00+00:00",
+          "tags": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"modified_at\": \"2026-10-04T12:00:00Z\", \"details\": {\"format\": \"gguf\", \"family\": \"fixture\", \"parameter_size\": \"1B\", \"quantization_level\": \"Q4_0\"}}]}",
+          "ps": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"size_vram\": 24, \"expires_at\": \"2026-10-04T12:05:00Z\", \"details\": {\"family\": \"fixture\"}}]}",
+          "version": "{\"version\": \"second-worker\"}",
+          "show": "{\"fixture:latest\": {\"license\": \"fixture license\", \"modelfile\": \"FROM fixture\", \"parameters\": \"num_ctx 1024\", \"template\": \"{{ .Prompt }}\", \"details\": {\"family\": \"fixture\"}, \"model_info\": {\"fixture.context_length\": 1024}}}"
+        }
+      ],
+      "response": {
+        "status": 200,
+        "content_type": "application/json",
+        "json": {
+          "model_info": {
+            "license": "fixture license",
+            "modelfile": "FROM fixture",
+            "parameters": "num_ctx 1024",
+            "template": "{{ .Prompt }}",
+            "details": {
+              "family": "fixture"
+            },
+            "model_info": {
+              "fixture.context_length": 1024
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "show-missing",
+      "contract": "C07",
+      "request": {
+        "method": "POST",
+        "path": "/api/show",
+        "json": {
+          "model": "missing"
+        }
+      },
+      "workers": [
+        {
+          "worker_id": "live-a",
+          "heartbeat": "2026-10-04T12:00:00+00:00",
+          "tags": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"modified_at\": \"2026-10-04T12:00:00Z\", \"details\": {\"format\": \"gguf\", \"family\": \"fixture\", \"parameter_size\": \"1B\", \"quantization_level\": \"Q4_0\"}}]}",
+          "ps": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"size_vram\": 24, \"expires_at\": \"2026-10-04T12:05:00Z\", \"details\": {\"family\": \"fixture\"}}]}",
+          "version": "{\"version\": \"0.6.3-fixture\"}",
+          "show": "{\"fixture:latest\": {\"license\": \"fixture license\", \"modelfile\": \"FROM fixture\", \"parameters\": \"num_ctx 1024\", \"template\": \"{{ .Prompt }}\", \"details\": {\"family\": \"fixture\"}, \"model_info\": {\"fixture.context_length\": 1024}}}"
+        }
+      ],
+      "response": {
+        "status": 404,
+        "content_type": "application/json",
+        "json": {
+          "error": "Model not found",
+          "message": "Model 'missing' not found on any active worker"
+        }
+      }
+    },
+    {
+      "id": "show-invalid-cache-skipped",
+      "contract": "C07",
+      "request": {
+        "method": "POST",
+        "path": "/api/show",
+        "json": {
+          "model": "fixture:latest"
+        }
+      },
+      "workers": [
+        {
+          "worker_id": "invalid",
+          "heartbeat": "2026-10-04T12:00:00+00:00",
+          "tags": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"modified_at\": \"2026-10-04T12:00:00Z\", \"details\": {\"format\": \"gguf\", \"family\": \"fixture\", \"parameter_size\": \"1B\", \"quantization_level\": \"Q4_0\"}}]}",
+          "ps": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"size_vram\": 24, \"expires_at\": \"2026-10-04T12:05:00Z\", \"details\": {\"family\": \"fixture\"}}]}",
+          "version": "{\"version\": \"0.6.3-fixture\"}",
+          "show": "{broken"
+        },
+        {
+          "worker_id": "live-a",
+          "heartbeat": "2026-10-04T12:00:00+00:00",
+          "tags": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"modified_at\": \"2026-10-04T12:00:00Z\", \"details\": {\"format\": \"gguf\", \"family\": \"fixture\", \"parameter_size\": \"1B\", \"quantization_level\": \"Q4_0\"}}]}",
+          "ps": "{\"models\": [{\"name\": \"fixture:latest\", \"model\": \"fixture:latest\", \"digest\": \"sha256:fixture-a\", \"size\": 42, \"size_vram\": 24, \"expires_at\": \"2026-10-04T12:05:00Z\", \"details\": {\"family\": \"fixture\"}}]}",
+          "version": "{\"version\": \"0.6.3-fixture\"}",
+          "show": "{\"fixture:latest\": {\"license\": \"fixture license\", \"modelfile\": \"FROM fixture\", \"parameters\": \"num_ctx 1024\", \"template\": \"{{ .Prompt }}\", \"details\": {\"family\": \"fixture\"}, \"model_info\": {\"fixture.context_length\": 1024}}}"
+        }
+      ],
+      "response": {
+        "status": 200,
+        "content_type": "application/json",
+        "json": {
+          "model_info": {
+            "license": "fixture license",
+            "modelfile": "FROM fixture",
+            "parameters": "num_ctx 1024",
+            "template": "{{ .Prompt }}",
+            "details": {
+              "family": "fixture"
+            },
+            "model_info": {
+              "fixture.context_length": 1024
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "health",
+      "contract": "C09",
+      "request": {
+        "method": "GET",
+        "path": "/health"
+      },
+      "response": {
+        "status": 200,
+        "content_type": "application/json",
+        "json": {
+          "status": 200
+        }
+      }
+    },
+    {
+      "id": "generate-empty-values",
+      "contract": "C01",
+      "request": {
+        "method": "POST",
+        "path": "/api/generate",
+        "json": {
+          "model": "",
+          "prompt": "",
+          "images": [],
+          "options": {},
+          "context": [],
+          "system": "",
+          "template": "",
+          "format": "",
+          "keep_alive": ""
+        }
+      },
+      "normalized": {
+        "type": "generate",
+        "payload": {
+          "model": "",
+          "prompt": "",
+          "images": [],
+          "format": "",
+          "options": {},
+          "system": "",
+          "template": "",
+          "context": [],
+          "stream": false,
+          "raw": false,
+          "keep_alive": ""
+        }
+      },
+      "response": {
+        "status": 200,
+        "content_type": "application/json",
+        "json": {
+          "model": "fixture:latest",
+          "created_at": "2026-10-04T12:00:00Z",
+          "done": true,
+          "done_reason": "stop",
+          "total_duration": 1200000,
+          "load_duration": 100000,
+          "prompt_eval_count": 2,
+          "prompt_eval_duration": 200000,
+          "eval_count": 3,
+          "eval_duration": 900000,
+          "response": "Sí, 雪 🐑",
+          "thinking": null,
+          "context": [
+            1,
+            2
+          ],
+          "logprobs": null,
+          "image": null,
+          "completed": null,
+          "total": null
+        }
+      },
+      "worker_result": {
+        "model": "fixture:latest",
+        "created_at": "2026-10-04T12:00:00Z",
+        "done": true,
+        "done_reason": "stop",
+        "total_duration": 1200000,
+        "load_duration": 100000,
+        "prompt_eval_count": 2,
+        "prompt_eval_duration": 200000,
+        "eval_count": 3,
+        "eval_duration": 900000,
+        "response": "Sí, 雪 🐑",
+        "thinking": null,
+        "context": [
+          1,
+          2
+        ],
+        "logprobs": null,
+        "image": null,
+        "completed": null,
+        "total": null
+      }
+    },
+    {
+      "id": "chat-empty-values",
+      "contract": "C02",
+      "request": {
+        "method": "POST",
+        "path": "/api/chat",
+        "json": {
+          "model": "",
+          "messages": [],
+          "options": {},
+          "format": "",
+          "keep_alive": ""
+        }
+      },
+      "normalized": {
+        "type": "chat",
+        "payload": {
+          "model": "",
+          "messages": [],
+          "format": "",
+          "options": {},
+          "stream": false,
+          "keep_alive": ""
+        }
+      },
+      "response": {
+        "status": 200,
+        "content_type": "application/json",
+        "json": {
+          "model": "fixture:latest",
+          "created_at": "2026-10-04T12:00:00Z",
+          "done": true,
+          "done_reason": "stop",
+          "total_duration": 1200000,
+          "load_duration": 100000,
+          "prompt_eval_count": 2,
+          "prompt_eval_duration": 200000,
+          "eval_count": 3,
+          "eval_duration": 900000,
+          "message": {
+            "role": "assistant",
+            "content": "Sí, 雪 🐑",
+            "thinking": null,
+            "images": null,
+            "tool_name": null,
+            "tool_calls": null
+          },
+          "logprobs": null
+        }
+      },
+      "worker_result": {
+        "model": "fixture:latest",
+        "created_at": "2026-10-04T12:00:00Z",
+        "done": true,
+        "done_reason": "stop",
+        "total_duration": 1200000,
+        "load_duration": 100000,
+        "prompt_eval_count": 2,
+        "prompt_eval_duration": 200000,
+        "eval_count": 3,
+        "eval_duration": 900000,
+        "message": {
+          "role": "assistant",
+          "content": "Sí, 雪 🐑",
+          "thinking": null,
+          "images": null,
+          "tool_name": null,
+          "tool_calls": null
+        },
+        "logprobs": null
+      }
+    },
+    {
+      "id": "embeddings-empty-values",
+      "contract": "C03",
+      "request": {
+        "method": "POST",
+        "path": "/api/embeddings",
+        "json": {
+          "model": "",
+          "input": "",
+          "options": {},
+          "keep_alive": ""
+        }
+      },
+      "normalized": {
+        "type": "embeddings",
+        "payload": {
+          "model": "",
+          "input": "",
+          "options": {},
+          "keep_alive": ""
+        }
+      },
+      "response": {
+        "status": 200,
+        "content_type": "application/json",
+        "json": {
+          "embedding": [
+            0.125,
+            -0.5,
+            0.0,
+            1.25
+          ]
+        }
+      },
+      "worker_result": {
+        "embedding": [
+          0.125,
+          -0.5,
+          0.0,
+          1.25
+        ]
+      }
+    },
+    {
+      "id": "tags-registry-exception",
+      "contract": "C05",
+      "request": {
+        "method": "GET",
+        "path": "/api/tags"
+      },
+      "workers": [],
+      "failure": {
+        "at": "metadata",
+        "method": "get_available_tags",
+        "message": "fixture registry unavailable"
+      },
+      "response": {
+        "status": 500,
+        "content_type": "text/plain; charset=utf-8",
+        "body": "Internal Server Error"
+      }
+    },
+    {
+      "id": "ps-registry-exception",
+      "contract": "C06",
+      "request": {
+        "method": "GET",
+        "path": "/api/ps"
+      },
+      "workers": [],
+      "failure": {
+        "at": "metadata",
+        "method": "get_running_models",
+        "message": "fixture registry unavailable"
+      },
+      "response": {
+        "status": 500,
+        "content_type": "text/plain; charset=utf-8",
+        "body": "Internal Server Error"
+      }
+    },
+    {
+      "id": "show-registry-exception",
+      "contract": "C07",
+      "request": {
+        "method": "POST",
+        "path": "/api/show",
+        "json": {
+          "model": "fixture:latest"
+        }
+      },
+      "workers": [],
+      "failure": {
+        "at": "metadata",
+        "method": "get_model_info",
+        "message": "fixture registry unavailable"
+      },
+      "response": {
+        "status": 500,
+        "content_type": "text/plain; charset=utf-8",
+        "body": "Internal Server Error"
+      }
+    },
+    {
+      "id": "version-registry-exception",
+      "contract": "C08",
+      "request": {
+        "method": "GET",
+        "path": "/api/version"
+      },
+      "workers": [],
+      "failure": {
+        "at": "metadata",
+        "method": "get_version",
+        "message": "fixture registry unavailable"
+      },
+      "response": {
+        "status": 500,
+        "content_type": "text/plain; charset=utf-8",
+        "body": "Internal Server Error"
+      }
+    }
+  ]
+}

@@ -165,3 +165,9 @@ node_modules
 # Misc
 .DS_Store
 *.env
+
+# Supabase worker credentials and generated local CLI state
+.oshepherd/
+*.worker-session.json
+supabase/.temp/
+supabase/.branches/

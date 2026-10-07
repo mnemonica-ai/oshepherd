@@ -16,15 +16,16 @@ def load_and_validate_env(
         load_dotenv()
 
     # Create a env var dictionary
-    env_vars = {
-        key: os.getenv(key) for key in Config.__annotations__.keys() if os.getenv(key)
-    }
+    env_vars = {key: os.getenv(key) for key in Config.model_fields if os.getenv(key)}
 
     # Validate env vars against ApiConfig model
     try:
         config = Config(**env_vars)
     except ValidationError as e:
-        logger.error("invalid configuration error=%s", e)
+        logger.error(
+            "invalid configuration error=%s",
+            e.errors(include_input=False, include_context=False),
+        )
         return None
 
     return config

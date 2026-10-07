@@ -1,6 +1,10 @@
 # Optional Supabase backend
 
-Updated October 4, 2026. Status: researched implementation proposal. No Supabase implementation, hosted benchmark, installer or deploy button is complete.
+Updated October 5, 2026. Status: experimental implementation in progress. Local
+Edge-to-Ollama inference passed; production qualification, hosted benchmarks,
+installer and deploy buttons remain pending. See the [progress ledger](progress.md).
+
+Development has started with [local characterization](experiments/step-0-local-characterization.md): versioned C01–C09 fixtures, request schemas and a controllable fake upstream. The deterministic suite passes 162 tests. The relay spike, Supabase runtime and hosted gates remain open.
 
 ## Decisions
 
@@ -30,3 +34,5 @@ Installation adds a separate product to maintain: a privileged bootstrap service
 The next implementation step is characterization and the feasibility spike in step 0, with shared-contract work continuing while hosted access is arranged. The [development handoff](development-handoff.md) makes the starting work and remaining dependencies explicit. These documents specify acceptance gates; they do not claim the gates have passed.
 
 [All plans](../index.md)
+
+[Implementation progress and verification ledger](progress.md)

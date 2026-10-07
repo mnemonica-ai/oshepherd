@@ -3,10 +3,10 @@ import logging
 import ollama
 from oshepherd.worker.app import celery_app
 from oshepherd.worker.ollama_task import OllamaCeleryTask
-from oshepherd.common.ollama import serialize_ollama_res
 from oshepherd.common.redis_service import RedisService
 from oshepherd.worker.config import WorkerConfig
 from oshepherd.common.lib import load_and_validate_env
+from oshepherd.worker.executor import LegacyOllamaExecutor
 
 logger = logging.getLogger(__name__)
 
@@ -44,11 +44,11 @@ def exec_completion(self, request_str: str):
                 "streaming enabled task_id=%s channel=%s", task_id, stream_channel
             )
 
-        if req_type == "generate":
+        executor = LegacyOllamaExecutor(sdk=ollama)
+        if req_type in ("generate", "chat"):
             if is_streaming:
                 # Stream responses via Redis Pub/Sub
-                for chunk in ollama.generate(**req_payload):
-                    serializable_chunk = serialize_ollama_res(chunk)
+                for serializable_chunk in executor.iter_records(req_type, req_payload):
                     redis_service.publish(
                         stream_channel, json.dumps(serializable_chunk)
                     )
@@ -56,41 +56,10 @@ def exec_completion(self, request_str: str):
                 # Return success indicator for the celery task
                 serializable_response = {"status": "streaming_completed"}
             else:
-                response = ollama.generate(**req_payload)
-                serializable_response = serialize_ollama_res(response)
+                serializable_response = executor.complete(req_type, req_payload)
 
-        elif req_type == "chat":
-            if is_streaming:
-                # Stream responses via Redis Pub/Sub
-                for chunk in ollama.chat(**req_payload):
-                    serializable_chunk = serialize_ollama_res(chunk)
-                    redis_service.publish(
-                        stream_channel, json.dumps(serializable_chunk)
-                    )
-
-                # Return success indicator for the celery task
-                serializable_response = {"status": "streaming_completed"}
-            else:
-                response = ollama.chat(**req_payload)
-                serializable_response = serialize_ollama_res(response)
-
-        elif req_type == "systemone":
-            # systemone() in ollama-python 0.6.3 validates question
-            # types and rejects extra parameters. Preserve upstream passthrough.
-            with ollama.Client() as client:
-                serializable_response = client._request_raw(
-                    "POST", "/v1/systemone", json=req_payload
-                ).json()
-
-        elif req_type == "embeddings":
-            # use deprecated /api/embeddings instead of /api/embed — newer endpoint requires --embeddings server flag
-            response = ollama.embeddings(
-                model=req_payload["model"],
-                prompt=req_payload.get("input", ""),
-                options=req_payload.get("options"),
-                keep_alive=req_payload.get("keep_alive"),
-            )
-            serializable_response = serialize_ollama_res(response)
+        elif req_type in ("systemone", "embeddings"):
+            serializable_response = executor.complete(req_type, req_payload)
         else:
             raise ValueError(f"Unsupported request type: {req_type}")
 

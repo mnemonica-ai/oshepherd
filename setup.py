@@ -8,7 +8,7 @@ setup(
     long_description_content_type='text/markdown',
     author="mnemonica.ai",
     author_email="info@mnemonica.ai",
-    packages=find_packages(),
+    packages=find_packages(include=["oshepherd", "oshepherd.*"]),
     python_requires=">=3.12",
     install_requires=[
         "uvicorn",
@@ -23,14 +23,19 @@ setup(
         "requests",
     ],
     extras_require={
+        'supabase': ["httpx==0.28.1", "ollama==0.6.3"],
         'dev': [
             "pytest",
+            "httpx",
+            "jsonschema==4.23.0",
             "black",
             "build",
             "twine"
         ],
         'tests': [
-            "pytest"
+            "pytest",
+            "httpx",
+            "jsonschema==4.23.0"
         ],
         'lint': [
             "black"
