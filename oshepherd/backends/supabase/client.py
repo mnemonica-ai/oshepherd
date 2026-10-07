@@ -12,7 +12,7 @@ import json
 
 import httpx
 
-from oshepherd.common.protocol import PROTOCOL_VERSION
+from oshepherd.common.protocol import PROTOCOL_VERSION, RPC_RESPONSE_BYTES
 
 RPCS = {
     "bootstrap_cluster",
@@ -104,7 +104,7 @@ class RpcClient:
                         headers=self.headers(),
                         json={"p_request": envelope},
                     ) as response:
-                        content = await bounded_response(response, 2 * 1024 * 1024)
+                        content = await bounded_response(response, RPC_RESPONSE_BYTES)
                         status = response.status_code
                         retry_after = bounded_retry_after(
                             response.headers.get("Retry-After")

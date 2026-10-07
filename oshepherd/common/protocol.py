@@ -10,6 +10,7 @@ from oshepherd.api.systemone.models import SystemOneRequestPayload
 
 PROTOCOL_VERSION = 1
 REQUEST_BYTES = 1024 * 1024
+RPC_RESPONSE_BYTES = 2 * 1024 * 1024
 CHUNK_BYTES = 64 * 1024
 RECORD_BYTES = 1024 * 1024
 PAGE_BYTES = 256 * 1024

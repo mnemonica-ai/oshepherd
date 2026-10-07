@@ -227,6 +227,12 @@ The same job can have multiple attempts, but only one current attempt has mutati
 
 - Match the current five-retry ceiling as the initial configurable policy: at most six execution attempts, exponential delay capped at 60 s with jitter, and bounded by the request deadline. Classify transient connection failures separately from validation, unknown model, authorization, and malformed output. Do not retry permanent failures.
 - **Never rerun a stream after the first durable output batch.** Retry lost RPC acknowledgements with the same attempt/sequence; that is transport retry, not new inference. This is a deliberate safety improvement over unrestricted retries of partially published Celery tasks.
+
+The queue-wait budget applies to initial admission and each eligible retry wait.
+Persist the requested budget and give a retry a new queue deadline measured from
+its backoff availability, capped by the original total execution deadline. An
+elapsed initial queue timestamp must not prevent recovery of already-running
+work with no durable output.
 - Lease expiry may cause duplicate physical computation. Fence all writes using job attempt and worker session, stop inference when lease renewal cannot succeed before expiry, and reject late finishes. Neither SQL claims nor PGMQ can promise exactly-once GPU execution. Celery's own late acknowledgement/redelivery also requires idempotency. [Celery task semantics](https://docs.celeryq.dev/en/stable/userguide/tasks.html)
 - Workers maintain control/heartbeat tasks independently of token production. Capacity counts running attempts; claims cannot exceed configured/enrolled capacity even with two concurrent claim calls. Local slots also stop new work while a cancelled Ollama call is still winding down.
 - Closing a client stream triggers cancellation. For gateway crashes, synchronous jobs have a consumer lease renewed while the HTTP request exists. A worker seeing an expired consumer lease stops; a reaper catches abandoned queued jobs. Async jobs have no consumer lease and survive client/gateway exit.
@@ -254,6 +260,13 @@ Each request reader acknowledges its cursor in its next scheduled read instead o
 The Edge limits page does not specify a request/response body cap. That is not evidence of unlimited sizes. Measure gateway, PostgREST, serialization, memory and client behavior. Embeddings are especially important: 32 × 768 float32 values occupy 96 KiB raw, but at an assumed 12 JSON bytes/value they occupy 288 KiB before envelopes.
 
 Initial configurable Supabase test values: 1 MiB request, 256 KiB inline result, 64 KiB chunk, 256 KiB read-page data, 1 MiB gateway output buffer, and 32 MiB total output/result. These bound resources; tune against representative fixtures before publishing support. The Vercel profile overrides the synchronous total-response limit to a conservative candidate 4,000,000 bytes, pending hosted JSON/NDJSON boundary tests; its documented function payload limit is 4.5 MB. Storage does not bypass a response that still travels through the gateway. Async explicit downloads can use a separate, larger stored-result budget. See [hosting limits](installation.md#hosting-profiles). Do not impose these new limits silently on legacy Redis deployments. Reject known oversized requests before queueing; enforce unknown output growth during inference and report explicit failure.
+
+RPC responses are bounded to 2 MiB. Claim admission accounts for the full encoded
+envelope, assignment metadata and stop entries before changing job state; jobs
+that do not fit remain queued for a subsequent claim. Claim receipts store
+assignment identity without prompt copies and reconstruct only authorized live
+attempts on replay. Payload expiry therefore does not leave raw prompts in
+receipt retention.
 
 For larger non-streamed results, the worker uploads the exact JSON response to a private Storage object, then conditionally finalizes the job with size/hash/reference. The gateway validates/fetches that object and returns the original JSON body, **not a download URL**, on Ollama routes. Object upload happens outside the database transaction: use deterministic attempt-specific paths, verify completion before finalizing, tolerate identical retries, reject stale attempts, and garbage-collect unattached objects. Storage adds a network hop and must be included in latency/cost tests. [Storage authorization](https://supabase.com/docs/guides/storage/security/access-control)
 

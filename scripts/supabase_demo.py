@@ -1,6 +1,6 @@
 """Persistent, local-only Edge -> external worker -> installed Ollama model demo.
 
-Run from the checkout with ``python -m scripts.supabase_demo setup --model ...``.
+Run from the checkout with ``uv run --locked python -m scripts.supabase_demo setup --model ...``.
 No cloud target, model download, SQL migration or deletion is performed here.
 """
 
@@ -430,7 +430,7 @@ async def run(args):
                     recover_enrollment=args.recover_enrollment,
                 )
             print(
-                "Local demo configured; credentials remain in private .oshepherd/local/demo/ files. Run: python -m scripts.supabase_demo serve"
+                "Local demo configured; credentials remain in private .oshepherd/local/demo/ files. Run: uv run --locked python -m scripts.supabase_demo serve"
             )
             return
         state = DemoState.load(STATE)

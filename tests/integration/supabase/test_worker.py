@@ -196,3 +196,51 @@ def test_incomplete_stream_fails_after_durable_bytes(local_connection):
                 assert not json.loads(page["chunks"][0]["content"])["done"]
 
     asyncio.run(run())
+
+
+def test_large_claim_batch_does_not_stop_worker(local_connection):
+    async def run():
+        async with queue_harness(local_connection, workers=1) as h:
+            scoped_sql(
+                h.cluster,
+                "update oshepherd_spike.workers set capacity=3 where cluster_id=:'cluster_id'::uuid;",
+            )
+            submissions = [h.submission(stream=False) for _ in range(3)]
+            for submission in submissions:
+                submission["request"]["payload"]["prompt"] = "x" * 800_000
+            jobs = [
+                await h.admin.rpc("submit_job", submission)
+                for submission in submissions
+            ]
+            app = upstream(
+                {
+                    "/api/tags": Scenario.from_json(
+                        {
+                            "json": {
+                                "models": [{"name": "test:latest", "digest": "a" * 64}]
+                            }
+                        }
+                    )
+                }
+            )
+            async with running_worker(h, app, concurrency=3) as (_, task):
+                pages = await asyncio.gather(
+                    *(
+                        terminal(h, submission, job, task)
+                        for submission, job in zip(submissions, jobs)
+                    )
+                )
+                assert all(page["state"] == "succeeded" for page in pages)
+                assert not task.done()
+                assert (
+                    len(
+                        [
+                            request
+                            for request in app.requests
+                            if request["path"] == "/api/generate"
+                        ]
+                    )
+                    == 3
+                )
+
+    asyncio.run(run())

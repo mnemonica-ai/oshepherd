@@ -286,7 +286,14 @@ uv run --locked pytest -q tests/contracts tests/test_systemone.py
 
 ##### Tests
 
-The e2e tests require the following models to be available on your local Ollama instance:
+The service-free contract and System One tests require no running services:
+
+```sh
+uv run --locked pytest -q tests/contracts tests/test_systemone.py
+```
+
+The Redis e2e tests require Redis, the API server, the Celery worker and these
+models on your local Ollama instance:
 
 ```sh
 ollama pull mistral        # used by generate, chat, and show tests
@@ -298,14 +305,21 @@ ollama pull nimble:latest   # used by System One tests; requires Ollama 0.35+
 Then follow the usage instructions to start the API server and Celery worker, and run:
 
 ```sh
-uv run --locked pytest -s tests/
+uv run --locked pytest -s tests/test_e2e_api.py tests/test_e2e_streaming.py
 ```
 
-The focused System One tests need no running services:
+The experimental Supabase integration suite requires the isolated local stack
+and its spike SQL, described in the [local lifecycle runbook](docs/plans/supabase/experiments/local-edge-lifecycle.md).
+It creates disposable identities and uses a fake upstream. Run the strict suite
+with the real-model smoke deselected:
 
 ```sh
-uv run --locked pytest -q tests/test_systemone.py
+uv run --locked pytest -q tests/integration/supabase -k 'not local_ollama_model' --tb=short
 ```
+
+The real Edge proxy disconnect test is a known failing acceptance gate; the
+[progress ledger](docs/plans/supabase/progress.md) records its status. The runbook
+also gives the opt-in smoke command for an already installed Ollama model.
 
 ### Author
 

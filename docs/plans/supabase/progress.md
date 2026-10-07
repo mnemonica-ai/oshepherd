@@ -1,6 +1,6 @@
 # Supabase implementation progress
 
-Updated October 6, 2026. The objective is to finish the implementation so
+Updated October 7, 2026. The objective is to finish the implementation so
 an Ollama client can send a request to an Edge Function and receive inference
 from a local Ollama model. This ledger records authoritative artifacts and
 verification; an implementation checkbox does not imply hosted validation.
@@ -13,6 +13,15 @@ older verification-log commands retain their original invocation.
 
 ## Completed
 
+- [x] Fix the October 7 review defects: bound complete claim pages to the 2 MiB
+  RPC response limit before assignment; store claim receipts without payload
+  copies and hydrate authorized live replay; upgrade existing receipts; persist
+  queue-wait budgets and renew retry queue deadlines without extending total
+  execution. Add real SQL/Auth and worker regressions covering Unicode/escaping,
+  near-limit requests, mixed pages, receipt upgrades/expiry, backoff, fencing and
+  retry exclusions. Correct current uv and test setup guidance. Remove the
+  completed review patch plan; preserve its original evidence in commit
+  `acbb9b1` and unresolved investigations below.
 - [x] Standardize project setup, commands, builds and CI on uv. Add
   `.python-version`, `uv.lock`, a default development group and explicit isolated
   build backend. Keep Conda optional as a Python provider and generate
@@ -144,11 +153,29 @@ Local Edge Runtime `v1.74.3` did not propagate an HTTP reader disconnect to SQL
 cancellation: the job succeeded. The strict regression test remains failing.
 Request abort, stream cancel and optional response-completion hooks are
 implemented, but do not establish end-to-end cancellation through this proxy.
-The finite execution deadline still bounds work. This gate stays open.
+The finite execution deadline still bounds work. This gate stays open. On
+October 7 the strict real-runtime test again observed `succeeded` instead of
+`cancelled`, both alone and in the full integration selection. Investigate
+runtime/proxy abort propagation and a supported response lifecycle hook with
+this test; do not replace it with direct Deno or FastAPI evidence. If the runtime
+cannot supply a disconnect signal, establish a supported deployment/protocol
+decision before claiming the gate is closed. The existing strict assertion stays
+in place; no hosted deployment has been run.
+
+The October 7 review run also observed a 503 at initial async admission in
+`test_real_edge_large_success_requires_authorized_download`; its focused rerun
+passed. After the R1–R4 patches, that test and the other 44 passing local
+integration cases passed in the full selection, without reproducing the 503.
+Its cause remains unestablished. If it recurs, inspect only safe response error
+codes and protected runtime diagnostics, and distinguish function readiness,
+runtime restarts, SQL admission and transport errors. Do not add blind inference
+retries or treat a single successful rerun as proof of a fix.
 
 The local lifecycle is ready for manual testing against the already installed
-`llama3.2:3b`. Run `python -m scripts.supabase_demo serve`, then run `doctor` and
-`request` from another terminal. The supervisor was stopped after verification;
+`llama3.2:3b`. Run `uv run --locked python -m scripts.supabase_demo serve`, then
+run `uv run --locked python -m scripts.supabase_demo doctor` and
+`uv run --locked python -m scripts.supabase_demo request` from another terminal.
+The supervisor was stopped after verification;
 the Supabase stack, demo identities/configuration and user's Ollama remain.
 This readiness milestone does not close the remaining production/installation
 gates above. Experimental SQL currently caps synchronous work at 135 seconds
@@ -193,6 +220,14 @@ for both gateway implementations, including the Vercel profile.
 | October 6, 2026 | `uv run --locked pytest -q tests/contracts tests/test_systemone.py --tb=short` on uv-managed Python | 276 passed in 12.38s; one upstream TestClient deprecation warning |
 | October 6, 2026 | `uv build` plus archive inspection and temporary-copy release bump/lock/export check | Passed; clean sdist/wheel; dependency pins and compatibility export unchanged by version-only bump |
 | October 6, 2026 | `OSHEPHERD_REAL_OLLAMA_MODEL=llama3.2:3b uv run --locked pytest -q tests/integration/supabase/test_edge.py -k local_ollama_model --tb=short` | 1 passed in 13.03s; real local Edge/SQL/worker/Ollama response on the uv environment |
+| October 7, 2026 | New review regressions against baseline SQL, using `uv run --locked pytest -q tests/integration/supabase/test_review_regressions.py --tb=short` | 9 failed, 5 passed in 9.60s; reproduced claim-size, payload receipt and retry-deadline defects before applying patched SQL |
+| October 7, 2026 | `uv run --locked python -m scripts.supabase_local apply-spike` | Transactional upgrade applied to the isolated local stack; production migration history unchanged |
+| October 7, 2026 | `uv run --locked pytest -q tests/integration/supabase/test_review_regressions.py tests/integration/supabase/test_worker.py --tb=short` | 27 passed in 19.98s, including additional claim boundaries, live worker execution and legacy receipt upgrade |
+| October 7, 2026 | `uv run --locked pytest -q tests/contracts tests/test_systemone.py --tb=short` | 276 passed in 11.87s; one upstream TestClient deprecation warning |
+| October 7, 2026 | `deno check supabase/functions/ollama/index.ts` and `deno test --allow-read=protocol supabase/functions/ollama/gateway_test.ts` | Type check passed; 42 gateway contract tests passed |
+| October 7, 2026 | `uv run --locked pytest -q tests/integration/supabase/test_edge.py -k first_record --tb=short` | 1 failed, 3 deselected in 7.22s; known proxy disconnect still leaves SQL state `succeeded` |
+| October 7, 2026 | `uv run --locked pytest -q tests/integration/supabase -k 'not local_ollama_model' --tb=short` | 45 passed, 1 failed, 1 deselected in 65.82s; only strict Edge disconnect failed; prior intermittent 503 did not recur |
+| October 7, 2026 | `OSHEPHERD_REAL_OLLAMA_MODEL=llama3.2:3b uv run --locked pytest -q tests/integration/supabase/test_edge.py -k local_ollama_model --tb=short` | 1 passed, 3 deselected in 12.73s; patched SQL/Edge/worker lifecycle returned genuine inference from the existing local model |
 
 ## Handoff discipline
 

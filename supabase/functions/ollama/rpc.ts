@@ -2,6 +2,8 @@ import { GatewayError, JsonObject, object } from "./normalize.ts";
 
 export const encoder = new TextEncoder();
 export const decoder = new TextDecoder("utf-8", { fatal: true });
+// Matches common/protocol.py and SQL claim admission's full-envelope budget.
+export const RPC_RESPONSE_BYTES = 2 * 1024 * 1024;
 
 export async function bodyBytes(
   body: ReadableStream<Uint8Array> | null,
@@ -107,7 +109,7 @@ export class Rpc {
           signal: controller.signal,
         });
         delay = retryAfter(response.headers.get("Retry-After"));
-        const bytes = await bodyBytes(response.body, 2097152);
+        const bytes = await bodyBytes(response.body, RPC_RESPONSE_BYTES);
         if ([429, 502, 503, 504].includes(response.status) && attempt < 3) {
           retry = true;
           continue;

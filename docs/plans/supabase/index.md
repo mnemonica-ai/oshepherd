@@ -1,10 +1,15 @@
 # Optional Supabase backend
 
-Updated October 5, 2026. Status: experimental implementation in progress. Local
+Updated October 7, 2026. Status: experimental implementation in progress. Local
 Edge-to-Ollama inference passed; production qualification, hosted benchmarks,
 installer and deploy buttons remain pending. See the [progress ledger](progress.md).
 
-Development has started with [local characterization](experiments/step-0-local-characterization.md): versioned C01–C09 fixtures, request schemas and a controllable fake upstream. The deterministic suite passes 162 tests. The relay spike, Supabase runtime and hosted gates remain open.
+The local lifecycle now includes experimental SQL, worker enrollment, Edge and
+optional FastAPI gateways, async results, cleanup and a uv-based demo workflow.
+The [progress ledger](progress.md) records current verification and open gates,
+including the real Edge proxy disconnect failure. The
+[initial characterization](experiments/step-0-local-characterization.md) retains
+the original fixture and test evidence.
 
 ## Decisions
 
@@ -31,7 +36,10 @@ The architecture is plausible, but hosted measurements must establish a useful E
 
 Installation adds a separate product to maintain: a privileged bootstrap service, versioned deployment artifacts and safe upgrades. An official generic Supabase button that installs this whole application was not established by the reviewed sources; the proposed web flow uses Supabase OAuth and Management APIs. Vercel supplies a Deploy button, but database migrations and worker onboarding remain our responsibility. [Installation evidence and design](installation.md).
 
-The next implementation step is characterization and the feasibility spike in step 0, with shared-contract work continuing while hosted access is arranged. The [development handoff](development-handoff.md) makes the starting work and remaining dependencies explicit. These documents specify acceptance gates; they do not claim the gates have passed.
+Remaining work includes Edge disconnect behavior, production migrations,
+installer/operator flows and hosted/load qualification. The
+[development handoff](development-handoff.md) defines the complete scope; the
+[progress ledger](progress.md) identifies the next unverified acceptance gates.
 
 [All plans](../index.md)
 

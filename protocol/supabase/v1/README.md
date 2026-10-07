@@ -58,6 +58,12 @@ Registration deduplicates `(enrolled worker, operation_id)` and does not rotate
 its session on an identical retry. A deliberate restart uses a new operation
 UUID and fences its predecessor. Heartbeat/claim exposes current assigned
 attempts after an ambiguous response; worker capacity is locked transactionally.
+Claim pages are also limited by their complete encoded RPC response size before
+jobs are assigned. Receipts retain assignment metadata without request payloads;
+identical live-attempt replay reconstructs requests from the jobs table and
+preserves the original envelope. Terminal or superseded attempts reject replay
+with `stale_attempt`. Applying the spike upgrade strips payloads from existing
+claim receipts while retaining their operation IDs and hashes.
 Append deduplicates `(job, attempt, seq)` and checksum/content. Finish and
 classified failure store operation receipts so identical replay retrieves its
 acknowledgement after commit. Revocation/session fencing still applies to
@@ -113,6 +119,7 @@ budgets according to its hosting profile. These are experimental defaults.
 | Limit | Default / maximum |
 | --- | --- |
 | Request UTF-8 bytes | 1,048,576 |
+| RPC response / complete claim page UTF-8 bytes | 2,097,152, including envelope and stop entries |
 | Completion RPC envelope bytes | 4,194,304; permits JSON-escaped final-record fragments |
 | Upstream NDJSON record / final-record bytes | 1,048,576 |
 | Chunk bytes | 65,536 |
@@ -156,6 +163,12 @@ hide a sequence gap. Incomplete EOF is failed, not successful. An upstream
 failure is retryable only before any output is durable, before the total
 deadline, and below the attempt ceiling. Revoked/expired attempts cannot append,
 renew or finish. Queue and total deadlines are separate server timestamps.
+The submission's `queue_ms` is stored as the queue-wait budget. Initial admission
+expires after that wait; an eligible execution retry receives a fresh wait
+starting at its backoff `available_at`, capped by the unchanged total execution
+deadline. Backoff never makes a job claimable early. Existing spike jobs recover
+their effective initial queue budget from their original deadline/creation
+timestamps when upgraded.
 
 Successful JSON results are either inline UTF-8 content or an attempt-specific
 private Storage object, with size, checksum and content type. URLs are generated

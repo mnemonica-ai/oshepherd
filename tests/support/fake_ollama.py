@@ -1,6 +1,6 @@
 """Controllable ASGI upstream. No Redis, model downloads, or sampled prose.
 
-Run with: python -m uvicorn tests.support.fake_ollama:create_app --factory
+Run with: uv run --locked uvicorn tests.support.fake_ollama:create_app --factory
 Configure per-path overrides using OSHEPHERD_FAKE_OLLAMA_SCENARIOS (JSON file).
 This test service intentionally has no authentication; bind it to loopback.
 """

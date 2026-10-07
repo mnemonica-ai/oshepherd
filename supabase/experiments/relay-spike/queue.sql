@@ -43,6 +43,17 @@ create table if not exists oshepherd_spike.jobs (
 create index if not exists jobs_ready on oshepherd_spike.jobs(cluster_id, state, available_at, created_at);
 create index if not exists jobs_worker on oshepherd_spike.jobs(worker_id, state);
 alter table oshepherd_spike.jobs add column if not exists updated_at timestamptz not null default pg_catalog.clock_timestamp();
+-- Preserve the caller's queue budget for retries. Existing spike installations
+-- can recover their initial effective budget from the original timestamps.
+alter table oshepherd_spike.jobs add column if not exists queue_budget_ms integer;
+update oshepherd_spike.jobs set queue_budget_ms = greatest(1, least(3600000,
+  round(extract(epoch from (queue_deadline-created_at))*1000)::integer)) where queue_budget_ms is null;
+alter table oshepherd_spike.jobs alter column queue_budget_ms set not null;
+do $$ begin
+  if not exists(select 1 from pg_catalog.pg_constraint where conrelid = 'oshepherd_spike.jobs'::regclass and conname = 'jobs_queue_budget') then
+    alter table oshepherd_spike.jobs add constraint jobs_queue_budget check(queue_budget_ms between 1 and 3600000);
+  end if;
+end $$;
 create or replace function oshepherd_spike.touch_job()
 returns trigger language plpgsql set search_path = pg_catalog as $$
 begin new.updated_at := pg_catalog.clock_timestamp(); return new; end $$;
@@ -68,6 +79,19 @@ create table if not exists oshepherd_spike.worker_operations (
 );
 create index if not exists worker_operations_age on oshepherd_spike.worker_operations(created_at,worker_id,operation_id);
 create index if not exists worker_operations_job on oshepherd_spike.worker_operations(job_id);
+-- Claim receipts retain assignment identity, not duplicate prompt content. Live
+-- replay hydrates the immutable request from its current, authorized attempt.
+create or replace function oshepherd_spike.claim_receipt(response jsonb)
+returns jsonb language sql immutable set search_path = pg_catalog as $$
+  select pg_catalog.jsonb_set(response, '{data,jobs}', coalesce((
+    select pg_catalog.jsonb_agg(claim - 'request' order by ordinal)
+    from pg_catalog.jsonb_array_elements(response #> '{data,jobs}') with ordinality as c(claim,ordinal)
+  ),'[]'::jsonb))
+$$;
+-- Upgrade existing receipts without discarding hashes or operation identities.
+update oshepherd_spike.worker_operations set response = oshepherd_spike.claim_receipt(response)
+  where kind = 'heartbeat_and_claim' and exists(
+    select 1 from pg_catalog.jsonb_array_elements(response #> '{data,jobs}') c where c ? 'request');
 create index if not exists jobs_expiry on oshepherd_spike.jobs(cluster_id,content_expires_at,id);
 -- Durable deletion intent survives a purge response being lost. No job FK:
 -- tombstone removal must not discard pending object cleanup.
@@ -176,7 +200,8 @@ begin
   response := oshepherd_spike.answer(value);
   insert into oshepherd_spike.worker_operations(worker_id, operation_id, job_id, request_hash, kind, response)
     values(worker, oshepherd_spike.uuid_field(p_request, 'operation_id'), job,
-      extensions.digest(pg_catalog.convert_to(p_request::text, 'UTF8'), 'sha256'), kind_name, response);
+      extensions.digest(pg_catalog.convert_to(p_request::text, 'UTF8'), 'sha256'), kind_name,
+      case when kind_name = 'heartbeat_and_claim' then oshepherd_spike.claim_receipt(response) else response end);
   return response;
 end $$;
 create or replace function oshepherd_spike.terminal(job uuid, terminal_state text, problem jsonb default null)
@@ -190,14 +215,15 @@ begin
 end $$;
 create or replace function oshepherd_spike.retry_or_fail(job oshepherd_spike.jobs, retryable boolean, problem jsonb)
 returns void language plpgsql set search_path = pg_catalog as $$
-declare delay_seconds integer;
+declare delay_seconds integer; now_at timestamptz := pg_catalog.clock_timestamp(); next_available timestamptz;
 begin
   delay_seconds := least(60, (2 ^ greatest(0, job.attempts - 1))::integer);
+  next_available := now_at + pg_catalog.make_interval(secs => delay_seconds);
   if retryable and job.output_bytes = 0 and job.attempts < 6
-    and job.execution_deadline > pg_catalog.clock_timestamp() + pg_catalog.make_interval(secs => delay_seconds)
-    and job.queue_deadline > pg_catalog.clock_timestamp() + pg_catalog.make_interval(secs => delay_seconds) then
+    and job.execution_deadline > next_available then
     update oshepherd_spike.jobs set state = 'queued', worker_id = null, session_id = null, generation = null,
-      attempt_id = null, lease_until = null, available_at = pg_catalog.clock_timestamp() + pg_catalog.make_interval(secs => delay_seconds),
+      attempt_id = null, lease_until = null, available_at = next_available,
+      queue_deadline = least(execution_deadline, next_available + pg_catalog.make_interval(secs => job.queue_budget_ms/1000.0)),
       error = problem where id = job.id;
   else
     perform oshepherd_spike.terminal(job.id, 'failed', problem);
@@ -346,18 +372,19 @@ begin
   if digest_count = 0 then raise sqlstate 'PT503' using message = 'model_unavailable'; end if;
   if digest_count > 1 then raise sqlstate 'PT409' using message = 'model_digest_conflict'; end if;
   insert into oshepherd_spike.jobs(cluster_id, key_id, submit_operation, idempotency_key, request_hash, request,
-    mode, model_name, model_digest, stream, queue_deadline, execution_deadline, consumer_token, consumer_until, max_output_bytes)
+    mode, model_name, model_digest, stream, queue_budget_ms, queue_deadline, execution_deadline, consumer_token, consumer_until, max_output_bytes)
     values(cluster.id, caller.id, oshepherd_spike.uuid_field(p_request,'operation_id'), p_request->>'idempotency_key', fingerprint,
       p_request->'request', p_request->>'mode', model_name, digest, (p_request #>> '{request,type}' in ('generate','chat')) and coalesce(p_request #> '{request,payload,stream}' = 'true'::jsonb,false),
-      now_at + pg_catalog.make_interval(secs => least(queue_ms,total_ms)/1000.0), now_at + pg_catalog.make_interval(secs => total_ms/1000.0),
+      queue_ms, now_at + pg_catalog.make_interval(secs => least(queue_ms,total_ms)/1000.0), now_at + pg_catalog.make_interval(secs => total_ms/1000.0),
       token, case when token is not null then now_at + interval '60 seconds' end, max_bytes) returning * into job;
   return oshepherd_spike.answer(oshepherd_spike.job_wire(job));
 end $$;
 
 create or replace function oshepherd_spike_api.heartbeat_and_claim(p_request jsonb)
 returns jsonb language plpgsql security definer set search_path = pg_catalog as $$
-declare worker oshepherd_spike.workers; job oshepherd_spike.jobs; active jsonb; replay jsonb;
-  claims jsonb := '[]'; stopped jsonb := '[]'; maximum integer; slots integer; now_at timestamptz := pg_catalog.clock_timestamp();
+declare worker oshepherd_spike.workers; job oshepherd_spike.jobs; active jsonb; replay jsonb; candidate jsonb; attempt uuid;
+  claims jsonb := '[]'; stopped jsonb := '[]'; maximum integer; slots integer; response_bytes integer; candidate_bytes integer;
+  now_at timestamptz := pg_catalog.clock_timestamp();
 begin
   perform oshepherd_spike.check_wire(p_request,array['session_id','generation','active_attempts','max_jobs','draining']);
   worker := oshepherd_spike.lock_worker(p_request);
@@ -379,26 +406,37 @@ begin
   replay := oshepherd_spike.worker_replay(p_request,worker.id,'heartbeat_and_claim');
   if replay is not null then
     for active in select value from pg_catalog.jsonb_array_elements(replay #> '{data,jobs}') loop
-      if not exists(select 1 from oshepherd_spike.jobs where id = (active->>'job_id')::uuid and attempt_id = (active->>'attempt_id')::uuid
-        and state = 'running' and session_id = worker.session_id) then raise sqlstate 'PT409' using message = 'stale_attempt'; end if;
+      select * into job from oshepherd_spike.jobs where id = (active->>'job_id')::uuid and attempt_id = (active->>'attempt_id')::uuid
+        and state = 'running' and worker_id = worker.id and generation = worker.generation and session_id = worker.session_id;
+      if not found then raise sqlstate 'PT409' using message = 'stale_attempt'; end if;
+      claims := claims || pg_catalog.jsonb_build_array(active || pg_catalog.jsonb_build_object('request',job.request));
     end loop;
-    return replay;
+    return pg_catalog.jsonb_set(replay,'{data,jobs}',claims);
   end if;
   slots := least(maximum, worker.capacity - (select count(*) from oshepherd_spike.jobs where worker_id = worker.id and state = 'running'),
     (select max_running from oshepherd_spike.clusters where id = worker.cluster_id) -
       (select count(*) from oshepherd_spike.jobs where cluster_id = worker.cluster_id and state = 'running'));
   if not (p_request->>'draining')::boolean and slots > 0 then
+    -- RPC_RESPONSE_BYTES (Python/TypeScript): budget the complete jsonb wire
+    -- envelope, including stop entries, before assigning any candidate job.
+    response_bytes := pg_catalog.octet_length(oshepherd_spike.answer(pg_catalog.jsonb_build_object(
+      'jobs',claims,'stop',stopped,'server_now',oshepherd_spike.timestamp_wire(now_at)))::text);
     for job in select j.* from oshepherd_spike.jobs j where j.cluster_id = worker.cluster_id and j.state = 'queued' and j.available_at <= now_at
       and j.queue_deadline > now_at and j.execution_deadline > now_at and exists(select 1 from oshepherd_spike.worker_models m
         where m.worker_id = worker.id and m.name = j.model_name and m.digest = j.model_digest
         and m.observed_at > now_at - interval '60 seconds' and m.operations ? (j.request->>'type'))
       order by j.created_at,j.id limit slots for update loop
-      update oshepherd_spike.jobs set state = 'running', worker_id = worker.id, generation = worker.generation, session_id = worker.session_id,
-        attempt_id = pg_catalog.gen_random_uuid(), attempts = attempts + 1, error = null,
-        lease_until = least(execution_deadline,now_at + interval '45 seconds') where id = job.id returning * into job;
-      claims := claims || pg_catalog.jsonb_build_array(pg_catalog.jsonb_build_object('job_id',job.id,'attempt_id',job.attempt_id,
+      attempt := pg_catalog.gen_random_uuid();
+      candidate := pg_catalog.jsonb_build_object('job_id',job.id,'attempt_id',attempt,
         'request',job.request,'mode',job.mode,'model_digest',job.model_digest,'execution_deadline',oshepherd_spike.timestamp_wire(job.execution_deadline),
-        'max_output_bytes',job.max_output_bytes));
+        'max_output_bytes',job.max_output_bytes);
+      candidate_bytes := pg_catalog.octet_length(candidate::text) + case when claims = '[]'::jsonb then 0 else 2 end;
+      if response_bytes + candidate_bytes > 2097152 then exit; end if;
+      update oshepherd_spike.jobs set state = 'running', worker_id = worker.id, generation = worker.generation, session_id = worker.session_id,
+        attempt_id = attempt, attempts = attempts + 1, error = null,
+        lease_until = least(execution_deadline,now_at + interval '45 seconds') where id = job.id returning * into job;
+      claims := claims || pg_catalog.jsonb_build_array(candidate);
+      response_bytes := response_bytes + candidate_bytes;
     end loop;
   end if;
   return oshepherd_spike.worker_finish(p_request,worker.id,'heartbeat_and_claim',null,
