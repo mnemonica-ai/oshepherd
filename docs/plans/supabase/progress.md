@@ -1,6 +1,6 @@
 # Supabase implementation progress
 
-Updated October 7, 2026. The objective is to finish the implementation so
+Updated October 10, 2026. The objective is to finish the implementation so
 an Ollama client can send a request to an Edge Function and receive inference
 from a local Ollama model. This ledger records authoritative artifacts and
 verification; an implementation checkbox does not imply hosted validation.
@@ -13,6 +13,10 @@ older verification-log commands retain their original invocation.
 
 ## Completed
 
+- [x] Fix the local startup helper to retrieve explicit status JSON after the
+  human-readable start summary. Preserve private logs and existing credentials
+  on failures. Verify the user's exact command against the running isolated
+  stack and add six CLI regression cases.
 - [x] Fix the October 7 review defects: bound complete claim pages to the 2 MiB
   RPC response limit before assignment; store claim receipts without payload
   copies and hydrate authorized live replay; upgrade existing receipts; persist
@@ -228,6 +232,9 @@ for both gateway implementations, including the Vercel profile.
 | October 7, 2026 | `uv run --locked pytest -q tests/integration/supabase/test_edge.py -k first_record --tb=short` | 1 failed, 3 deselected in 7.22s; known proxy disconnect still leaves SQL state `succeeded` |
 | October 7, 2026 | `uv run --locked pytest -q tests/integration/supabase -k 'not local_ollama_model' --tb=short` | 45 passed, 1 failed, 1 deselected in 65.82s; only strict Edge disconnect failed; prior intermittent 503 did not recur |
 | October 7, 2026 | `OSHEPHERD_REAL_OLLAMA_MODEL=llama3.2:3b uv run --locked pytest -q tests/integration/supabase/test_edge.py -k local_ollama_model --tb=short` | 1 passed, 3 deselected in 12.73s; patched SQL/Edge/worker lifecycle returned genuine inference from the existing local model |
+| October 10, 2026 | `uv run --locked pytest -q tests/contracts/test_supabase_local.py --tb=short` | 6 passed; explicit JSON status, private output/state, startup/status failures and origin rejection covered |
+| October 10, 2026 | `uv run --locked python -m scripts.supabase_local start` | Passed against real CLI 2.116.0; expected local origin validated and private connection state saved |
+| October 10, 2026 | `uv run --locked pytest -q tests/contracts tests/test_systemone.py --tb=short` | 282 passed in 11.97s; one upstream TestClient deprecation warning |
 
 ## Handoff discipline
 

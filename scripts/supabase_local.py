@@ -185,20 +185,30 @@ def main():
         }
         print(messages[args.action])
         return
-    command = (
-        ["supabase", "start", "-x", EXCLUDED]
-        if args.action == "start"
-        else ["supabase", "status", "--output", "json"]
-    )
     print(f"Supabase {args.action}: isolated local project on port 55321", flush=True)
-    result = subprocess.run(command, cwd=ROOT, env=env, capture_output=True, text=True)
-    private_write(STATE / f"{args.action}.log", result.stdout + result.stderr)
-    if result.returncode:
-        raise SystemExit(
-            f"Local Supabase {args.action} failed; inspect the protected .oshepherd/local/{args.action}.log"
+    # Start emits a human-readable summary, including when already running.
+    # Always obtain credentials from a separate explicit JSON status command.
+    actions = ("start", "status") if args.action == "start" else ("status",)
+    for action in actions:
+        command = (
+            ["supabase", "start", "-x", EXCLUDED]
+            if action == "start"
+            else ["supabase", "status", "--output", "json"]
         )
+        result = subprocess.run(
+            command, cwd=ROOT, env=env, capture_output=True, text=True
+        )
+        private_write(STATE / f"{action}.log", result.stdout + result.stderr)
+        if result.returncode:
+            raise SystemExit(
+                f"Local Supabase {action} failed; inspect the protected .oshepherd/local/{action}.log"
+            )
     connection = connection_from_output(result.stdout)
-    if not connection or connection.get("API_URL") != "http://127.0.0.1:55321":
+    if not connection:
+        raise SystemExit(
+            "Local Supabase status did not return connection JSON; inspect the protected .oshepherd/local/status.log"
+        )
+    if connection.get("API_URL") != "http://127.0.0.1:55321":
         raise SystemExit("CLI did not return the expected isolated local origin")
     selected = {
         key: connection[key]
