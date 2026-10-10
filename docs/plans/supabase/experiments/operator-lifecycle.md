@@ -141,7 +141,9 @@ published 0.0.24 package for these unreleased changes.
 The root `app.py` exports an ASGI application with no Redis/Celery initialization,
 network startup, migrations, collectors or signal handlers. `vercel.json` sets
 the resolved `app.py` function to 150 seconds; application policy stays at 135
-seconds and 4,000,000 response bytes. Preview inference is denied by default.
+seconds and 4,000,000 response bytes. The template explicitly selects the FastAPI
+framework preset, including when the project was created with the CLI's default
+Other preset. Preview inference is denied by default.
 This uses the documented [FastAPI entrypoint and function configuration](https://vercel.com/docs/frameworks/backend/fastapi).
 Set `gateway.env` values only in the selected project's Production server
 environment, outside the template directory. Update the private operator

@@ -1,6 +1,7 @@
 """Offline release integrity, credential isolation and operator boundaries."""
 
 import hashlib
+from fnmatch import fnmatchcase
 from pathlib import Path
 from types import SimpleNamespace
 from uuid import uuid4
@@ -25,6 +26,22 @@ from oshepherd.backends.supabase.releases import (
 )
 
 ROOT = Path(__file__).resolve().parents[2]
+
+
+def test_vercel_upload_policy_excludes_environment_variants_and_worker_state():
+    assets, _ = release_assets()
+    rules = assets.joinpath("templates/vercel/.vercelignore").read_text().splitlines()
+    for name in (
+        ".env",
+        ".env.local",
+        ".env.production",
+        ".env.development.local",
+        "gateway.env",
+        "local.worker-session.json",
+    ):
+        assert any(fnmatchcase(name, rule) for rule in rules)
+    for name in ("app.py", "vercel.json", "uv.lock", "runtime-requirements.txt"):
+        assert not any(fnmatchcase(name, rule) for rule in rules)
 
 
 def test_packaged_release_matches_checked_in_immutable_artifacts():

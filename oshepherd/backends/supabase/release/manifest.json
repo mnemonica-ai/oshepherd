@@ -40,11 +40,11 @@
     "functions/ollama/rpc.ts": "f63073b91c585d394e490fad715e74dca677fc53778e8caa37f4577dc82fe6d0",
     "functions/ollama/storage.ts": "d99f9b7980ba11f2bb074464a600af2e9101c95768e52fcba70618bf37d3271b",
     "templates/vercel/.python-version": "7b55f8e67b5623c4bef3fa691288da9437d79d3aba156de48d481db32ac7d16d",
-    "templates/vercel/.vercelignore": "a6ac0306a9ddbd6639eefd146dceb5ce6811c8dd70b2a1027a52af6f8951c29b",
-    "templates/vercel/README.md": "76f7773192537888d1c5c4e5952b1b1477bd370319a71f02d1e90292f872240d",
+    "templates/vercel/.vercelignore": "58a4a454e6bb299824d6ad3b00c92bbba228cfbd5297ce5d67c680765cb5ed9a",
+    "templates/vercel/README.md": "068970f184335ea6f7740c6ce10badf4f718e92254a505c486f20ce7d62e1a2a",
     "templates/vercel/app.py": "be3c3073d228b54a7f78f7efe04f5d3f6a79675ff6e33fb31e5bf5acc41e70f0",
     "templates/vercel/runtime-requirements.txt": "ec2d80159bc94db3f41fc2564b55abcf363fe685d198a96eaf715b3d42685f3f",
-    "templates/vercel/vercel.json": "68b139c8ae30549d092789509c72030fb88b4e22c78ff650e4cdb3f4154ca937"
+    "templates/vercel/vercel.json": "2ff4df7879735759abb3721fde86feb69886fe34ee5749d39e9e33722bb7c08f"
   },
   "python_sources": {
     "__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",

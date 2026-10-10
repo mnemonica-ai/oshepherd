@@ -148,7 +148,7 @@ older verification-log commands retain their original invocation.
 | CLI bootstrap/doctor and operator administration | Protected candidate configure/install/enroll/doctor/upgrade/rotate/revoke/disable implemented | Six local lifecycle/recovery cases passed; hosted deployment and physical uninstall pending |
 | Installation manifest, OAuth installer and provider adapters | Hash-verified packaged manifest and explicit schema-exposure adapter implemented | Local resumability/ownership/upgrade passed; OAuth and provider automation pending |
 | Runbook and automated Edge → worker → response harness | Local and [operator runbooks](experiments/operator-lifecycle.md), disposable two-schema harness available | Real inference passed in both schemas; complete hosted clean-machine setup pending |
-| Hosted limits, load/cost, lifecycle and installation | Not run | Free-tier-only authorized; isolated target selection/plan verification and Vercel login remain required |
+| Hosted limits, load/cost, lifecycle and installation | Vercel CLI authenticated; Hobby team verified through API; isolated empty project created and candidate bundle linked | No function deployed or inference tested; Supabase Free-plan confirmation remains required; broader measurements pending |
 
 ## Current decisions and remaining dependencies
 
@@ -259,6 +259,8 @@ for both gateway implementations, including the Vercel profile.
 | October 10, 2026 | Final capability-list validation and release integrity subset | 23 passed in 10.59s; 11 recovery cases plus 12 operator contracts; null/string capabilities retain control and recover |
 | October 10, 2026 | Official CLI `supabase db push --local --dry-run` | Up to date; candidate migrations recognized without reapplication |
 | October 10, 2026 | `uv build`, wheel asset inspection and empty-cache Vercel export/install/import | Passed; exact runtime pins retained; private state/tests/services excluded; unauthenticated health denied |
+| October 10, 2026 | Hosted preparation after Vercel login | Official API confirms Hobby; isolated empty project created, inspected and linked. Supabase project inventory unchanged; no hosted function deployed |
+| October 10, 2026 | Vercel upload policy and release contracts | 13 passed; explicit environment-variant exclusion added, FastAPI preset selected; provider defaults also exclude `.env.local` |
 
 ## Handoff discipline
 

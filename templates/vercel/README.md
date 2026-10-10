@@ -19,7 +19,8 @@ there by default. Explicit preview enablement requires an isolated cluster and
 worker pool.
 
 Install dependencies locally with `uv sync --locked`, then import `app:app` with
-the explicit server environment. Vercel auto-detects the root FastAPI entrypoint;
+the explicit server environment. The template selects the FastAPI framework
+preset explicitly and exports the root entrypoint;
 no Uvicorn process, schema migration or permanent maintenance task runs on import
 or during a build. Keep the independent maintenance runner running elsewhere.
 
