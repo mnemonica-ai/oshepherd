@@ -32,9 +32,11 @@ def upstream(overrides=None):
 
 
 @asynccontextmanager
-async def running_worker(harness, app, **options):
+async def running_worker(harness, app, *, upstream_url=None, **options):
     async with httpx.AsyncClient(
-        base_url="http://fake", transport=httpx.ASGITransport(app=app)
+        base_url=upstream_url or "http://fake",
+        transport=None if upstream_url else httpx.ASGITransport(app=app),
+        timeout=httpx.Timeout(None, connect=5, pool=5),
     ) as client:
         executor = OllamaExecutor("http://fake", client=client)
         worker = SupabaseWorker(

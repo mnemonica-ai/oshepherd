@@ -27,3 +27,18 @@ def local_connection():
             "Integration suite accepts only the isolated local development origin"
         )
     return LocalConnection(data)
+
+
+@pytest.fixture(scope="session")
+def production_schema(local_connection):
+    from types import SimpleNamespace
+    from pydantic import SecretStr
+    from oshepherd.backends.supabase.releases import Database
+
+    config = SimpleNamespace(
+        project_ref="local",
+        database_url=SecretStr(
+            "postgresql://postgres:postgres@127.0.0.1:55322/postgres"
+        ),
+    )
+    Database(config).migrate()

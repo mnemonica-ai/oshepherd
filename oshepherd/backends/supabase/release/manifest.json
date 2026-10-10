@@ -1,0 +1,124 @@
+{
+  "v": 1,
+  "release": "supabase-v1-local-candidate",
+  "protocol": 1,
+  "schema": "oshepherd_api",
+  "private_schema": "oshepherd",
+  "bucket": "oshepherd-results",
+  "python": "3.12",
+  "supabase_cli": "2.116.0",
+  "gateway": "ollama",
+  "profiles": {
+    "edge_free": {
+      "sync_seconds": 135,
+      "qualified": false
+    },
+    "vercel_hobby": {
+      "sync_seconds": 135,
+      "response_bytes": 4000000,
+      "qualified": false
+    }
+  },
+  "migrations": [
+    {
+      "version": "20261010000100",
+      "path": "migrations/20261010000100_oshepherd_v1.sql",
+      "sha256": "0a366cc321a7dd79aac17b48f0586db05b8abf294cddf8c0b3c14a4f29c9ede0",
+      "content_sha256": "8c413f2e94cf994d2400ef3c174c1c311bad71bf2279a77440396e10678e36ca"
+    },
+    {
+      "version": "20261010000200",
+      "path": "migrations/20261010000200_oshepherd_operator.sql",
+      "sha256": "e31684f2a0b5b4dbd0030ef350f0aa607ac0fde60f555a93eb8031217981f231",
+      "content_sha256": "b28f55aaa4fd922b6b3753e607485c019da1748b91ea7258a79aa65d05553784"
+    }
+  ],
+  "artifacts": {
+    "functions/ollama/gateway.ts": "d5dc8c800debc3948652b30ee3a7d3bfa95b2c0585a0a3a136694fc9dc589e3d",
+    "functions/ollama/index.ts": "b705c20e49f5d0cf69ccd6ac3c1638cc9555233335fd8009f3008edd4ddc65db",
+    "functions/ollama/normalize.ts": "b41527fa362f7123f8b08071509c1d15a58d90723d46c5b6dbfb2ef2f9e4b415",
+    "functions/ollama/rpc.ts": "f63073b91c585d394e490fad715e74dca677fc53778e8caa37f4577dc82fe6d0",
+    "functions/ollama/storage.ts": "d99f9b7980ba11f2bb074464a600af2e9101c95768e52fcba70618bf37d3271b",
+    "templates/vercel/.python-version": "7b55f8e67b5623c4bef3fa691288da9437d79d3aba156de48d481db32ac7d16d",
+    "templates/vercel/.vercelignore": "a6ac0306a9ddbd6639eefd146dceb5ce6811c8dd70b2a1027a52af6f8951c29b",
+    "templates/vercel/README.md": "76f7773192537888d1c5c4e5952b1b1477bd370319a71f02d1e90292f872240d",
+    "templates/vercel/app.py": "be3c3073d228b54a7f78f7efe04f5d3f6a79675ff6e33fb31e5bf5acc41e70f0",
+    "templates/vercel/runtime-requirements.txt": "ec2d80159bc94db3f41fc2564b55abcf363fe685d198a96eaf715b3d42685f3f",
+    "templates/vercel/vercel.json": "68b139c8ae30549d092789509c72030fb88b4e22c78ff650e4cdb3f4154ca937"
+  },
+  "python_sources": {
+    "__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "api/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "api/app.py": "b72955885c36f04f92fa8b7fe16aae1f431b9983ab6065e7fce472172f3ddabd",
+    "api/chat/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "api/chat/models.py": "db7059022d0a5ffaf4be52fa1786e44edcbfefd58b61cfcc0210889a3af4c595",
+    "api/chat/routes.py": "877dabfeb5cdde1bf3e3fb87246d224e01814f60a1294ae66d9705a53de5d009",
+    "api/config.py": "5eb5ef59e12245c64164fefddeb9489cad7c749130aab1d6853d3e811ff9ef65",
+    "api/embeddings/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "api/embeddings/models.py": "68ec3219719da2025c9b73ed6fde46f0883a9b786b6b5fdec3cdfd5553bc1526",
+    "api/embeddings/routes.py": "4226d27797e77630c8bc882c4abfc3f72ea1de02dc19c00a67f08f1b664c0b89",
+    "api/factory.py": "b88fb4fd4e8d55237cccadbc3879f190f5034c37054cc8c65a599c66f8db6f47",
+    "api/generate/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "api/generate/models.py": "ab4724ed34c8d54dfec87745079829c77118d033701057741921edc3d311790c",
+    "api/generate/routes.py": "0e1d3af6bed155ab9aed2f435c6fb67bfe401222f6de626d46415d486aae7f8d",
+    "api/health.py": "da9de09d5cd89aee46eb031b79c06148551bfa8e7b6c5e90dcedf1b04dc72262",
+    "api/network_data.py": "2f33b650a085af31fe0904cba55b29c1ae15f038edd261c4682880f74cc5af33",
+    "api/ps/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "api/ps/routes.py": "fdb29456f76d16c9e5c4617cf860933c46ef5b7f58c99f3cf2e17b4cf241b8f1",
+    "api/server.py": "96f9352fb25b98e0c2f7cc6a503da1d0063349cd4f6d6da47782f416d190bef4",
+    "api/show/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "api/show/models.py": "b415ea6f3cbc86182dcc8bdd144e86115cd93a6c1e8d0e6bf41c043ad16ddca7",
+    "api/show/routes.py": "d81cb1540ee6416e655a9f24b5a9be98983d32d6c483d0afcb1bae8cf4f45738",
+    "api/systemone/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "api/systemone/models.py": "85bb1375d9a9f1986f47b8e3865564cba5b67d947a46cba4ca862a5dab0b3e51",
+    "api/systemone/routes.py": "1a12796a332faafec2d6834d476c31ed8862e34f47cf66a1239dbd9dca347eb2",
+    "api/tags/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "api/tags/models.py": "afc36d18b2d8c0dc16262202987dea08687a277b7aa1644bca0a6fb6856fd7fe",
+    "api/tags/routes.py": "761b6d355ce09e859b3e44d9481f2f04cdbf620c2de22e993a5f67e39396acd8",
+    "api/utils.py": "3f0f7b2797acc47768752feb866c1204af5b3cfcbdf07f6811df2c04c1990cf8",
+    "api/version/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "api/version/models.py": "b5b48e25a4ea4338ee4b4910f1da54e6f09631a8cdeabebcdcbd7374f6a622c9",
+    "api/version/routes.py": "2540dc04ca02b4b336dc8f395e4d2abd0845ed5cf47edb4d8783ca7173827582",
+    "backends/__init__.py": "93ca994a094d2726bc321dbba80ce9acc7e10095a2f9fdf4ff5d39da60e1376f",
+    "backends/supabase/__init__.py": "b5fac1e853bc2aa2d1a9f12a96292e28a7bb65aa6a2fc5f99c76c45ad89c2593",
+    "backends/supabase/client.py": "537aa798bc95ff904e7fb551e46d15aaa1d6f9488a28a9332fedc8ab526a4795",
+    "backends/supabase/config.py": "ce07611c20c1ff9423fbdb1d234bd4fa375e611be0e2fb8057bb38cd684affcd",
+    "backends/supabase/gateway.py": "7df9c51df0f4fab256aa1b4b8e85b90d81424cee9dda64704770057bea0a121b",
+    "backends/supabase/gateway_storage.py": "d5a44f761109a393f4a222e81f7f4310e04664ba633e6d944ef57e6026259a91",
+    "backends/supabase/maintenance.py": "20e9a47a66cc6bb3983650687be613e2074578c59444384b56a77943f7a5bfb0",
+    "backends/supabase/operator.py": "287141d159e20dea6192aa440de71cbf519dca6d7c810f17d19999c8ab878910",
+    "backends/supabase/operator_cli.py": "f7af97a530e8a8f3483cbf0965524114f66141b6ec1775bd9b1e756340f9de96",
+    "backends/supabase/private_files.py": "4f8fc676ed6c1f0d6b9230678523c9381f0d0ea704316dab2b42ed2f846b4636",
+    "backends/supabase/releases.py": "4f8166157a2e0265bf986d0a53825a3f32b8b6da04e12681a65bcc5a9c4fea5b",
+    "backends/supabase/sessions.py": "2b99e8007120e14caa1e6871f0c5199fda47fe0cbdb5bf217b3dc3a81cbc5972",
+    "backends/supabase/startup.py": "f796b7ff8c15c1f7dbe4a59ca0a6b72daf3c30c7bc16df689db904cdd381b5af",
+    "backends/supabase/storage.py": "4c7c47455691efafa584f477457a7184b4544dc28185411d1372bb06d63e91b5",
+    "backends/supabase/worker.py": "e8c7d8b61dac1c9bf25187d555c50dd61e5a75a0df8129e09123539810cb91a1",
+    "cli.py": "aeabac68053f9fa45961b92fbb57577322a92e298f76059ed6b13ead231bfc52",
+    "common/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "common/lib.py": "1cca1eed71134dcf913f043dddd32bb83a6c5927975492b5b23a64e2ed3a0fb1",
+    "common/logging_config.py": "4e3b11bf9443d613e50ba879e0dbd98035336bb48f4c75216a4c529f434b2d73",
+    "common/ollama.py": "836c3302c3229b6308868235bb53950058099369d80ee6842a5a6d1a7fbc66c5",
+    "common/protocol.py": "2ccbc8970ce9a6c126c0f69b097597c1dfdcc06c9499cfae423582581d146a1c",
+    "common/redis_service.py": "27fbf08ab06c63fb5fcd74382b3b19f46642716d2c378dd2fe55e5a5bb73aa18",
+    "worker/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "worker/app.py": "2a7eee58520e27f9f8444fb014b29c6911ca73709af40d1e31120f4bbf152046",
+    "worker/config.py": "4c2c89dcc6b1990c16736e26ae1407e0941fa6c7e8d92f2930da5d5da76830be",
+    "worker/executor.py": "0fefc4f689ebc1d21e0411911abeb0602c873c7609df9740429bcd11f2268789",
+    "worker/ollama_task.py": "a110454b12e35672afd2c1e5cee73a95a6bd616a39e5343bb7812c084901896c",
+    "worker/tasks.py": "4ecf8c20beda6cdc1e92da9af3e925ee149dc290c1e195b7e2310332c908d6a6",
+    "worker/worker_data.py": "8fbf522742e0957990f2e16d3c502c5cae1f3d38ce54a777a1aa7a447746a290"
+  },
+  "schedules": [
+    {
+      "name": "oshepherd-reap-v1",
+      "interval": "10 seconds",
+      "command": "set statement_timeout='5s'; set lock_timeout='100ms'; select oshepherd.scheduled_sweep('reap');"
+    },
+    {
+      "name": "oshepherd-purge-v1",
+      "interval": "* * * * *",
+      "command": "set statement_timeout='5s'; set lock_timeout='100ms'; select oshepherd.scheduled_sweep('purge'); delete from cron.job_run_details where runid in(select d.runid from cron.job_run_details d join cron.job j on j.jobid=d.jobid where j.jobname in('oshepherd-reap-v1','oshepherd-purge-v1') and j.username=current_user and d.end_time<clock_timestamp()-interval '2 days' order by d.runid limit 256);"
+    }
+  ]
+}

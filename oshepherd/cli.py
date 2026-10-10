@@ -167,5 +167,9 @@ def supabase_maintain(env_file, once):
         click.echo(json.dumps(result))
 
 
+from oshepherd.backends.supabase.operator_cli import supabase
+
+main.add_command(supabase)
+
 if __name__ == "__main__":
     main()

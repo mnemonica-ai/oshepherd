@@ -272,6 +272,11 @@ The [local Supabase runbook](docs/plans/supabase/experiments/local-edge-lifecycl
 uses `uv run --locked python -m scripts.supabase_demo` for setup, supervision and
 requests. It requires the isolated Supabase stack and an existing Ollama model.
 
+The [Supabase operator runbook](docs/plans/supabase/experiments/operator-lifecycle.md)
+covers versioned migrations, enrollment, diagnostics, key rotation, recovery and
+the Vercel bundle. These are locally verified release candidates; hosted
+qualification and the Edge proxy disconnect gate remain open.
+
 ##### Conda (optional)
 
 Conda can supply the Python interpreter while uv manages the project's separate

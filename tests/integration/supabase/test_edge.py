@@ -17,13 +17,19 @@ ROOT = Path(__file__).resolve().parents[3]
 FIXTURES = ROOT / "protocol/v1/fixtures"
 
 
-def test_real_edge_all_routes_and_async(local_connection):
+@pytest.mark.parametrize("rpc_schema", ["oshepherd_spike_api", "oshepherd_api"])
+def test_real_edge_all_routes_and_async(local_connection, request, rpc_schema):
+    if rpc_schema == "oshepherd_api":
+        request.getfixturevalue("production_schema")
+
     async def run():
         fixtures = json.loads((FIXTURES / "routes.json").read_text())
         schema = json.loads(
             (ROOT / "protocol/supabase/v1/async.schema.json").read_text()
         )
-        async with edge_lifecycle(local_connection, app=upstream(), systemone=True) as (
+        async with edge_lifecycle(
+            local_connection, app=upstream(), systemone=True, rpc_schema=rpc_schema
+        ) as (
             h,
             url,
             _,
@@ -118,7 +124,13 @@ def test_real_edge_all_routes_and_async(local_connection):
     asyncio.run(run())
 
 
-def test_real_edge_large_success_requires_authorized_download(local_connection):
+@pytest.mark.parametrize("rpc_schema", ["oshepherd_spike_api", "oshepherd_api"])
+def test_real_edge_large_success_requires_authorized_download(
+    local_connection, request, rpc_schema
+):
+    if rpc_schema == "oshepherd_api":
+        request.getfixturevalue("production_schema")
+
     async def run():
         output = {
             "model": "fixture:latest",
@@ -130,7 +142,12 @@ def test_real_edge_large_success_requires_authorized_download(local_connection):
         schema = json.loads(
             (ROOT / "protocol/supabase/v1/async.schema.json").read_text()
         )
-        async with edge_lifecycle(local_connection, app=app) as (h, url, _, task):
+        async with edge_lifecycle(local_connection, app=app, rpc_schema=rpc_schema) as (
+            h,
+            url,
+            _,
+            task,
+        ):
             headers = {"Authorization": "Bearer " + h.keys[0]}
             accepted = await h.client.post(
                 url + "/jobs",
@@ -236,11 +253,15 @@ def test_real_edge_first_record_before_terminal_and_disconnect(local_connection)
     not os.environ.get("OSHEPHERD_REAL_OLLAMA_MODEL"),
     reason="Explicit installed model required for real inference smoke test",
 )
-def test_real_edge_local_ollama_model(local_connection):
+@pytest.mark.parametrize("rpc_schema", ["oshepherd_spike_api", "oshepherd_api"])
+def test_real_edge_local_ollama_model(local_connection, request, rpc_schema):
+    if rpc_schema == "oshepherd_api":
+        request.getfixturevalue("production_schema")
+
     async def run():
         model = os.environ["OSHEPHERD_REAL_OLLAMA_MODEL"]
         async with edge_lifecycle(
-            local_connection, ollama_url="http://127.0.0.1:11434"
+            local_connection, ollama_url="http://127.0.0.1:11434", rpc_schema=rpc_schema
         ) as (h, url, _, task):
             response = await h.client.post(
                 url + "/api/generate",

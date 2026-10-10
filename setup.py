@@ -9,6 +9,7 @@ setup(
     author="mnemonica.ai",
     author_email="info@mnemonica.ai",
     packages=find_packages(include=["oshepherd", "oshepherd.*"]),
+    package_data={"oshepherd.backends.supabase": ["release/manifest.json", "release/migrations/*.sql", "release/functions/ollama/*.ts", "release/templates/vercel/*", "release/templates/vercel/.vercelignore", "release/templates/vercel/.python-version"]},
     python_requires=">=3.12",
     install_requires=[
         "uvicorn",

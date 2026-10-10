@@ -949,6 +949,77 @@
         "failed_paths"
       ],
       "additionalProperties": false
+    },
+    "installation_info": {
+      "type": "object",
+      "properties": {
+        "v": {
+          "const": 1
+        },
+        "operation_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "cluster_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "v",
+        "operation_id",
+        "cluster_id"
+      ],
+      "additionalProperties": false
+    },
+    "disable_cluster": {
+      "type": "object",
+      "properties": {
+        "v": {
+          "const": 1
+        },
+        "operation_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "cluster_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "v",
+        "operation_id",
+        "cluster_id"
+      ],
+      "additionalProperties": false
+    },
+    "revoke_api_key": {
+      "type": "object",
+      "properties": {
+        "v": {
+          "const": 1
+        },
+        "operation_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "cluster_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "key_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "v",
+        "operation_id",
+        "cluster_id",
+        "key_id"
+      ],
+      "additionalProperties": false
     }
   }
 }

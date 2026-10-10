@@ -9,11 +9,13 @@ Read the [decisions](index.md), [implementation plan](implementation.md), [compa
 Keep Redis as the existing CLI default. Supabase uses Edge by default, includes async jobs, and supports optional FastAPI gateways. All nine existing routes are in scope. Do not substitute a FastAPI-only implementation for a failed Edge spike, broaden Ollama fields incidentally, or implement an automatic cross-backend retry.
 
 Implementation is underway. The [progress ledger](progress.md) records actual
-runtime, SQL, CLI artifacts and verification. SQL remains in an isolated spike,
-outside production migration history. A real local Edge → external worker →
+runtime, SQL, CLI artifacts and verification. Versioned release-candidate SQL now
+coexists with the isolated spike without modifying its schema. A real local Edge → external worker →
 Ollama lifecycle passed; [repeatable commands and the open disconnect
-gate](experiments/local-edge-lifecycle.md) are documented. Production templates,
-installer and hosted validation remain pending. Persistent local setup,
+gate](experiments/local-edge-lifecycle.md) are documented. The
+[operator lifecycle](experiments/operator-lifecycle.md) and Vercel template now
+pass local checks. Provider automation, OAuth installer and hosted qualification
+remain pending. Persistent local setup,
 supervision, doctor and JSON/NDJSON request commands are available in that runbook;
 the optional FastAPI backend now passes real local routes and socket cancellation.
 Durable Storage cleanup, orphan reconciliation, an independent operator runner

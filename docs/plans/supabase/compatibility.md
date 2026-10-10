@@ -2,7 +2,7 @@
 
 Companion to the [implementation plan](implementation.md), inspected October 4, 2026. This is a specification and implementation test checklist. Unless explicitly marked as locally verified below, acceptance tests are **planned**, not passing or implemented.
 
-Implementation evidence: the [step 0 local report](experiments/step-0-local-characterization.md) records 67 C01–C09 fixtures, five request schemas, real SDK/worker characterization and the fake upstream. `tests/contracts` plus `tests/test_systemone.py` pass **162 tests**. This verifies the existing Redis-boundary portion of V01; Edge/Supabase, FastAPI/Supabase, JavaScript clients and all hosted gates remain unrun.
+Current evidence is recorded in the [progress ledger](progress.md), updated October 10, 2026. The Python service-free suite passes 294 tests; the local Supabase suite has 62 passes and one strict Edge disconnect failure, with two real-model cases verified separately. Deno has 44 passing contracts. Local Edge/FastAPI routes, SQL/Auth/Storage, versioned installation and recovery have evidence; the broad matrix below remains an acceptance specification. Hosted limits, JavaScript SDK parity, load/cost, soak and OAuth/provider installation flows remain unverified.
 
 ## Product contract
 
@@ -85,22 +85,18 @@ A gateway can enforce a smaller workload envelope, but every supported route mus
 - [`tests/test_e2e_streaming.py`](../../../tests/test_e2e_streaming.py) checks chat/generate output and `done` markers with live models, bounded to 128 output tokens. It does not exercise lost messages, reconnects, long lifetimes, large results or concurrent claims.
 - The existing [release workflow](../../../.github/workflows/bump-and-release.yaml) is not a backend compatibility pipeline. Add deliberate CI jobs for deterministic tests, migration/RPC/policy integration, and separately gated hosted/live-model suites. Do not turn credential absence into a silent passing hosted test.
 
-Proposed future commands, after the corresponding fixtures/tests are implemented:
+Available deterministic and isolated local commands:
 
 ```sh
-# Existing focused baseline (available now).
-.venv/bin/pytest -q tests/test_systemone.py
-
-# Available service-free characterization suite.
+# Service-free characterization and operator contracts.
 uv run --locked pytest -q tests/contracts tests/test_systemone.py
 
-# Planned backend suites; these directories do not exist yet.
-pytest -q tests/backends
-pytest -q tests/integration/supabase
+# Real isolated local stack; retains the known strict disconnect failure.
+uv run --locked pytest -q tests/integration/supabase -k 'not local_ollama_model' --tb=short
 
 # Planned e2e fixtures read backend URL/key and model availability explicitly.
 # Run once for each gateway/backend under test; current tests need refactoring first.
-pytest -q tests/test_e2e_api.py tests/test_e2e_streaming.py
+uv run --locked pytest -q tests/test_e2e_api.py tests/test_e2e_streaming.py
 ```
 
 Do not run the current unqualified e2e command and report Supabase validation; it points to the existing FastAPI setup. Hosted integration needs an isolated project, explicitly configured plan/region, and cleanup scoped to test data.
@@ -117,4 +113,8 @@ On October 4, 2026:
 6. Consulted primary Supabase, Vercel, PostgreSQL, Celery and Ollama sources linked from the implementation and installation plans for runtime/resource limits, authentication, queue semantics, durable-notification tradeoffs and API behavior.
 7. Reviewed official Supabase OAuth/Management API/CLI and Vercel FastAPI/Deploy Button/Marketplace documentation for installation feasibility. The Management SQL endpoint is experimental; no button or hosted installer has been implemented or exercised.
 
-**Not completed:** a hosted Supabase spike, SQL migrations, Deno gateway, worker adapter, load benchmarks, fault injection, or Supabase parity tests. These are implementation deliverables described by this plan, not evidence used to mark it production-ready.
+That list records the original research baseline. SQL migrations, Deno gateway,
+worker adapter and local fault/route tests were subsequently implemented; see the
+current ledger. Hosted verification, comprehensive parity, measured load/cost,
+soak and OAuth/provider automation remain incomplete. The Edge proxy disconnect
+failure prevents a production-readiness claim.

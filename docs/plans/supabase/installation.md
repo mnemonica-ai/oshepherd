@@ -1,6 +1,6 @@
 # Supabase installation and hosting
 
-Updated October 4, 2026. Companion to the [implementation plan](implementation.md) and [verification matrix](compatibility.md). All Oshepherd installer commands, templates and buttons below are **proposed deliverables**, not available features.
+Updated October 10, 2026. Companion to the [implementation plan](implementation.md) and [verification matrix](compatibility.md). The versioned SQL, operator CLI and self-contained Vercel template are implemented release candidates with local evidence in the [operator runbook](experiments/operator-lifecycle.md). OAuth, provider creation/deployment automation and installation buttons remain proposed. Hosted qualification is pending.
 
 ## Installation promise
 
@@ -16,7 +16,7 @@ Backend selection and hosting policy are different settings. Proposed `OSHEPHERD
 | --- | --- | --- |
 | Supabase Edge Free | 150 s worker lifetime; 150 s request idle timeout | Candidate 135 s synchronous budget, reduced by setup/elapsed time; validate reused isolates |
 | Supabase Edge paid | 400 s worker lifetime; same 150 s idle timeout | Candidate 135 s non-streamed / 385 s streamed; long silence still matters |
-| FastAPI on Vercel Hobby, Fluid compute | Python invocation maximum 300 s | Configure 300 s explicitly; candidate application budget 285 s |
+| FastAPI on Vercel Hobby, Fluid compute | Python invocation maximum 300 s | Candidate template configures 150 s; SQL/application budget remains 135 s. A 285 s budget is a future experiment |
 | FastAPI on Vercel Pro/Enterprise, Fluid compute | Default 300 s; generally available maximum 800 s | Only use candidate 785 s application budget when deployment explicitly configures 800 s |
 | FastAPI on persistent host | No Supabase Edge invocation clock | Operator-defined deadline, validated through the actual ingress proxy and client |
 
@@ -95,21 +95,19 @@ Uninstall first disables admission, drains/cancels jobs, revokes Oshepherd crede
 
 ## CLI fallback and worker onboarding
 
-Package a guided CLI installer and doctor command alongside the web flow. The fallback uses the official Supabase CLI's login/link, migration and function deployment commands. `functions deploy --use-api` bundles remotely without Docker; local Supabase development still has its own requirements. This fallback is a first-class supported path, not a page of unexplained SQL. [Supabase CLI](https://supabase.com/docs/reference/cli)
+The operator CLI uses protected connection files and transactional psql migrations, recording the official Supabase migration history. Deployment remains a separate manual provider step. `functions deploy --use-api` bundles remotely without Docker; local Supabase development still has its own requirements. See the [operator runbook](experiments/operator-lifecycle.md) for prerequisites and recovery. [Supabase CLI](https://supabase.com/docs/reference/cli)
 
-Proposed experience, after implementation:
+Available CLI, after preparing protected connection configuration and an explicit existing Auth owner:
 
 ```sh
-# Interactive setup: asks for the target project and uses protected credential storage.
-oshepherd supabase install --gateway edge
-oshepherd supabase doctor
+# Hidden credential prompts; select edge_free or vercel_hobby.
+uv run --locked oshepherd supabase configure
+uv run --locked oshepherd supabase install --connection-file .oshepherd/operator/connection.json --owner-subject <existing-auth-uuid>
+uv run --locked oshepherd supabase doctor --connection-file .oshepherd/operator/connection.json
+uv run --locked oshepherd supabase enroll-worker --connection-file .oshepherd/operator/connection.json --name workstation
 
-# Same bootstrap protocol; emits configuration for the Vercel template.
-oshepherd supabase install --gateway fastapi --hosting vercel
-
-# On the machine that actually runs Ollama; interactive enrollment, no admin token.
-oshepherd worker-login
-oshepherd start-worker --backend supabase --env-file .worker.supabase.env
+# Transfer the generated worker-only files privately to the Ollama machine.
+# See the runbook for supabase-worker-login and start-worker arguments.
 ```
 
 The installer wraps or explains each administrative action, pins a tested CLI version and prints a redacted summary of changes. Do not ship an arbitrary `curl | sh` path. Package installation instructions should select the published Supabase extra and an explicit release, respecting the repository's Python requirement. Validate a clean machine with no Redis and no prior local Supabase stack.

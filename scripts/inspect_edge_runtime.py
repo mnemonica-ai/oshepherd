@@ -1,10 +1,14 @@
-"""Read only cancellation-related installed proxy lines; never print env values."""
+"""Report cancellation capability counters; keep proxy source private."""
 
 import asyncio
 import json
 from pathlib import Path
 import subprocess
 import shlex
+import re
+import hashlib
+
+from scripts.supabase_local import private_write
 
 from tests.integration.supabase.edge_harness import edge_lifecycle
 from tests.integration.supabase.test_worker import upstream
@@ -55,23 +59,18 @@ async def main():
         )
         if result.returncode:
             raise SystemExit("Could not inspect the isolated Edge proxy source")
-        print("Proxy source bytes:",len(result.stdout.encode()))
-        print("Proxy flags:",", ".join(part.split("=")[0] for part in arguments if part.startswith("--")))
-        for index, line in enumerate(result.stdout.splitlines(), 1):
-            if any(
-                term in line
-                for term in (
-                    ".signal",
-                    "worker.fetch",
-                    "AbortController",
-                    "cancel",
-                    "abort",
-                )
-            ):
-                if not any(
-                    secret in line for name, secret in data.items() if name != "API_URL"
-                ):
-                    print(f"{index}: {line}")
+        private_write(Path(".oshepherd/local/edge-proxy-source.ts"), result.stdout)
+        print("Proxy source bytes:", len(result.stdout.encode()))
+        print("Proxy SHA256:", hashlib.sha256(result.stdout.encode()).hexdigest())
+        print(
+            "Proxy flags:",
+            ", ".join(
+                part.split("=")[0] for part in arguments if part.startswith("--")
+            ),
+        )
+        for term in ("fetch", "signal", "AbortController", "completed", "abort"):
+            matches = list(re.finditer(term, result.stdout))
+            print(f"Proxy {term} occurrences: {len(matches)}")
         result = subprocess.run(
             [
                 "docker",

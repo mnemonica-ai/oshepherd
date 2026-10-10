@@ -203,8 +203,9 @@ cursor readers belong to each request/stream and close after response or
 disconnect. No permanent collector, migration, reaper or essential post-response
 task runs inside the gateway. Authenticated responses use private/no-store caching.
 `create_vercel_app()` adds explicit backend/profile and preview-default-denial
-checks without Uvicorn or signal setup. The released deployment template and
-hosted Vercel measurements remain pending.
+checks without Uvicorn or signal setup. A wheel-backed candidate deployment
+template now passes clean-cache local installation/import checks; see the
+[operator runbook](operator-lifecycle.md). Hosted Vercel measurements remain pending.
 
 Both profiles currently honor the experimental SQL maximum of 135 seconds;
 larger planned persistent/Vercel budgets are not implemented or advertised.
@@ -228,6 +229,8 @@ Storage policy predicate; direct application table grants stay revoked.
 Async workers store small results as objects too, supporting explicit download.
 Gateway JSON retrieval is capped at 1 MiB; larger async success uses download.
 
-Scheduled cleanup and orphan reconciliation remain pending. Tests remove only
+Scheduled cleanup and orphan reconciliation subsequently passed the
+[maintenance checks](local-maintenance.md). The candidate operator also reconciles
+owned schedules and verifies migration history. Tests remove only
 objects beneath their generated cluster UUID after releasing SQL references,
 including uncommitted upload orphans.

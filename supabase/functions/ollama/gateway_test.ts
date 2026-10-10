@@ -315,6 +315,75 @@ Deno.test("stream disconnect cancels job and cleans reader", async () => {
   assert(cancelled, "disconnect did not cancel SQL job");
 });
 
+Deno.test("unconsumed stream stalls without polling or unbounded buffering", async () => {
+  let reads = 0;
+  let reason: string | undefined;
+  let notify!: () => void;
+  const cancelled = new Promise<void>((resolve) => notify = resolve);
+  const gateway = mockGateway((name, payload) => {
+    if (name === "backend_info") return {};
+    if (name === "submit_job") return { job_id: jobId };
+    if (name === "cancel_job") {
+      reason = payload.reason;
+      notify();
+      return {};
+    }
+    reads++;
+    return { jobs: [statusJob({ state: "running", mode: "sync" })] };
+  }, { readerStallMs: 10, deadlineMs: 500 });
+  const response = await gateway(request("/api/generate", {
+    model: "fixture", prompt: "", stream: true,
+  }));
+  let timer: ReturnType<typeof setTimeout>;
+  try {
+    await Promise.race([cancelled, new Promise((_, reject) => {
+      timer = setTimeout(() => reject(new Error("stall timeout did not cancel")), 250);
+    })]);
+    assert(reason === "reader_stalled" && reads === 0);
+    const reader = response.body!.getReader();
+    const first = await reader.read();
+    assert(new TextDecoder().decode(first.value).includes("reader_stalled"));
+    assert((await reader.read()).done);
+  } finally {
+    clearTimeout(timer!);
+    await response.body?.cancel().catch(() => {});
+  }
+});
+
+Deno.test("active reader waiting for inference is not a stalled reader", async () => {
+  let ready = false;
+  const cancellations: string[] = [];
+  const content = '{"done":true}\n';
+  const checksum = await sha256(encoder.encode(content));
+  const gateway = mockGateway((name, payload) => {
+    if (name === "backend_info") return {};
+    if (name === "submit_job") return { job_id: jobId };
+    if (name === "cancel_job") {
+      cancellations.push(payload.reason);
+      return {};
+    }
+    return { jobs: [statusJob({
+      state: ready ? "succeeded" : "running", mode: "sync", last_seq: ready ? 1 : 0,
+      chunks: ready && payload.cursors[0].cursor === 0 ? [{ seq: 1, content, checksum }] : [],
+    })] };
+  }, { readerStallMs: 10, deadlineMs: 1000 });
+  const response = await gateway(request("/api/generate", {
+    model: "fixture", prompt: "", stream: true,
+  }));
+  const reader = response.body!.getReader();
+  try {
+    const pending = reader.read();
+    await new Promise((resolve) => setTimeout(resolve, 30));
+    assert(cancellations.length === 0);
+    ready = true;
+    assert(new TextDecoder().decode((await pending).value) === content);
+    assert((await reader.read()).done);
+    assert(cancellations.length === 0);
+  } finally {
+    await reader.cancel();
+  }
+});
+
 Deno.test("new gateway rejects malformed and unsupported payloads before admission", async () => {
   let admitted = false;
   const gateway = mockGateway((name) => {

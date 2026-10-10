@@ -47,17 +47,27 @@ class QueueHarness:
     def __repr__(self):
         return "QueueHarness(credentials=[redacted])"
 
-    async def setup(self, connection, client, *, workers=2):
+    async def setup(
+        self, connection, client, *, workers=2, schema="oshepherd_spike_api"
+    ):
+        assert schema in ("oshepherd_spike_api", "oshepherd_api")
+        self.schema = schema
+        self.bucket = (
+            "oshepherd-spike-results"
+            if schema == "oshepherd_spike_api"
+            else "oshepherd-results"
+        )
         self.cluster = str(uuid.uuid4())
         self.subjects = []
         self.workers = []
         self.keys = []
+        self.auth_sessions = {}
         self.client = client
         self.connection = connection
         self.admin = RpcClient(
             connection["API_URL"],
             connection["SECRET_KEY"],
-            schema="oshepherd_spike_api",
+            schema=self.schema,
             client=client,
             sleep=lambda _: _no_sleep(),
         )
@@ -115,11 +125,12 @@ class QueueHarness:
         session = await WorkerAuth(
             origin, self.connection["PUBLISHABLE_KEY"], client=self.client
         ).enroll(response.json()["hashed_token"])
+        self.auth_sessions[subject] = session
         return subject, RpcClient(
             origin,
             self.connection["PUBLISHABLE_KEY"],
             access_token=session.access_token.get_secret_value(),
-            schema="oshepherd_spike_api",
+            schema=self.schema,
             client=self.client,
             sleep=lambda _: _no_sleep(),
         )
@@ -198,7 +209,14 @@ class QueueHarness:
         )
 
     async def cleanup(self):
-        cleanup_cluster(self.cluster)
+        cleanup_cluster(
+            self.cluster,
+            schema=(
+                "oshepherd_spike"
+                if self.schema == "oshepherd_spike_api"
+                else "oshepherd"
+            ),
+        )
         # Delete only objects beneath this test's generated cluster UUID after
         # removing its SQL references. Include uncommitted/lost-upload orphans.
         prefixes = [self.cluster]
@@ -209,7 +227,8 @@ class QueueHarness:
             for prefix in prefixes:
                 response = await self.client.post(
                     self.connection["API_URL"]
-                    + "/storage/v1/object/list/oshepherd-spike-results",
+                    + "/storage/v1/object/list/"
+                    + self.bucket,
                     headers=admin_headers,
                     json={"prefix": prefix, "limit": 1000, "offset": 0},
                 )
@@ -235,8 +254,7 @@ class QueueHarness:
         for offset in range(0, len(objects), 100):
             response = await self.client.request(
                 "DELETE",
-                self.connection["API_URL"]
-                + "/storage/v1/object/oshepherd-spike-results",
+                self.connection["API_URL"] + "/storage/v1/object/" + self.bucket,
                 headers=admin_headers,
                 json={"prefixes": objects[offset : offset + 100]},
             )

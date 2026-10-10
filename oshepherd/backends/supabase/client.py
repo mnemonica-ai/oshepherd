@@ -34,6 +34,9 @@ RPCS = {
     "purge_expired",
     "maintenance_tick",
     "complete_maintenance",
+    "installation_info",
+    "revoke_api_key",
+    "disable_cluster",
 }
 
 

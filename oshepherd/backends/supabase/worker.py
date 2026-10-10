@@ -6,6 +6,7 @@ from datetime import datetime
 import hashlib
 import json
 import logging
+import re
 import time
 
 import httpx
@@ -77,6 +78,12 @@ class SupabaseWorker:
         self.ready.set()
 
     async def inventory(self):
+        # A large inventory or trickling responses must also have a total bound,
+        # rather than multiplying the per-request deadline by up to 256 models.
+        async with asyncio.timeout(25):
+            await self._inventory()
+
+    async def _inventory(self):
         tags = await self.executor.metadata("tags")
         running = await self.executor.metadata("ps")
         version = await self.executor.metadata("version")
@@ -84,8 +91,20 @@ class SupabaseWorker:
         if not isinstance(tags.get("models"), list) or len(tags["models"]) > 256:
             raise ValueError("invalid_model_inventory")
         for model in tags["models"]:
+            if (
+                not isinstance(model, dict)
+                or not isinstance(model.get("name"), str)
+                or not 1 <= len(model["name"]) <= 256
+                or not isinstance(model.get("digest"), str)
+                or not re.fullmatch(r"[a-f0-9]{64}", model["digest"])
+            ):
+                raise ValueError("invalid_model_inventory")
             details = await self.executor.metadata("show", model["name"])
             capabilities = details.get("capabilities", [])
+            if not isinstance(capabilities, list) or any(
+                not isinstance(capability, str) for capability in capabilities
+            ):
+                raise ValueError("invalid_model_inventory")
             operations = []
             # Older Ollama show responses omit capabilities; generation/chat
             # remain their historical default. Explicit embedding-only models
@@ -279,7 +298,13 @@ class SupabaseWorker:
                 # Do not overwrite a good inventory on a transient local outage.
                 try:
                     await self.inventory()
-                except (httpx.HTTPError, ollama.ResponseError, ValueError, KeyError):
+                except (
+                    TimeoutError,
+                    httpx.HTTPError,
+                    ollama.ResponseError,
+                    ValueError,
+                    KeyError,
+                ):
                     logger.warning("Ollama inventory unavailable")
 
     async def refresh_loop(self, stop):

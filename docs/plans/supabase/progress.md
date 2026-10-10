@@ -7,12 +7,26 @@ verification; an implementation checkbox does not imply hosted validation.
 
 The local testing milestone is achieved: a real Edge Function request reaches
 the external worker and returns genuine Ollama inference. The complete handoff
-is still unfinished; production installation, hosted/load verification and the
+is still unfinished; production qualification, hosted/load verification and the
 Edge proxy disconnect gate remain open below. New Python work uses uv by default;
 older verification-log commands retain their original invocation.
 
 ## Completed
 
+- [x] Add independent versioned release-candidate migrations, server-only
+  operator RPCs, protected install/enrollment/doctor/upgrade/rotation/disable CLI,
+  migration history and catalog drift checks. Verify replay, lost responses,
+  ownership, one-use Auth, key recovery, grants and schedule isolation locally.
+  See the [operator lifecycle](experiments/operator-lifecycle.md).
+- [x] Ship verified wheel-contained assets and a self-contained Vercel candidate
+  template with Python source/artifact hashes, exact runtime pins, uv lock,
+  150-second invocation configuration and the existing 135-second SQL budget.
+  Clean-cache export/install/import and default auth/preview denial passed.
+- [x] Isolate bounded metadata from inference connections and validate inventory.
+  Eleven deterministic recovery/control cases pass, including actual socket
+  saturation, Auth refresh, restart fencing and a blocked ASGI reader. See
+  [worker recovery evidence](experiments/worker-recovery.md). Soak and hosted
+  downstream backpressure remain unverified.
 - [x] Fix the local startup helper to retrieve explicit status JSON after the
   human-readable start summary. Preserve private logs and existing credentials
   on failures. Verify the user's exact command against the running isolated
@@ -123,18 +137,18 @@ older verification-log commands retain their original invocation.
 | Versioned RPC, retry, Auth, limits, output and async contracts | Schemas/decisions written | Enforce in SQL and compare Python/TypeScript behavior |
 | Shared executor and backend-specific startup/configuration | Executor/config/RPC/Auth and API/worker CLI selection implemented | Redis characterization remains passing; full error matrix pending |
 | Isolated local Supabase configuration and pinned toolchain | Local stack/Auth/Edge running | Real model lifecycle passed; disconnect/hosted limits open |
-| Database schema, RPC grants/RLS, capacity, leases and fencing | Experimental spike implemented | Identity, quota, claim race, replay/fencing passed; full adversarial matrix and production migrations pending |
-| Worker enrollment/session storage and refresh | Auth/storage/membership/login implemented | Auth exchange and SQL revocation passed; full operator administration pending |
-| External local Ollama worker and independent heartbeat | Implemented | Fake upstream and real model passed; process restart/drain/refresh soak pending |
+| Database schema, RPC grants/RLS, capacity, leases and fencing | Spike plus independent versioned candidate migrations implemented | Local history/drift, identity, quota, races, replay/fencing passed; hosted and full adversarial matrix pending |
+| Worker enrollment/session storage and refresh | Auth/storage/membership/login and operator enrollment implemented | Real Auth exchange/refresh, revocation and ambiguous enrollment recovery passed; hosted flow pending |
+| External local Ollama worker and independent heartbeat | Implemented with separate bounded metadata pool | Fake/real model, deterministic restart/fencing, saturation and refresh passed; drain/extended soak pending |
 | All nine Edge routes and application-key authentication | Implemented | Local routes passed; full error/metadata matrix and hosted runs pending |
-| Durable streaming, cancellation and output limits | Implemented in SQL/worker/gateway | Exact bytes/incomplete EOF passed; **local proxy disconnect gate fails**; slow-reader/load pending |
+| Durable streaming, cancellation and output limits | Implemented in SQL/worker/gateway | Exact bytes/incomplete EOF, FastAPI socket cancellation and controlled ASGI stall passed; **local Edge proxy disconnect fails**; hosted slow-reader/load pending |
 | Async jobs, expiry, cancellation and authorized results/downloads | Inline/private-object paths implemented | Edge/FastAPI async and downloads passed; full expiry/adversarial matrix pending |
-| Private Storage results and cleanup/reconciliation | Upload/sign/read, durable deletion outbox, orphan reconciliation, operator runner and private Cron sweeps implemented | Local authorization, recovery, bounded purge and actual Cron passed; hosted/load/installer schedule reconciliation pending |
-| Optional FastAPI backend and Vercel template | Supabase FastAPI, backend-aware factory and Vercel ASGI composition implemented | Redis characterization and real Supabase routes/disconnect passed; release template and deployed limits pending |
-| CLI bootstrap/doctor and operator administration | Worker backend/login, maintenance and persistent local setup/doctor implemented | Repeated local setup and real lifecycle passed; general operator/bootstrap administration pending |
-| Installation manifest, OAuth installer and provider adapters | Pending | Resumability/ownership/upgrade; hosted integration prerequisites |
-| Runbook and automated Edge → worker → response harness | Disposable harness plus persistent setup/serve/doctor/request and [local runbook](experiments/local-edge-lifecycle.md) available | Production installation runbook and clean-machine setup pending |
-| Hosted limits, load/cost, lifecycle and installation | Not run | Authorized isolated Supabase/Vercel targets, plan/region and budget |
+| Private Storage results and cleanup/reconciliation | Upload/sign/read, deletion outbox, orphan reconciliation, operator runner and private Cron sweeps implemented | Local authorization, recovery, purge, Cron and operator schedule reconciliation passed; hosted/load pending |
+| Optional FastAPI backend and Vercel template | Backend-aware API, Vercel ASGI factory and wheel-backed candidate template implemented | Local routes/disconnect and clean-cache template install/import passed; deployed limits pending |
+| CLI bootstrap/doctor and operator administration | Protected candidate configure/install/enroll/doctor/upgrade/rotate/revoke/disable implemented | Six local lifecycle/recovery cases passed; hosted deployment and physical uninstall pending |
+| Installation manifest, OAuth installer and provider adapters | Hash-verified packaged manifest and explicit schema-exposure adapter implemented | Local resumability/ownership/upgrade passed; OAuth and provider automation pending |
+| Runbook and automated Edge → worker → response harness | Local and [operator runbooks](experiments/operator-lifecycle.md), disposable two-schema harness available | Real inference passed in both schemas; complete hosted clean-machine setup pending |
+| Hosted limits, load/cost, lifecycle and installation | Not run | Free-tier-only authorized; isolated target selection/plan verification and Vercel login remain required |
 
 ## Current decisions and remaining dependencies
 
@@ -148,8 +162,9 @@ administrator-generated, single-use Auth token followed by the worker's direct
 Auth verification. This passed against local Auth with public signup disabled.
 No worker receives a project administrator credential.
 
-No cloud spending or deployment to an unspecified account is authorized. Hosted
-verification requires selected isolated projects and a test budget. Local work
+Free-tier-only hosted testing is authorized. Hosted verification still requires
+selected isolated Free/Hobby targets and usable provider authentication. No paid
+upgrade or deployment to an unspecified project is authorized. Local work
 continues independently. Real model/GPU access will be checked without reading
 secret environment files or downloading models implicitly.
 
@@ -235,6 +250,15 @@ for both gateway implementations, including the Vercel profile.
 | October 10, 2026 | `uv run --locked pytest -q tests/contracts/test_supabase_local.py --tb=short` | 6 passed; explicit JSON status, private output/state, startup/status failures and origin rejection covered |
 | October 10, 2026 | `uv run --locked python -m scripts.supabase_local start` | Passed against real CLI 2.116.0; expected local origin validated and private connection state saved |
 | October 10, 2026 | `uv run --locked pytest -q tests/contracts tests/test_systemone.py --tb=short` | 282 passed in 11.97s; one upstream TestClient deprecation warning |
+| October 10, 2026 | Final `uv run --locked pytest -q tests/contracts tests/test_systemone.py --tb=short` | 294 passed in 11.64s; one upstream TestClient deprecation warning |
+| October 10, 2026 | Final `uv run --locked pytest -q tests/integration/supabase -k 'not local_ollama_model' --tb=short` | 62 passed, 1 failed, 2 deselected in 77.96s; only strict Edge disconnect failed (`succeeded` after reader closes) |
+| October 10, 2026 | Deno gateway contracts and entrypoint type check | 44 passed; type check passed |
+| October 10, 2026 | Real Ollama Edge smoke, spike and versioned release schemas | 2 passed in 9.10s; both genuine `done: true`, six tokens; no prompt/output printed |
+| October 10, 2026 | Versioned install/replay/upgrade/rotation/enrollment/disable recovery suite | 6 passed; lost responses/config writes preserve identities and keys; drift rejected |
+| October 10, 2026 | Worker recovery/control suite | 9 passed; deterministic socket, refresh, fencing, inventory and ASGI stall cases |
+| October 10, 2026 | Final capability-list validation and release integrity subset | 23 passed in 10.59s; 11 recovery cases plus 12 operator contracts; null/string capabilities retain control and recover |
+| October 10, 2026 | Official CLI `supabase db push --local --dry-run` | Up to date; candidate migrations recognized without reapplication |
+| October 10, 2026 | `uv build`, wheel asset inspection and empty-cache Vercel export/install/import | Passed; exact runtime pins retained; private state/tests/services excluded; unauthenticated health denied |
 
 ## Handoff discipline
 

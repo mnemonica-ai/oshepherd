@@ -37,7 +37,7 @@ async def serve_edge(h):
         env_file = path / "edge.env"
         private_write(
             env_file,
-            f"OSHEPHERD_CLUSTER_ID={h.cluster}\nOSHEPHERD_SCHEMA=oshepherd_spike_api\nOSHEPHERD_PUBLIC_URL={h.connection['API_URL']}\n",
+            f"OSHEPHERD_CLUSTER_ID={h.cluster}\nOSHEPHERD_SCHEMA={h.admin.schema}\nOSHEPHERD_PUBLIC_URL={h.connection['API_URL']}\n",
         )
         descriptor = os.open(
             path / "runtime.log", os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600
@@ -97,8 +97,15 @@ async def serve_edge(h):
 
 
 @asynccontextmanager
-async def edge_lifecycle(connection, *, app=None, ollama_url=None, **worker_options):
-    async with queue_harness(connection, workers=1) as h:
+async def edge_lifecycle(
+    connection,
+    *,
+    app=None,
+    ollama_url=None,
+    rpc_schema="oshepherd_spike_api",
+    **worker_options,
+):
+    async with queue_harness(connection, workers=1, schema=rpc_schema) as h:
         server, server_task = None, None
         if app is not None:
             server = uvicorn.Server(

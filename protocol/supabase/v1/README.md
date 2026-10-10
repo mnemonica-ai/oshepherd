@@ -1,5 +1,11 @@
 # Supabase wire protocol v1
 
+The candidate worker reserves separate inference (64) and metadata (four)
+connections. Individual metadata requests have a five-second budget and a full
+inventory cycle has a 25-second budget; invalid inventory preserves the last
+good values until their SQL freshness expires. These budgets do not limit
+inference reads or replace independent heartbeat and Auth refresh.
+
 Status: experimental implementation contract. Python/TypeScript clients and SQL
 must use these schemas; hosted envelopes and capacity remain unverified. This
 version is separate from the legacy characterization fixtures in `protocol/v1`.
@@ -10,7 +16,7 @@ PostgREST calls are `POST /rest/v1/rpc/<name>` with `Content-Profile` and
 `Accept-Profile: oshepherd_api` and a body of `{"p_request": <request>}`.
 Each request contains integer `v: 1` and a UUID `operation_id`; each successful
 RPC returns `{"v":1,"data":{...}}`. `rpc.schema.json` defines request fields
-for all 19 functions. Unknown fields are rejected; null is permitted only where the
+for all 22 functions, including three release-candidate operator RPCs. Unknown fields are rejected; null is permitted only where the
 schema says so. Missing optional fields use the documented defaults.
 
 IDs are UUID strings. Wire timestamps are UTC, encoded exactly as
@@ -73,7 +79,7 @@ replayed calls; no old identity regains mutation authority.
 
 | RPCs | Data API identity | Additional SQL checks |
 | --- | --- | --- |
-| `bootstrap_cluster`, `create_api_key`, `enroll_worker`, `revoke_worker`, cleanup | `service_role` | Explicit selected cluster/operator; no public bootstrap |
+| `bootstrap_cluster`, `create_api_key`, `enroll_worker`, `revoke_worker`, cleanup, `installation_info`, `revoke_api_key`, `disable_cluster` | `service_role` | Explicit selected cluster/operator; no public bootstrap. The final three require versioned release migrations |
 | `submit_job`, `read_updates`, `cancel_job`, `read_metadata`, `backend_info` | `service_role` gateway | Validate opaque application key hash, cluster and caller ownership each call |
 | `register_worker`, `update_models`, `heartbeat_and_claim`, `append_output`, `finish_job`, `fail_attempt` | `authenticated` worker | JWT subject bound to an operator-enrolled worker, revocation, current session/generation and attempt |
 | Every inference/control RPC | `anon`, missing JWT, wrong role | Denied; never fall through to privileged access |

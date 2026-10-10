@@ -1,5 +1,6 @@
 """Local inference without broker, lease, enrollment, or publishing concerns."""
 
+import asyncio
 import json
 from typing import AsyncIterator
 
@@ -61,21 +62,40 @@ class OllamaExecutor:
         host,
         *,
         client=None,
+        metadata_client=None,
+        metadata_seconds=5,
         max_output_bytes=RESULT_BYTES,
         max_record_bytes=RECORD_BYTES,
     ):
+        if not 0 < metadata_seconds <= 10:
+            raise ValueError("invalid_metadata_timeout")
         self.client = client or httpx.AsyncClient(
             base_url=host.rstrip("/"),
             timeout=httpx.Timeout(None, connect=10, pool=10),
-            limits=httpx.Limits(max_connections=16, max_keepalive_connections=8),
+            limits=httpx.Limits(max_connections=64, max_keepalive_connections=8),
         )
         self.owns_client = client is None
+        # Long inference reads must not occupy the control-plane pool. Injected
+        # clients remain caller-owned, including when shared by fixture transports.
+        self.metadata_client = (
+            metadata_client
+            or client
+            or httpx.AsyncClient(
+                base_url=host.rstrip("/"),
+                timeout=httpx.Timeout(metadata_seconds),
+                limits=httpx.Limits(max_connections=4, max_keepalive_connections=4),
+            )
+        )
+        self.owns_metadata_client = metadata_client is None and client is None
+        self.metadata_seconds = metadata_seconds
         self.max_output_bytes = max_output_bytes
         self.max_record_bytes = max_record_bytes
 
     async def close(self):
         if self.owns_client:
             await self.client.aclose()
+        if self.owns_metadata_client:
+            await self.metadata_client.aclose()
 
     @staticmethod
     def upstream_payload(operation, payload):
@@ -187,9 +207,15 @@ class OllamaExecutor:
     async def metadata(self, operation, model=None):
         if operation not in ("tags", "ps", "version", "show"):
             raise ValueError("unsupported_metadata_operation")
-        async with self.client.stream(
-            "POST" if operation == "show" else "GET",
-            "/api/" + operation,
-            **({"json": {"model": model}} if operation == "show" else {}),
-        ) as response:
-            return json.loads(await self.read_body(response, self.max_record_bytes))
+        async with asyncio.timeout(self.metadata_seconds):
+            async with self.metadata_client.stream(
+                "POST" if operation == "show" else "GET",
+                "/api/" + operation,
+                **({"json": {"model": model}} if operation == "show" else {}),
+            ) as response:
+                value = json.loads(
+                    await self.read_body(response, self.max_record_bytes)
+                )
+                if not isinstance(value, dict):
+                    raise ValueError("invalid_upstream_metadata")
+                return value
