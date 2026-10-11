@@ -9,9 +9,15 @@ from oshepherd.backends.supabase.storage import WorkerResultStorage
 from .harness import queue_harness, scoped_sql
 
 
-def test_private_immutable_object_and_authoritative_commit(local_connection):
+@pytest.mark.parametrize("rpc_schema", ["oshepherd_spike_api", "oshepherd_api"])
+def test_private_immutable_object_and_authoritative_commit(
+    local_connection, request, rpc_schema
+):
+    if rpc_schema == "oshepherd_api":
+        request.getfixturevalue("production_schema")
+
     async def run():
-        async with queue_harness(local_connection) as h:
+        async with queue_harness(local_connection, schema=rpc_schema) as h:
             worker, other = h.workers
             submission = h.submission(stream=False, mode="async")
             job = await h.admin.rpc("submit_job", submission)
@@ -43,6 +49,55 @@ def test_private_immutable_object_and_authoritative_commit(local_connection):
             uploaded = await storage.upload(h.cluster, claim, content)
             assert uploaded == descriptor
             assert await storage.upload(h.cluster, claim, content) == descriptor
+            if rpc_schema == "oshepherd_api":
+                # Versioned Storage can archive an object with a non-key
+                # UPDATE. The commit trigger must fence that, not only DELETE.
+                from types import SimpleNamespace
+                from uuid import uuid4
+                from pydantic import SecretStr
+                from oshepherd.backends.supabase.releases import Database, OperatorError
+
+                db = Database(
+                    SimpleNamespace(
+                        project_ref="local",
+                        database_url=SecretStr(
+                            "postgresql://supabase_admin:postgres@127.0.0.1:55322/postgres"
+                        ),
+                    )
+                )
+                marker = "storage-lock-" + str(uuid4())
+                update = f"update storage.objects set metadata=metadata where bucket_id='oshepherd-results' and name='{path}';"
+                db.execute(update)
+                locked = asyncio.create_task(
+                    asyncio.to_thread(
+                        db.execute,
+                        f"begin; set local application_name='{marker}'; set local role oshepherd_runtime; "
+                        f"insert into oshepherd.result_objects(job_id,bucket_id,object_path) values('{claim['job_id']}','oshepherd-results','{path}'); "
+                        "select pg_sleep(5); rollback;",
+                    )
+                )
+                try:
+                    async with asyncio.timeout(3):
+                        while (
+                            await asyncio.to_thread(
+                                db.execute,
+                                f"select count(*) from pg_stat_activity where application_name='{marker}' and wait_event='PgSleep';",
+                            )
+                            != "1"
+                        ):
+                            if locked.done():
+                                await locked
+                                pytest.fail(
+                                    "commit trigger did not reach held transaction"
+                                )
+                            await asyncio.sleep(0.05)
+                    with pytest.raises(OperatorError, match="migration_failed"):
+                        await asyncio.to_thread(
+                            db.execute, "set lock_timeout='100ms'; " + update
+                        )
+                finally:
+                    await locked
+                db.execute(update)
             with pytest.raises(RpcError, match="result_object_conflict"):
                 await storage.upload(h.cluster, claim, content + b" ")
             public = await h.client.get(url)
@@ -68,7 +123,7 @@ def test_private_immutable_object_and_authoritative_commit(local_connection):
             ).status_code >= 400
             scoped_sql(
                 h.cluster,
-                "update oshepherd_spike.jobs set content_expires_at = clock_timestamp()-interval '1 second' where id = :'job_id'::uuid and cluster_id = :'cluster_id'::uuid;",
+                f"update {'oshepherd' if rpc_schema == 'oshepherd_api' else 'oshepherd_spike'}.jobs set content_expires_at = clock_timestamp()-interval '1 second' where id = :'job_id'::uuid and cluster_id = :'cluster_id'::uuid;",
                 job_id=job["job_id"],
             )
             purged = await h.admin.rpc(
@@ -77,7 +132,7 @@ def test_private_immutable_object_and_authoritative_commit(local_connection):
             assert purged["object_paths"] == [path]
             removed = await h.client.request(
                 "DELETE",
-                h.connection["API_URL"] + "/storage/v1/object/oshepherd-spike-results",
+                h.connection["API_URL"] + "/storage/v1/object/" + h.bucket,
                 headers={"apikey": h.connection["SECRET_KEY"]},
                 json={"prefixes": [path]},
             )

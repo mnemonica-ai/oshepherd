@@ -31,7 +31,54 @@
       "path": "migrations/20261010000200_oshepherd_operator.sql",
       "sha256": "e31684f2a0b5b4dbd0030ef350f0aa607ac0fde60f555a93eb8031217981f231",
       "content_sha256": "b28f55aaa4fd922b6b3753e607485c019da1748b91ea7258a79aa65d05553784"
+    },
+    {
+      "version": "20261011000100",
+      "path": "migrations/20261011000100_oshepherd_storage_baseline.sql",
+      "sha256": "02c61b006c92b4873ab90b40a4cc1cd7b4f3a686d84196ff7f24f66a67255071",
+      "content_sha256": "dccbbf30f280f19bb297c7df3bfc66e70244999e6ab205707de52cd1b923ef75"
+    },
+    {
+      "version": "20261011000200",
+      "path": "migrations/20261011000200_oshepherd_storage_compatibility.sql",
+      "sha256": "2a97341e895f286e9ffb96e2ae16379472990ae693aad43458e8b95333b86c00",
+      "content_sha256": "88dd62fa13fc9dd77d89182688dc7cd8d3b054622b6ffc8e6e84076f1e62b5fe"
+    },
+    {
+      "version": "20261011000300",
+      "path": "migrations/20261011000300_oshepherd_storage_drift.sql",
+      "sha256": "841743710e168e72e2f8bc9fdd180f5c370cce5523001a083df1bf3cea01bfa2",
+      "content_sha256": "a739d609fe4502497ddbb0e10a3e4ccbaa17a78954cbcfaf1cb30fcef47d4343"
+    },
+    {
+      "version": "20261011000400",
+      "path": "migrations/20261011000400_oshepherd_drift_lookup.sql",
+      "sha256": "51ee85e60611bc014ef5cafa4af71e53057994bb5a5f3cb2edec2ff7847ed282",
+      "content_sha256": "8493a5ed23eda88afdf5c90fc3641b12943661951fb1e72299e6b10eaa907306"
+    },
+    {
+      "version": "20261011000500",
+      "path": "migrations/20261011000500_oshepherd_storage_lock.sql",
+      "sha256": "e32c7cf791d632a5a06e4818e104579617f395bf67764ecaf2605e9b282ae488",
+      "content_sha256": "bb8017cb3c9d587e59058edaf7c0224511ace8bdba7db196a50fc233a1edfdc3"
     }
+  ],
+  "migration_paths": [
+    [
+      "20261011000100",
+      "20261011000200",
+      "20261011000300",
+      "20261011000400",
+      "20261011000500"
+    ],
+    [
+      "20261010000100",
+      "20261010000200",
+      "20261011000200",
+      "20261011000300",
+      "20261011000400",
+      "20261011000500"
+    ]
   ],
   "artifacts": {
     "functions/ollama/gateway.ts": "d5dc8c800debc3948652b30ee3a7d3bfa95b2c0585a0a3a136694fc9dc589e3d",
@@ -86,10 +133,10 @@
     "backends/supabase/gateway.py": "7df9c51df0f4fab256aa1b4b8e85b90d81424cee9dda64704770057bea0a121b",
     "backends/supabase/gateway_storage.py": "d5a44f761109a393f4a222e81f7f4310e04664ba633e6d944ef57e6026259a91",
     "backends/supabase/maintenance.py": "20e9a47a66cc6bb3983650687be613e2074578c59444384b56a77943f7a5bfb0",
-    "backends/supabase/operator.py": "287141d159e20dea6192aa440de71cbf519dca6d7c810f17d19999c8ab878910",
-    "backends/supabase/operator_cli.py": "f7af97a530e8a8f3483cbf0965524114f66141b6ec1775bd9b1e756340f9de96",
+    "backends/supabase/operator.py": "528f9b3f3e66e80ecc3b8612efb570eff165fb8b90008530da4416fc9e31b7be",
+    "backends/supabase/operator_cli.py": "66ee8ff22b05ce0285e0fbe1369949f4dbe239ab0cd408cff376fce01563eb2a",
     "backends/supabase/private_files.py": "4f8fc676ed6c1f0d6b9230678523c9381f0d0ea704316dab2b42ed2f846b4636",
-    "backends/supabase/releases.py": "4f8166157a2e0265bf986d0a53825a3f32b8b6da04e12681a65bcc5a9c4fea5b",
+    "backends/supabase/releases.py": "8272793919eec959c0aa95a3cec18d1f4c29fce9921031eb88fcf2fac169f4b9",
     "backends/supabase/sessions.py": "2b99e8007120e14caa1e6871f0c5199fda47fe0cbdb5bf217b3dc3a81cbc5972",
     "backends/supabase/startup.py": "f796b7ff8c15c1f7dbe4a59ca0a6b72daf3c30c7bc16df689db904cdd381b5af",
     "backends/supabase/storage.py": "4c7c47455691efafa584f477457a7184b4544dc28185411d1372bb06d63e91b5",

@@ -38,7 +38,7 @@ def production_schema(local_connection):
     config = SimpleNamespace(
         project_ref="local",
         database_url=SecretStr(
-            "postgresql://postgres:postgres@127.0.0.1:55322/postgres"
+            "postgresql://supabase_admin:postgres@127.0.0.1:55322/postgres"
         ),
     )
     Database(config).migrate()

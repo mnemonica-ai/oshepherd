@@ -34,7 +34,7 @@ from .private_files import (
     write_private,
     write_private_json,
 )
-from .releases import Database, OperatorError, release_assets
+from .releases import Database, OperatorError, migration_path, release_assets
 
 
 class OperatorConfig(BaseModel):
@@ -458,7 +458,7 @@ class Operator:
         )
         expected = [
             {"version": entry["version"], "sha256": entry["content_sha256"]}
-            for entry in manifest["migrations"]
+            for entry in migration_path(manifest, info["migrations"])
         ]
         matches = info["migrations"] == expected and info["schema_matches"]
         models = None

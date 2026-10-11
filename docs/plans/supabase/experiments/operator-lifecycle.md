@@ -1,7 +1,7 @@
 # Versioned operator lifecycle candidate
 
-Updated October 10, 2026. This is an implemented CLI path with local evidence,
-not a production or hosted qualification claim. Redis remains the default.
+Updated October 11, 2026. This is an implemented CLI path with local and hosted
+Edge/Vercel evidence, not a production qualification claim. Redis remains the default.
 The persistent local demo keeps using `oshepherd_spike_api`; it is unaffected.
 
 ## Release and migration ownership
@@ -13,6 +13,21 @@ migration adds server-only installation diagnostics, application-key revocation
 and cluster disablement. Existing schema/role/bucket/policy collisions fail.
 Never edit an applied migration; upgrades add another ordered migration.
 
+Fresh installations now use `20261011000100_oshepherd_storage_baseline.sql`,
+which consolidates those two initial files without their incompatible Storage
+path foreign key. Modern Storage supports object versions and no longer has a
+unique `(bucket_id,name)` foreign-key target. The October 10 files retain their
+original bytes and remain the history of existing installations. Both supported
+histories receive the October 11 compatibility and drift migrations. The
+manifest declares the permitted paths; mixed, reordered or altered histories
+are rejected. The result commit trigger still rejects missing, archived or
+deleted objects and locks the metadata row through commit. Its fixed function
+uses the installing `postgres` role; runtime metadata reads remain bucket scoped.
+The additive `20261011000500` lock fix uses `FOR SHARE`, fencing non-key
+version/archive updates as well as physical deletion until commit.
+Trigger state and runtime Storage permissions participate in drift detection.
+See the [hosted findings](hosted-qualification.md).
+
 The wheel contains the SQL, Edge source, Vercel template and a release manifest.
 Every artifact and package Python source has a SHA-256. Each SQL file also records its content digest and
 the installed catalog fingerprint. The installer checks functions, grants,
@@ -23,11 +38,15 @@ An unexpected migration/version/hash fails rather than repairing history.
 Each migration runs in a transaction with a project lock; schema changes and
 both installation and Supabase CLI history commit together. The official CLI's
 `supabase db push --local --dry-run` recognizes this history and reports up to
-date, without reapplying the two migrations. Direct manual SQL must run inside
-a transaction. The general operator path is preferred to an unexplained SQL push.
+date for the original two-file candidate. The current bundle also contains a
+superseding fresh-install baseline: **do not push every SQL file with the provider
+CLI**. Use `supabase install`/`upgrade`, which select the manifest's applicable
+history and record only files actually applied. Direct manual SQL must follow
+that selected history and run inside a transaction.
 
 Schema exposure merges existing global and database-specific role settings,
-preserves their order, and reconciles again on upgrades/replay. For hosted
+preserves their order, and reconciles again on upgrades/replay. Unchanged exposure
+does not rewrite role settings or trigger another PostgREST reload. For hosted
 installs, supply the actual existing exposed-schema list from the project's API
 settings; installation refuses to guess it. It checks that unrelated schemas
 exist before committing exposure. Automatic Management API discovery is a
@@ -59,6 +78,17 @@ through `oshepherd`; no checkout `scripts` module is required by the operator.
    uv run --locked oshepherd supabase configure \
      --local-from .oshepherd/local/connection.json
    ```
+
+   Local configuration uses `supabase_admin` on the isolated port 55322. Its
+   `postgres` role cannot grant Storage schema usage. Earlier private connection
+   files using local `postgres` need their URL username changed privately to
+   `supabase_admin`; the local password stays the same. Hosted configuration
+   continues to use the selected project's `postgres`/pooler identity. Install
+   checks the Storage schema grant option before modifying migration history;
+   insufficient privileges return `oshepherd_database_privileges_required`.
+   Cleanup schedule reconciliation migrates the two exact owned local commands
+   from `postgres` to `supabase_admin`, avoiding duplicate timers. A conflicting
+   command fails before either role's job is removed; unrelated jobs remain.
 
 3. Select an existing, explicitly authorized Supabase Auth owner identity.
    In a fresh project, create that operator identity through the project's Auth
@@ -148,7 +178,9 @@ This uses the documented [FastAPI entrypoint and function configuration](https:/
 Set `gateway.env` values only in the selected project's Production server
 environment, outside the template directory. Update the private operator
 `gateway_url` after deployment and inspect its actual protection/access behavior.
-There is no public Deploy button or hosted qualification yet.
+There is no public Deploy button. The isolated hosted candidate is deployed;
+its actual checks and remaining qualification gates are in the
+[hosted report](hosted-qualification.md).
 
 ## Worker and inference
 
@@ -217,6 +249,6 @@ health and previews without initializing Redis or Celery.
 Remaining: clean-machine CLI onboarding, automated provider deployment/removal
 and ownership preflight, OAuth installer service/registered callback, real Free
 Supabase and Hobby Vercel limits/load/cost measurements, and the strict failing
-Supabase proxy disconnect gate. The [progress ledger](../progress.md) owns exact
+Supabase and Vercel proxy disconnect gates. The [progress ledger](../progress.md) owns exact
 commands, counts and current status. No cloud resource was provisioned by these
 local checks.

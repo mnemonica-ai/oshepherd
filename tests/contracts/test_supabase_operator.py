@@ -22,6 +22,7 @@ from oshepherd.backends.supabase.releases import (
     SCHEDULES,
     database_environment,
     export_bundle,
+    migration_path,
     release_assets,
 )
 
@@ -68,7 +69,7 @@ def test_bundle_contains_only_release_artifacts_and_refuses_existing_files(tmp_p
     bundle = tmp_path / "bundle"
     export_bundle(bundle)
     assert (bundle / "supabase/functions/ollama/index.ts").is_file()
-    assert len(list((bundle / "supabase/migrations").glob("*.sql"))) == 2
+    assert len(list((bundle / "supabase/migrations").glob("*.sql"))) == 7
     assert not (bundle / ".oshepherd").exists()
     assert not list(bundle.rglob("*.env"))
     with pytest.raises(OperatorError, match="bundle_directory_not_empty"):
@@ -102,6 +103,36 @@ def test_remote_database_binds_ref_and_enforces_tls():
     assert database_environment(pooled, ref)["PGUSER"] == "postgres." + ref
 
 
+def test_local_administrator_is_bound_to_the_isolated_stack():
+    local = "postgresql://supabase_admin:credential@127.0.0.1:55322/postgres"
+    assert database_environment(local, "local")["PGUSER"] == "supabase_admin"
+    with pytest.raises(OperatorError, match="database_target_mismatch"):
+        database_environment(local.replace("55322", "5432"), "local")
+
+
+def test_migrate_rejects_missing_storage_grant_option_before_mutations():
+    from pydantic import SecretStr
+
+    calls = []
+
+    def runner(command, **kwargs):
+        calls.append(kwargs["input"])
+        return SimpleNamespace(returncode=0, stdout="f\n")
+
+    database = Database(
+        SimpleNamespace(
+            project_ref="local",
+            database_url=SecretStr(
+                "postgresql://postgres:credential@127.0.0.1:55322/postgres"
+            ),
+        ),
+        runner=runner,
+    )
+    with pytest.raises(OperatorError, match="oshepherd_database_privileges_required"):
+        database.migrate()
+    assert len(calls) == 1 and calls[0].startswith("select ")
+
+
 def test_psql_errors_and_arguments_never_contain_credentials():
     from pydantic import SecretStr
 
@@ -127,6 +158,65 @@ def test_psql_errors_and_arguments_never_contain_credentials():
         database.execute("select 1;")
     assert "credential" not in str(error.value)
     assert all("credential" not in argument for argument in calls[0])
+
+
+@pytest.mark.parametrize(
+    "stderr, expected",
+    [
+        (
+            "ERROR: there is no unique constraint matching given keys\nCONTEXT: raise exception 'oshepherd_resource_collision';",
+            "migration_failed",
+        ),
+        (
+            "ERROR: oshepherd_schema_drift\nCONTEXT: raise exception 'oshepherd_resource_collision';",
+            "oshepherd_schema_drift",
+        ),
+        ("ERROR: private oshepherd_schema_drift details", "migration_failed"),
+    ],
+)
+def test_database_classifies_only_exact_primary_errors(stderr, expected):
+    from pydantic import SecretStr
+
+    database = Database(
+        SimpleNamespace(
+            project_ref="local",
+            database_url=SecretStr(
+                "postgresql://postgres:credential@127.0.0.1:55322/postgres"
+            ),
+        ),
+        runner=lambda *args, **kwargs: SimpleNamespace(returncode=1, stderr=stderr),
+    )
+    with pytest.raises(OperatorError) as error:
+        database.execute("select 1;")
+    assert str(error.value) == expected
+
+
+def test_migration_paths_preserve_legacy_history_and_reject_mixed_or_altered_records():
+    _, manifest = release_assets()
+    assert [item["version"] for item in migration_path(manifest, [])] == manifest[
+        "migration_paths"
+    ][0]
+    entries = {item["version"]: item for item in manifest["migrations"]}
+
+    def records(path):
+        return [
+            {"version": version, "sha256": entries[version]["content_sha256"]}
+            for version in path
+        ]
+
+    for path in manifest["migration_paths"]:
+        for count in range(1, len(path) + 1):
+            assert [
+                item["version"]
+                for item in migration_path(manifest, records(path[:count]))
+            ] == path
+    for invalid in (
+        records(["20261010000200"]),
+        records(["20261010000100", "20261011000100"]),
+        [{"version": "20261010000100", "sha256": "0" * 64}],
+    ):
+        with pytest.raises(OperatorError, match="oshepherd_migration_conflict"):
+            migration_path(manifest, invalid)
 
 
 def test_installation_lock_prevents_concurrent_journal_mutation(tmp_path):

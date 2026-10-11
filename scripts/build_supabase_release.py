@@ -62,6 +62,25 @@ def refresh():
             },
         },
         "migrations": entries,
+        # Fresh installs use the compatible consolidated baseline. Previously
+        # applied files retain their bytes and upgrade through the same tail.
+        "migration_paths": [
+            [
+                "20261011000100",
+                "20261011000200",
+                "20261011000300",
+                "20261011000400",
+                "20261011000500",
+            ],
+            [
+                "20261010000100",
+                "20261010000200",
+                "20261011000200",
+                "20261011000300",
+                "20261011000400",
+                "20261011000500",
+            ],
+        ],
         "artifacts": artifacts,
         "python_sources": {
             str(source.relative_to(ROOT / "oshepherd")): hashlib.sha256(

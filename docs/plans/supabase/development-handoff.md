@@ -14,8 +14,17 @@ coexists with the isolated spike without modifying its schema. A real local Edge
 Ollama lifecycle passed; [repeatable commands and the open disconnect
 gate](experiments/local-edge-lifecycle.md) are documented. The
 [operator lifecycle](experiments/operator-lifecycle.md) and Vercel template now
-pass local checks. Provider automation, OAuth installer and hosted qualification
-remain pending. Persistent local setup,
+pass local checks. An explicitly approved isolated Free project now passes
+hosted Edge inference, route fixtures, exact NDJSON and private async downloads;
+the [hosted report](experiments/hosted-qualification.md) records the compatible
+baseline/upgrade paths and the still-failing hosted disconnect assertion.
+Provider automation, OAuth installer and full hosted qualification remain
+pending. Vercel Production configuration was explicitly approved and uploaded
+only to the isolated Hobby test project. Both deployed gateways return genuine
+Ollama inference and pass route/stream/private-download probes; both strict
+reader-disconnect assertions fail. Their measured synchronous deadline is 135
+seconds. Full qualification remains open in the hosted report.
+Persistent local setup,
 supervision, doctor and JSON/NDJSON request commands are available in that runbook;
 the optional FastAPI backend now passes real local routes and socket cancellation.
 Durable Storage cleanup, orphan reconciliation, an independent operator runner

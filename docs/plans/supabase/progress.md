@@ -1,6 +1,6 @@
 # Supabase implementation progress
 
-Updated October 10, 2026. The objective is to finish the implementation so
+Updated October 11, 2026. The objective is to finish the implementation so
 an Ollama client can send a request to an Edge Function and receive inference
 from a local Ollama model. This ledger records authoritative artifacts and
 verification; an implementation checkbox does not imply hosted validation.
@@ -8,11 +8,32 @@ verification; an implementation checkbox does not imply hosted validation.
 The local testing milestone is achieved: a real Edge Function request reaches
 the external worker and returns genuine Ollama inference. The complete handoff
 is still unfinished; production qualification, hosted/load verification and the
-Edge proxy disconnect gate remain open below. New Python work uses uv by default;
+hosted proxy disconnect gates remain open below. New Python work uses uv by default;
 older verification-log commands retain their original invocation.
 
 ## Completed
 
+- [x] Create the explicitly approved isolated Supabase organization/project with
+  the default Free plan, install on PostgreSQL 17.11, deploy Edge, enroll/login
+  an actual CLI worker, and return genuine local Ollama inference. Hosted route
+  fixtures, exact NDJSON, async replay and a 1.2 MB private download pass. The
+  strict hosted Edge disconnect check fails and remains a release blocker.
+  See [hosted qualification](experiments/hosted-qualification.md).
+- [x] Deploy the approved isolated Vercel Hobby candidate with eight encrypted,
+  Production-only variables. Real Ollama inference, route fixtures, exact NDJSON
+  and a signed 4.2 MB private download pass. Both providers enforce the 135-second
+  synchronous budget, while async completions survive beyond 400 seconds.
+  Vercel's strict reader-disconnect check also fails; both profiles remain unqualified.
+- [x] Fix the hosted Storage compatibility and masked PostgreSQL error findings.
+  Preserve applied migration bytes, select a compatible fresh baseline or the
+  legacy upgrade path from the manifest, retain authoritative object checks,
+  detect trigger/permission drift, and require Storage schema grant options.
+  Local configure uses the isolated administrator role. Add a repeatable hosted
+  qualification probe with an unsuccessful exit for failed cancellation.
+- [x] Reproduce the versioned Storage commit race with a real two-session test,
+  then fence non-key archive/metadata updates with an additive `FOR SHARE` lock
+  migration. Apply it to both isolated hosted installations and preserve earlier
+  migration bytes.
 - [x] Add independent versioned release-candidate migrations, server-only
   operator RPCs, protected install/enrollment/doctor/upgrade/rotation/disable CLI,
   migration history and catalog drift checks. Verify replay, lost responses,
@@ -95,8 +116,9 @@ older verification-log commands retain their original invocation.
 - [x] Add worker backend selection (Redis default), private enrollment-file login
   and startup/refresh composition without importing Celery or Redis.
 - [x] Add private Storage policies for current attempts, immutable uploads,
-  verified upload recovery and authoritative missing-object rejection through a
-  Storage foreign key. The runtime owner has no Storage table read grant.
+  verified upload recovery and authoritative missing-object rejection. The
+  original local spike uses a Storage foreign key without runtime reads; the
+  versioned candidate now uses the compatible commit trigger and scoped reads.
 - [x] Verify real Edge large-result behavior: job succeeds, JSON retrieval
   returns 413, authorized signed download returns exact bytes/checksum, and
   another application key receives 404. Async jobs store private result objects.
@@ -138,17 +160,17 @@ older verification-log commands retain their original invocation.
 | Shared executor and backend-specific startup/configuration | Executor/config/RPC/Auth and API/worker CLI selection implemented | Redis characterization remains passing; full error matrix pending |
 | Isolated local Supabase configuration and pinned toolchain | Local stack/Auth/Edge running | Real model lifecycle passed; disconnect/hosted limits open |
 | Database schema, RPC grants/RLS, capacity, leases and fencing | Spike plus independent versioned candidate migrations implemented | Local history/drift, identity, quota, races, replay/fencing passed; hosted and full adversarial matrix pending |
-| Worker enrollment/session storage and refresh | Auth/storage/membership/login and operator enrollment implemented | Real Auth exchange/refresh, revocation and ambiguous enrollment recovery passed; hosted flow pending |
+| Worker enrollment/session storage and refresh | Auth/storage/membership/login and operator enrollment implemented | Local recovery/refresh passed; actual hosted enrollment and CLI login passed; hosted refresh/long soak pending |
 | External local Ollama worker and independent heartbeat | Implemented with separate bounded metadata pool | Fake/real model, deterministic restart/fencing, saturation and refresh passed; drain/extended soak pending |
-| All nine Edge routes and application-key authentication | Implemented | Local routes passed; full error/metadata matrix and hosted runs pending |
-| Durable streaming, cancellation and output limits | Implemented in SQL/worker/gateway | Exact bytes/incomplete EOF, FastAPI socket cancellation and controlled ASGI stall passed; **local Edge proxy disconnect fails**; hosted slow-reader/load pending |
+| All nine Edge routes and application-key authentication | Implemented | Local and hosted route fixtures/auth/metadata passed; full adversarial matrix pending |
+| Durable streaming, cancellation and output limits | Implemented in SQL/worker/gateway | Exact bytes, local FastAPI cancellation and controlled ASGI stall passed; **local Edge and both hosted reader-disconnect checks fail**; hosted slow-reader/load pending |
 | Async jobs, expiry, cancellation and authorized results/downloads | Inline/private-object paths implemented | Edge/FastAPI async and downloads passed; full expiry/adversarial matrix pending |
 | Private Storage results and cleanup/reconciliation | Upload/sign/read, deletion outbox, orphan reconciliation, operator runner and private Cron sweeps implemented | Local authorization, recovery, purge, Cron and operator schedule reconciliation passed; hosted/load pending |
-| Optional FastAPI backend and Vercel template | Backend-aware API, Vercel ASGI factory and wheel-backed candidate template implemented | Local routes/disconnect and clean-cache template install/import passed; deployed limits pending |
+| Optional FastAPI backend and Vercel template | Backend-aware API, Vercel ASGI factory and wheel-backed candidate template deployed on Hobby | Hosted real model/routes/download and 135-second application limit passed; hosted disconnect fails; platform ceiling and load pending |
 | CLI bootstrap/doctor and operator administration | Protected candidate configure/install/enroll/doctor/upgrade/rotate/revoke/disable implemented | Six local lifecycle/recovery cases passed; hosted deployment and physical uninstall pending |
 | Installation manifest, OAuth installer and provider adapters | Hash-verified packaged manifest and explicit schema-exposure adapter implemented | Local resumability/ownership/upgrade passed; OAuth and provider automation pending |
 | Runbook and automated Edge → worker → response harness | Local and [operator runbooks](experiments/operator-lifecycle.md), disposable two-schema harness available | Real inference passed in both schemas; complete hosted clean-machine setup pending |
-| Hosted limits, load/cost, lifecycle and installation | Vercel CLI authenticated; Hobby team verified through API; isolated empty project created and candidate bundle linked | No function deployed or inference tested; Supabase Free-plan confirmation remains required; broader measurements pending |
+| Hosted limits, load/cost, lifecycle and installation | Isolated Supabase project deployed on default Free plan; Vercel Hobby verified and approved Production configuration deployed | Both real inference/routes/download pass; sync deadlines and async jobs beyond 400 seconds measured; both disconnect checks fail; broader measurements pending |
 
 ## Current decisions and remaining dependencies
 
@@ -162,11 +184,15 @@ administrator-generated, single-use Auth token followed by the worker's direct
 Auth verification. This passed against local Auth with public signup disabled.
 No worker receives a project administrator credential.
 
-Free-tier-only hosted testing is authorized. Hosted verification still requires
-selected isolated Free/Hobby targets and usable provider authentication. No paid
-upgrade or deployment to an unspecified project is authorized. Local work
-continues independently. Real model/GPU access will be checked without reading
-secret environment files or downloading models implicitly.
+Free-tier-only hosted testing is authorized, and isolated targets/authentication
+are selected. The new Supabase organization/project used the documented default
+Free plan, without paid flags or upgrade. Vercel Hobby was independently verified
+through its team API. Automatic approval review initially rejected uploading the
+isolated Supabase server secret to Vercel Production because that payload and
+destination needed explicit approval. The user supplied that approval, and
+eight variables were verified encrypted and Production-only in the exact Hobby
+test project. No database password or worker session was uploaded. Real Ollama
+uses the existing installed model.
 
 Local Edge Runtime `v1.74.3` did not propagate an HTTP reader disconnect to SQL
 cancellation: the job succeeded. The strict regression test remains failing.
@@ -179,7 +205,9 @@ runtime/proxy abort propagation and a supported response lifecycle hook with
 this test; do not replace it with direct Deno or FastAPI evidence. If the runtime
 cannot supply a disconnect signal, establish a supported deployment/protocol
 decision before claiming the gate is closed. The existing strict assertion stays
-in place; no hosted deployment has been run.
+in place. October 11 hosted deployments reproduce the failure on both Edge and
+Vercel Python. The hosted report records these measurements and Vercel's
+Node.js-only documented cancellation opt-in.
 
 The October 7 review run also observed a 503 at initial async admission in
 `test_real_edge_large_success_requires_authorized_download`; its focused rerun
@@ -261,6 +289,24 @@ for both gateway implementations, including the Vercel profile.
 | October 10, 2026 | `uv build`, wheel asset inspection and empty-cache Vercel export/install/import | Passed; exact runtime pins retained; private state/tests/services excluded; unauthenticated health denied |
 | October 10, 2026 | Hosted preparation after Vercel login | Official API confirms Hobby; isolated empty project created, inspected and linked. Supabase project inventory unchanged; no hosted function deployed |
 | October 10, 2026 | Vercel upload policy and release contracts | 13 passed; explicit environment-variant exclusion added, FastAPI preset selected; provider defaults also exclude `.env.local` |
+| October 11, 2026 | New isolated default-Free Supabase organization/project and TLS session-pooler connection | Created only the explicitly approved targets; PostgreSQL 17.11; existing project untouched; actual API exposure preserved |
+| October 11, 2026 | Fresh hosted operator install/upgrade/doctor, Edge deploy, enrollment and actual CLI login | Passed; matching schema; server/worker keys separated; private journals/session retained |
+| October 11, 2026 | Hosted Edge → actual CLI worker → local Ollama 0.40.2 | Passed; `llama3.2:3b`, genuine done, three generated tokens, 579 bytes in 4.72 seconds |
+| October 11, 2026 | Hosted Edge deterministic route/stream/async/Storage probe | Route fixtures and exact NDJSON passed; replay reuses job ID; signed 1,200,347-byte download size/SHA-256 verified |
+| October 11, 2026 | Strict hosted early-record/disconnect probe | Early nonterminal record in 0.84 seconds; **cancellation failed**, SQL `succeeded` after reader closed |
+| October 11, 2026 | `uv run --locked pytest -q tests/contracts tests/test_systemone.py tests/integration/supabase/test_operator.py tests/integration/supabase/test_storage.py --tb=short` | 312 passed in 41.92 seconds; fresh/legacy history guards, masked error, grant preflight, trigger/RLS/permission drift and Storage commit covered |
+| October 11, 2026 | Final same contract/operator/Storage selection with schedule-role reconciliation | 313 passed in 42.35 seconds; duplicate owned local timers removed, collisions rejected, unrelated jobs preserved |
+| October 11, 2026 | Checked-in `scripts.supabase_hosted_check` against isolated Edge | Routes/NDJSON/private download pass again; first nonterminal record in 1.01 seconds; strict SQL cancellation assertion exits unsuccessfully with `succeeded` |
+| October 11, 2026 | Hosted bounded Cron history and cross-cluster application-key probe | Twenty latest cleanup runs succeeded; other cluster's valid application key denied |
+| October 11, 2026 | Final `uv build` and credential-free Vercel export | Verified wheel/bundle regenerated; separate SQL cluster and enrollment configured locally; no secret upload or Vercel deployment |
+| October 11, 2026 | Approved Vercel Production configuration and actual deployment | Eight encrypted Production-only variables verified; deployment ready; API confirms FastAPI and configured 150-second invocation budget; no database password/session uploaded |
+| October 11, 2026 | Hosted Vercel actual CLI worker and local Ollama | Genuine completion, two generated tokens, 576 bytes in 5.56 seconds |
+| October 11, 2026 | Checked-in strict hosted probe against Vercel | Routes, exact NDJSON, metadata/auth and signed 4,200,347-byte download pass; first nonterminal record in 2.22 seconds; SQL cancellation **fails**, state `succeeded` |
+| October 11, 2026 | Combined contracts/SystemOne/local integration after API-exposure repair | 370 passed, one failed, two opt-in model cases deselected in 109.58 seconds; only known strict local Edge disconnect fails |
+| October 11, 2026 | Real hosted lifetime probes with concurrent enrolled workers | Edge/Vercel sync return 504 `execution_expired` at 135.23/135.63 seconds; async succeed with genuine fixture completion at 409.14/410.81 seconds |
+| October 11, 2026 | Real two-session Storage commit-lock regression before fix | Production case fails: non-key metadata update succeeds while trigger transaction holds only key-share; spike case passes |
+| October 11, 2026 | Additive `20261011000500` upgrade and final combined suite | Hosted upgrades succeed; both clusters have zero active jobs; 370 passed, one known strict Edge disconnect failed, two model cases deselected in 112.62 seconds; concurrency regression passes |
+| October 11, 2026 | Final wheel/locked Vercel export and post-upgrade hosted probes | Seven immutable SQL artifacts verified; both hosted routes/NDJSON/auth/downloads pass again; early records at 0.55/1.81 seconds; both strict disconnect assertions fail with `succeeded` |
 
 ## Handoff discipline
 

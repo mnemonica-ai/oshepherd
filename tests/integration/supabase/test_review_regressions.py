@@ -172,7 +172,9 @@ def test_claim_receipts_do_not_retain_payload_after_purge(local_connection, mode
     asyncio.run(run())
 
 
-def test_upgrade_scrubs_existing_claim_receipts_and_preserves_replay(local_connection):
+def test_upgrade_scrubs_existing_claim_receipts_and_preserves_replay(
+    local_connection, production_schema
+):
     async def run():
         async with queue_harness(local_connection, workers=1) as h:
             worker = h.workers[0]
@@ -206,6 +208,11 @@ def test_upgrade_scrubs_existing_claim_receipts_and_preserves_replay(local_conne
             assert (
                 upgrade.returncode == 0
             ), "Isolated spike upgrade failed; inspect its protected log"
+            exposure = scoped_sql(
+                h.cluster,
+                "select setting from pg_catalog.pg_db_role_setting s cross join lateral unnest(s.setconfig) setting where setrole=(select oid from pg_roles where rolname='authenticator') and setting like 'pgrst.db_schemas=%';",
+            )
+            assert "oshepherd_api" in exposure and "oshepherd_spike_api" in exposure
             assert (
                 scalar(
                     h,

@@ -16,6 +16,19 @@ class OperatorError(RuntimeError):
     """Credential-free error codes, safe for a CLI diagnostic."""
 
 
+def migration_path(manifest, installed):
+    """Accept only a prefix of an explicitly supported, immutable history."""
+    entries = {entry["version"]: entry for entry in manifest["migrations"]}
+    for path in manifest["migration_paths"]:
+        expected = [
+            {"version": version, "sha256": entries[version]["content_sha256"]}
+            for version in path
+        ]
+        if installed == expected[: len(installed)]:
+            return [entries[version] for version in path]
+    raise OperatorError("oshepherd_migration_conflict")
+
+
 SCHEDULES = {
     "oshepherd-reap-v1": (
         "10 seconds",
@@ -70,7 +83,7 @@ def database_environment(database_url, project_ref):
         if (
             parsed.hostname != "127.0.0.1"
             or parsed.port != 55322
-            or username != "postgres"
+            or username not in ("postgres", "supabase_admin")
             or parsed.path != "/postgres"
         ):
             raise OperatorError("database_target_mismatch")
@@ -109,6 +122,9 @@ class Database:
             config.database_url.get_secret_value(), config.project_ref
         )
         self.runner = runner
+        self.local_role_upgrade = (
+            config.project_ref == "local" and self.env["PGUSER"] == "supabase_admin"
+        )
         self.exposed_schemas = getattr(config, "exposed_schemas", None)
         if config.project_ref != "local" and self.exposed_schemas is None:
             raise OperatorError("existing_exposed_schemas_required")
@@ -117,7 +133,7 @@ class Database:
         # Neither credentials nor raw SQL/psql output appear in exceptions/logs.
         try:
             result = self.runner(
-                ["psql", "-X", "-At", "-v", "ON_ERROR_STOP=1"],
+                ["psql", "-X", "-At", "-v", "ON_ERROR_STOP=1", "-v", "VERBOSITY=terse"],
                 input=sql,
                 text=True,
                 capture_output=True,
@@ -135,18 +151,43 @@ class Database:
                 "oshepherd_bucket_mismatch",
                 "oshepherd_exposed_schema_missing",
             )
-            code = next(
-                (code for code in known if code in result.stderr), "migration_failed"
+            # CONTEXT can contain the whole migration, including unrelated
+            # exception literals. Only classify an exact primary ERROR message.
+            primary = re.search(r"^.*?ERROR:\s*(.*?)\s*$", result.stderr, re.MULTILINE)
+            code = (
+                primary.group(1)
+                if primary and primary.group(1) in known
+                else "migration_failed"
             )
             raise OperatorError(code)
         return result.stdout.strip()
 
     def migrate(self):
         root, manifest = release_assets()
-        versions = ",".join(
-            "'" + entry["version"] + "'" for entry in manifest["migrations"]
-        )
-        for entry in manifest["migrations"]:
+        # GRANT can succeed with only a warning when the caller lacks grant
+        # options. Reject that role before recording a partially effective setup.
+        if (
+            self.execute(
+                "select pg_catalog.has_schema_privilege(current_user,'storage','USAGE WITH GRANT OPTION');"
+            )
+            != "t"
+        ):
+            raise OperatorError("oshepherd_database_privileges_required")
+        installed = []
+        if (
+            self.execute(
+                "select pg_catalog.to_regclass('oshepherd.release_migrations') is not null;"
+            )
+            == "t"
+        ):
+            installed = json.loads(
+                self.execute(
+                    "select coalesce(json_agg(json_build_object('version',version,'sha256',sha256) order by version),'[]'::json) from oshepherd.release_migrations;"
+                )
+            )
+        selected = migration_path(manifest, installed)
+        versions = ",".join("'" + entry["version"] + "'" for entry in selected)
+        for entry in selected:
             version, digest = entry["version"], entry["content_sha256"]
             sql = root.joinpath(entry["path"]).read_text()
             name = Path(entry["path"]).stem.split("_", 1)[1]
@@ -192,7 +233,7 @@ commit;""")
             for name in self.exposed_schemas or []
         ):
             raise OperatorError("invalid_exposed_schemas")
-        return f"""do $exposed$ declare global_cfg text; database_cfg text; merged text; schema_name text; begin
+        return f"""do $exposed$ declare global_cfg text; database_cfg text; merged text; schema_name text; changed boolean:=false; begin
  select pg_catalog.substr(setting,18) into global_cfg from pg_catalog.pg_db_role_setting s
   cross join lateral pg_catalog.unnest(s.setconfig) setting
   where s.setrole=(select oid from pg_catalog.pg_roles where rolname='authenticator') and s.setdatabase=0 and setting like 'pgrst.db_schemas=%';
@@ -209,13 +250,20 @@ commit;""")
   if schema_name<>'oshepherd_api' and not exists(select 1 from pg_catalog.pg_namespace where nspname=schema_name) then
    raise exception 'oshepherd_exposed_schema_missing'; end if;
  end loop;
- execute pg_catalog.format('alter role authenticator set pgrst.db_schemas=%L',merged);
- if database_cfg is not null then execute pg_catalog.format('alter role authenticator in database %I set pgrst.db_schemas=%L',pg_catalog.current_database(),merged); end if;
-end $exposed$;
-notify pgrst,'reload config'; notify pgrst,'reload schema';"""
+ if global_cfg is distinct from merged then
+  execute pg_catalog.format('alter role authenticator set pgrst.db_schemas=%L',merged); changed:=true; end if;
+ if database_cfg is not null and database_cfg is distinct from merged then
+  execute pg_catalog.format('alter role authenticator in database %I set pgrst.db_schemas=%L',pg_catalog.current_database(),merged); changed:=true; end if;
+ if changed then perform pg_catalog.pg_notify('pgrst','reload config'); perform pg_catalog.pg_notify('pgrst','reload schema'); end if;
+end $exposed$;"""
 
     def schedules(self, *, remove=False):
         commands = SCHEDULES
+        owners = (
+            "username in(current_user,'postgres')"
+            if self.local_role_upgrade
+            else "username=current_user"
+        )
         statements = [
             "begin; select pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended('oshepherd_schedules_v1',0));"
         ]
@@ -224,10 +272,14 @@ notify pgrst,'reload config'; notify pgrst,'reload schema';"""
         for name, (interval, command) in commands.items():
             quoted = "'" + command.replace("'", "''") + "'"
             statements.append(
-                f"do $$ begin if exists(select 1 from cron.job where jobname='{name}' and username=current_user and command<>{quoted}) then raise exception 'oshepherd_schedule_collision'; end if; end $$;"
+                f"do $$ begin if exists(select 1 from cron.job where jobname='{name}' and {owners} and command<>{quoted}) then raise exception 'oshepherd_schedule_collision'; end if; end $$;"
             )
+            if self.local_role_upgrade and not remove:
+                statements.append(
+                    f"select cron.unschedule(jobid) from cron.job where jobname='{name}' and username='postgres' and command={quoted};"
+                )
             statements.append(
-                f"select cron.unschedule(jobid) from cron.job where jobname='{name}' and username=current_user;"
+                f"select cron.unschedule(jobid) from cron.job where jobname='{name}' and {owners};"
                 if remove
                 else f"select cron.schedule('{name}','{interval}',{quoted});"
             )

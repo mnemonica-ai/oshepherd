@@ -41,7 +41,7 @@ def configure(output, local_from):
                 "supabase_url": local["API_URL"],
                 "publishable_key": local["PUBLISHABLE_KEY"],
                 "secret_key": local["SECRET_KEY"],
-                "database_url": "postgresql://postgres:postgres@127.0.0.1:55322/postgres",
+                "database_url": "postgresql://supabase_admin:postgres@127.0.0.1:55322/postgres",
                 "profile": "edge_free",
             }
         else:

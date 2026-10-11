@@ -1,0 +1,134 @@
+# Hosted candidate qualification
+
+Updated October 11, 2026. Hosted Edge and Vercel inference work, but both profiles
+remain experimental because their strict reader-disconnect checks fail. This report
+records actual provider behavior; local or mocked evidence does not close that
+gate.
+
+## Isolated targets and setup
+
+The explicitly approved new Supabase organization/project were created without
+an upgrade, paid size or add-on. The project is in São Paulo and runs PostgreSQL
+17.11. Its plan basis is Supabase's documented default Free plan for a new
+organization; the CLI does not expose an independent billing-plan field. The
+previous organization/project were left untouched. The selected Vercel team
+was verified as Hobby through the official team API; its separate test project
+is linked locally. Credentials, target IDs and operator journals stay in owned,
+ignored private files.
+
+The Supabase CLI is 2.116.0. The hosted database uses a session pooler over TLS;
+Auth/RPC calls use modern publishable/server keys. Read-only namespace/API
+probes confirmed existing exposure, and installation preserved `public` as the
+default and retained `graphql_public`. An explicit synthetic test owner was
+bound before application-key creation. Actual operator enrollment and
+`supabase-worker-login` saved a protected worker session.
+
+Supabase documents the [new organization Free-plan default](https://supabase.com/docs/guides/troubleshooting/keeping-free-projects-after-pro-upgrade-Kf9Xm2)
+and recommends treating the [Storage schema as read-only](https://supabase.com/docs/guides/storage/schema/design).
+
+## Compatibility findings and fixes
+
+The first hosted migration rolled back: versioned Storage no longer provides a
+unique bucket/path constraint. Its SQL error was initially misclassified as a
+resource collision because the exception classifier searched the full SQL
+context. The runner now uses terse PostgreSQL diagnostics and matches only an
+exact primary error. Regression tests cover misleading exception text in context.
+
+The original applied migrations remain unchanged. A new consolidated baseline
+supports fresh installs, while additive migrations upgrade the old history.
+Both paths use an Oshepherd-owned commit trigger to verify a current object
+exists, reject archived/delete-marker rows, and lock its metadata through commit.
+Worker upload/overwrite restrictions remain enforced by RLS. New fingerprint
+migrations cover trigger enablement and runtime Storage grants, including
+revoked schema usage without a name-resolution failure. No provider table or
+unique index was added or altered.
+
+Final review reproduced a second Storage race: a key-share lock allowed a
+non-key metadata update while the commit trigger's transaction remained open.
+Versioned Storage can archive objects through such updates. Additive migration
+`20261011000500` changes the lock to `FOR SHARE`. The real two-session regression
+first fails against key-share, then verifies a non-key update times out while
+the trigger transaction is held and succeeds after rollback. Already-applied
+migration bytes are preserved.
+
+Local testing also exposed PostgreSQL's warning-only ineffective `GRANT` when
+the local `postgres` role lacks schema grant options. Configure now selects
+`supabase_admin` only on the isolated local target, and install checks grant
+options before mutation. The single missed grant in the earlier development
+attempt was explicitly reconciled locally before upgrading. Hosted installation
+uses its original `postgres` identity.
+The local role transition also reconciles only exact owned cleanup commands;
+its regression verifies conflicting commands and unrelated jobs survive.
+The broader local run also saw a bootstrap failure in the new Storage case;
+its isolated rerun passed. A captured response identified `PGRST106`: the legacy
+receipt-upgrade test reapplied spike exposure and removed the production API.
+The mutable spike exposure script now preserves both installed schemas, and
+the actual upgrade regression verifies that preservation. Logs also recorded 152 schema-cache reloads
+over the preceding ten minutes. Migration replay had rewritten unchanged API
+role settings and notified PostgREST for every file. Exposure reconciliation now
+updates and notifies only when the setting changes; a real catalog-version
+regression verifies replay leaves the unchanged role setting intact.
+
+## Actual results
+
+| Check | Observed result |
+| --- | --- |
+| Fresh hosted install, subsequent upgrade, schema doctor | Passed; configured installation, matching fingerprint |
+| Hosted Edge deployment and opaque application-key auth | Passed; unauthenticated health returns 401 |
+| Actual enrolled CLI worker and local Ollama 0.40.2 | Passed; `llama3.2:3b` returned genuine completion, three generated tokens, 579 response bytes, 4.72 seconds |
+| Generate/chat/embed/SystemOne fixtures and metadata routes | Passed through real hosted Edge, SQL/Auth and loopback fake upstream |
+| Streaming byte compatibility | Generate and chat match the committed NDJSON fixtures exactly |
+| Async idempotency and private Storage download | Passed; same job ID on replay; 1,200,347 bytes, signed download size and SHA-256 verified |
+| Hosted early-record delivery | First nonterminal record received in 0.84 seconds; checked-in probe repeated at 1.01 seconds, before completion |
+| Strict HTTP reader disconnect → SQL cancellation | **Failed**; SQL state became `succeeded`, not `cancelled` |
+| Actual hosted cleanup and cluster isolation | Twenty latest Cron runs succeeded; a valid key from the separate test cluster was denied |
+| Service-free contracts plus local operator/Storage regression selection | 313 passed in 42.35 seconds; one upstream TestClient deprecation warning |
+| Vercel Production deployment | Eight encrypted Production-only variables explicitly approved/uploaded; deployment ready; official deployment API resolves FastAPI and a configured 150-second invocation budget |
+| Vercel real enrolled worker and Ollama | Passed; genuine completion, two generated tokens, 576 bytes, 5.56 seconds |
+| Vercel routes, exact NDJSON, metadata and application auth | Passed through actual hosted HTTP/SQL/Auth; unauthenticated health returns 401 |
+| Vercel async replay and oversized private download | Passed; same job ID on replay; 4,200,347 bytes downloaded with size/SHA-256 verified; direct inline retrieval returns 413 |
+| Vercel early-record/disconnect | First nonterminal record in 2.22 seconds; **SQL cancellation failed**, state `succeeded` after reader closed |
+| Hosted synchronous deadline | Edge returns 504 `execution_expired` in 135.23 seconds; Vercel in 135.63 seconds. This measures the application/SQL limit, not the provider's full invocation ceiling |
+| Async lifetime beyond a gateway invocation | Edge and Vercel jobs succeed at 409.14 and 410.81 seconds respectively; fixture completion retrieved through actual hosted status/result routes |
+| Final combined contracts and local integration suite after lock fix | 370 passed, one failed, two opt-in real-model cases deselected in 112.62 seconds; only the known strict local Edge disconnect failed |
+| Both hosted probes repeated after final lock upgrade | Routes, exact NDJSON, auth and private downloads pass again; first nonterminal records at 0.55/1.81 seconds; both strict cancellation checks still fail with `succeeded` |
+| Extended soak, hosted saturation/backpressure, clean-machine OAuth installer | Not run |
+
+The test worker and loopback upstream are stopped after each probe. The cloud
+test project, private journals and generated test data remain available for
+review. Neither a configured stage nor successful inference marks the full
+hosting profile qualified.
+
+## Reproduce the strict hosted probe
+
+Use a dedicated isolated installation, enroll a worker with capacity two, and
+exchange its one-use challenge as described in the [operator runbook](operator-lifecycle.md).
+Stop other workers for that installation: this probe temporarily publishes fake
+model inventory and creates bounded test jobs, including a 1.2 MB Edge result or
+a 4.2 MB Vercel result. The
+checkout development environment supplies the shared deterministic fixtures.
+
+```sh
+uv sync --locked --extra supabase
+uv run --locked python -m scripts.supabase_hosted_check \
+  --connection-file <private-operator-connection.json> \
+  --state-dir <private-operator-state-directory> \
+  --worker-session <private-enrolled-worker-session.json> \
+  --report-file <private-report.json>
+```
+
+The probe binds its fake upstream to loopback port 55324 and uses the real
+provider gateway. It emits booleans, sizes and timings, never prompt/output or
+credentials. Its final disconnect assertion exits unsuccessfully when SQL does
+not cancel; the failure must not be skipped, weakened or replaced with FastAPI
+evidence. For real-model inference, run the normal enrolled CLI worker and use
+`supabase verify-inference --model llama3.2:3b` with the same private connection
+and state directory.
+
+The [Vercel cancellation API](https://vercel.com/docs/functions/functions-api-reference#cancel-requests)
+currently documents its `supportsCancellation` opt-in for Node.js only. It does
+not establish Python ASGI disconnect delivery. The production template therefore
+does not claim this setting fixes the measured Python failure. Local ASGI
+cancellation passing is separate evidence. Both provider gates require a
+supported transport/deployment decision and another strict hosted measurement;
+the assertion and `qualified: false` remain intact.

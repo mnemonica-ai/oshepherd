@@ -10,7 +10,7 @@ import pytest
 
 from oshepherd.backends.supabase.client import RpcClient, RpcError
 from oshepherd.backends.supabase.operator import Installation, Operator, OperatorConfig
-from oshepherd.backends.supabase.releases import Database, OperatorError
+from oshepherd.backends.supabase.releases import Database, OperatorError, SCHEDULES
 from oshepherd.backends.supabase.sessions import WorkerAuth
 from oshepherd.backends.supabase.startup import read_enrollment
 from .test_identity import cleanup_cluster
@@ -23,7 +23,7 @@ async def operator_fixture(connection, directory):
         supabase_url=connection["API_URL"],
         publishable_key=connection["PUBLISHABLE_KEY"],
         secret_key=connection["SECRET_KEY"],
-        database_url="postgresql://postgres:postgres@127.0.0.1:55322/postgres",
+        database_url="postgresql://supabase_admin:postgres@127.0.0.1:55322/postgres",
     )
     async with httpx.AsyncClient(timeout=10) as client:
         operator = Operator(config, directory, client=client)
@@ -297,8 +297,100 @@ def test_lost_bootstrap_and_auth_acknowledgements_reconcile_one_identity(
     asyncio.run(run())
 
 
+def test_current_migration_replay_preserves_role_setting_catalog_version(
+    production_schema,
+):
+    from pydantic import SecretStr
+    from types import SimpleNamespace
+
+    db = Database(
+        SimpleNamespace(
+            project_ref="local",
+            database_url=SecretStr(
+                "postgresql://supabase_admin:postgres@127.0.0.1:55322/postgres"
+            ),
+        )
+    )
+    sql = "select xmin::text from pg_catalog.pg_db_role_setting where setrole=(select oid from pg_roles where rolname='authenticator') and setdatabase=0;"
+    before = db.execute(sql)
+    assert before
+    db.migrate()
+    db.migrate()
+    assert db.execute(sql) == before
+
+
+def test_local_schedule_role_upgrade_rejects_collision_and_preserves_unrelated_jobs(
+    local_connection,
+):
+    from pydantic import SecretStr
+    from types import SimpleNamespace
+
+    def database(role):
+        return Database(
+            SimpleNamespace(
+                project_ref="local",
+                database_url=SecretStr(
+                    f"postgresql://{role}:postgres@127.0.0.1:55322/postgres"
+                ),
+            )
+        )
+
+    old, new = database("postgres"), database("supabase_admin")
+    unrelated = "operator-test-" + str(uuid4())
+    old.execute(f"select cron.schedule('{unrelated}','* * * * *','select 1;');")
+    name = "oshepherd-reap-v1"
+    interval, command = SCHEDULES[name]
+    quoted = "'" + command.replace("'", "''") + "'"
+    try:
+        old.execute(f"select cron.schedule('{name}','{interval}','select 1;');")
+        with pytest.raises(OperatorError, match="oshepherd_schedule_collision"):
+            new.schedules()
+        assert (
+            old.execute(
+                f"select command from cron.job where jobname='{name}' and username='postgres';"
+            )
+            == "select 1;"
+        )
+        old.execute(f"select cron.schedule('{name}','{interval}',{quoted});")
+        new.schedules()
+        new.schedules()
+        assert (
+            new.execute(
+                "select count(*) from cron.job where jobname in('oshepherd-reap-v1','oshepherd-purge-v1');"
+            )
+            == "2"
+        )
+        assert (
+            new.execute(
+                "select count(*) from cron.job where jobname in('oshepherd-reap-v1','oshepherd-purge-v1') and username='supabase_admin';"
+            )
+            == "2"
+        )
+        assert (
+            old.execute(
+                f"select count(*) from cron.job where jobname='{unrelated}' and username='postgres';"
+            )
+            == "1"
+        )
+    finally:
+        old.execute(
+            f"select cron.unschedule(jobid) from cron.job where jobname='{unrelated}' and username='postgres';"
+        )
+        # Restore only the owned old command if an assertion interrupted repair.
+        old.execute(f"select cron.schedule('{name}','{interval}',{quoted});")
+        new.schedules()
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    [
+        "alter table oshepherd.jobs disable row level security;",
+        "alter table oshepherd.result_objects disable trigger verify_result_object;",
+        "revoke usage on schema storage from oshepherd_runtime;",
+    ],
+)
 def test_schema_drift_rejected_without_committing_or_losing_exposed_schemas(
-    local_connection, tmp_path
+    local_connection, tmp_path, mutation
 ):
     async def run():
         async with operator_fixture(local_connection, tmp_path / "private") as (
@@ -312,8 +404,12 @@ def test_schema_drift_rejected_without_committing_or_losing_exposed_schemas(
 
             def injected(*args, **kwargs):
                 sql = kwargs["input"]
+                if not sql.startswith("begin;"):
+                    return original(*args, **kwargs)
                 kwargs["input"] = (
-                    "begin; alter table oshepherd.jobs disable row level security;\n"
+                    "begin; "
+                    + mutation
+                    + "\n"
                     + sql.removeprefix("begin;").removesuffix("commit;")
                     + "rollback;"
                 )
