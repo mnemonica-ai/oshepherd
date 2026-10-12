@@ -252,3 +252,261 @@ def export_vercel(output, wheel):
             str(error) if isinstance(error, OperatorError) else "Vercel export failed"
         ) from None
     click.echo(json.dumps(result, indent=2))
+
+
+@supabase.command("installer-init")
+@click.option(
+    "--output",
+    type=click.Path(path_type=Path),
+    default=Path(".oshepherd/installer-config.json"),
+)
+@click.option(
+    "--state-dir", type=click.Path(path_type=Path), default=Path(".oshepherd/installer")
+)
+def installer_init(output, state_dir):
+    """Configure the separate installer with hidden secret prompts; no overwrite."""
+    from .private_files import write_private_json
+
+    if output.exists():
+        raise click.ClickException("Installer configuration already exists")
+    try:
+        from cryptography.fernet import Fernet
+        from .installer import InstallerConfig
+
+        ref = click.prompt("Explicitly authorized Supabase project reference")
+        org = click.prompt("Its Supabase organization ID")
+        values = {
+            "origin": click.prompt(
+                "Fixed installer origin", default="http://127.0.0.1:55430"
+            ),
+            "operator_subject": click.prompt(
+                "Installer operator UUID (stable local identity)"
+            ),
+            "login_secret": click.prompt(
+                "Operator access code (at least 32 characters)",
+                hide_input=True,
+                confirmation_prompt=True,
+            ),
+            "encryption_key": Fernet.generate_key().decode(),
+            "oauth_client_id": click.prompt("Registered Management OAuth app ID"),
+            "oauth_client_secret": click.prompt(
+                "OAuth app client secret", hide_input=True
+            ),
+            "allowed_projects": {ref: org},
+            "state_dir": str(state_dir.absolute()),
+        }
+        InstallerConfig.model_validate(values)
+        write_private_json(output, values)
+    except ImportError:
+        raise click.ClickException(
+            "Installer needs the supabase and installer extras"
+        ) from None
+    except (ValueError, OSError):
+        raise click.ClickException(
+            "Invalid installer configuration; no secrets printed"
+        ) from None
+    click.echo(
+        "Private installer configuration saved; keep it separate from encrypted state backups"
+    )
+
+
+@supabase.command("installer-serve")
+@click.option(
+    "--config-file", type=click.Path(exists=True, path_type=Path), required=True
+)
+@click.option("--port", type=click.IntRange(1024, 65535), default=55430)
+def installer_serve(config_file, port):
+    """Serve the installer on loopback; disable callback/query access logging."""
+    try:
+        import uvicorn
+        from .installer import InstallerConfig, create_installer_app
+
+        config = InstallerConfig.load(config_file)
+        uvicorn.run(
+            create_installer_app(config),
+            host="127.0.0.1",
+            port=port,
+            access_log=False,
+            log_level="warning",
+            forwarded_allow_ips="127.0.0.1",
+        )
+    except ImportError:
+        raise click.ClickException(
+            "Installer needs the supabase and installer extras"
+        ) from None
+    except (ValueError, OSError):
+        raise click.ClickException(
+            "Installer configuration unavailable; no secrets printed"
+        ) from None
+
+
+@supabase.command("installer-work")
+@click.option(
+    "--config-file", type=click.Path(exists=True, path_type=Path), required=True
+)
+@click.option(
+    "--once", is_flag=True, help="Process at most one queued setup, then exit."
+)
+def installer_work(config_file, once):
+    """Run durable setup independently of browser/gateway invocations."""
+    from .releases import OperatorError
+
+    async def work():
+        from .installer import Installer, InstallerConfig
+
+        service = Installer(InstallerConfig.load(config_file))
+        try:
+            while True:
+                result = await service.work_once()
+                if result:
+                    click.echo(json.dumps(result))
+                if once:
+                    return
+                await asyncio.sleep(2)
+        finally:
+            await service.oauth.close()
+
+    try:
+        asyncio.run(work())
+    except ImportError:
+        raise click.ClickException(
+            "Installer needs the supabase and installer extras"
+        ) from None
+    except OperatorError as error:
+        raise click.ClickException(str(error)) from None
+    except (ValueError, OSError):
+        raise click.ClickException(
+            "Installer state unavailable; no secrets printed"
+        ) from None
+
+
+@supabase.command("deploy-edge")
+@options
+@click.option(
+    "--provider-file",
+    type=click.Path(exists=True, path_type=Path),
+    required=True,
+    help="Private JSON with organization_id and Management access_token.",
+)
+@click.option(
+    "--adopt-existing",
+    is_flag=True,
+    help="Adopt only after matching the exact artifact, cluster secrets and authenticated health.",
+)
+def deploy_edge(connection_file, state_dir, provider_file, adopt_existing):
+    """Deploy the verified Edge artifact to the explicitly bound owned project."""
+    from .releases import OperatorError
+
+    async def deploy():
+        from .edge_deployment import EdgeDeployment
+        from .management import SupabaseManagement
+        from .operator import OperatorConfig
+        from .private_files import read_private_json
+
+        values = read_private_json(provider_file)
+        if set(values) != {"organization_id", "access_token"} or not all(
+            isinstance(value, str) and value for value in values.values()
+        ):
+            raise OperatorError("invalid_provider_configuration")
+        provider = SupabaseManagement(values["access_token"])
+        deployment = EdgeDeployment(
+            provider,
+            OperatorConfig.load(connection_file),
+            state_dir,
+            values["organization_id"],
+        )
+        try:
+            return await deployment.deploy(adopt_existing=adopt_existing)
+        finally:
+            await deployment.close()
+            await provider.close()
+
+    try:
+        click.echo(json.dumps(asyncio.run(deploy())))
+    except OperatorError as error:
+        raise click.ClickException(str(error)) from None
+    except (ValueError, OSError, KeyError):
+        raise click.ClickException(
+            "Edge deployment state unavailable; no secrets printed"
+        ) from None
+
+
+@supabase.command("deploy-vercel")
+@options
+@click.option(
+    "--provider-file",
+    type=click.Path(exists=True, path_type=Path),
+    required=True,
+    help="Private JSON with team_id, project_id and Vercel access_token.",
+)
+@click.option("--wheel", type=click.Path(exists=True, path_type=Path), required=True)
+@click.option(
+    "--adopt-existing",
+    is_flag=True,
+    help="Adopt an existing bound gateway only after Production environment and application-auth checks.",
+)
+def deploy_vercel(connection_file, state_dir, provider_file, wheel, adopt_existing):
+    """Deploy a verified wheel with encrypted Production-only Hobby configuration."""
+    from .releases import OperatorError
+
+    async def deploy():
+        from .operator import OperatorConfig
+        from .vercel_deployment import VercelTarget, VercelDeployment
+
+        deployment = VercelDeployment(
+            VercelTarget.load(provider_file),
+            OperatorConfig.load(connection_file),
+            state_dir,
+        )
+        try:
+            return await deployment.deploy(wheel, adopt_existing=adopt_existing)
+        finally:
+            await deployment.close()
+
+    try:
+        click.echo(json.dumps(asyncio.run(deploy())))
+    except OperatorError as error:
+        raise click.ClickException(str(error)) from None
+    except (ValueError, OSError, KeyError):
+        raise click.ClickException(
+            "Vercel deployment state unavailable; no secrets printed"
+        ) from None
+
+
+@supabase.command("plan-edge-removal")
+@options
+@click.option(
+    "--provider-file", type=click.Path(exists=True, path_type=Path), required=True
+)
+def plan_edge_removal(connection_file, state_dir, provider_file):
+    """Print the concrete owned gateway removal plan; do not delete anything."""
+    from .releases import OperatorError
+
+    async def plan():
+        from .edge_deployment import EdgeDeployment
+        from .management import SupabaseManagement
+        from .operator import OperatorConfig
+        from .private_files import read_private_json
+
+        values = read_private_json(provider_file)
+        provider = SupabaseManagement(values["access_token"])
+        deployment = EdgeDeployment(
+            provider,
+            OperatorConfig.load(connection_file),
+            state_dir,
+            values["organization_id"],
+        )
+        try:
+            return await deployment.removal_plan()
+        finally:
+            await deployment.close()
+            await provider.close()
+
+    try:
+        click.echo(json.dumps(asyncio.run(plan()), indent=2))
+    except OperatorError as error:
+        raise click.ClickException(str(error)) from None
+    except (ValueError, OSError, KeyError):
+        raise click.ClickException(
+            "Removal state unavailable; no secrets printed"
+        ) from None

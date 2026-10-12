@@ -147,8 +147,10 @@ supabase functions deploy ollama --project-ref <selected-ref> \
 These are operator actions, not commands run by a Vercel build. The function
 performs application-key authentication. Its server configuration binds one
 cluster. Do not overwrite project-wide Oshepherd secrets for another installation.
-CLI deployment collision/ownership reconciliation and the OAuth installer remain
-pending; a deployed health response alone does not prove artifact ownership.
+The [new provider adapters and local installer](local-installer.md) supplement
+these manual commands with ownership receipts and failure reconciliation;
+hosted OAuth/Edge Management-adapter acceptance remains pending. A deployed
+health response alone does not prove artifact ownership.
 
 For the optional Vercel profile, configure a separate operator state directory
 with `profile=vercel_hobby`, its own cluster, credentials and worker pool. Build
@@ -162,6 +164,14 @@ uv run --locked oshepherd supabase export-vercel \
 ```
 
 Use the wheel filename for the actual package version after a version bump.
+Use uv's default source-archive-to-wheel path. Explicitly requesting a wheel
+directly from a dirty working tree can retain old setuptools `build/lib` files;
+the export rejects those. To recover a rejected build, build its clean archive:
+
+```sh
+uv build --wheel .oshepherd/release/oshepherd-0.0.24.tar.gz \
+  --out-dir .oshepherd/release
+```
 The export checks the wheel's manifest, artifact and Python source hashes, excludes credentials
 and checkout test/services, and creates a uv lock from the shipped runtime pins.
 It tries cached metadata first, then fetches missing registry metadata with the

@@ -1,6 +1,6 @@
 # Supabase implementation progress
 
-Updated October 11, 2026. The objective is to finish the implementation so
+Updated October 12, 2026. The objective is to finish the implementation so
 an Ollama client can send a request to an Edge Function and receive inference
 from a local Ollama model. This ledger records authoritative artifacts and
 verification; an implementation checkbox does not imply hosted validation.
@@ -11,12 +11,20 @@ is still unfinished; production qualification, hosted/load verification and the
 hosted proxy disconnect gates remain open below. New Python work uses uv by default;
 older verification-log commands retain their original invocation.
 
-Continue with the [ordered next steps](next-steps.md): hosted cancellation first,
-then complete load/recovery evidence, clean-machine onboarding, provider adapters,
-OAuth/button flows and release qualification. That checklist defines acceptance
+Continue with the [ordered next steps](next-steps.md), preserving the user's
+choice to keep the current contract and experimental status while completing
+independent load/recovery and installer work. That checklist defines acceptance
 criteria and separates external installer setup from work possible now.
 
 ## Completed
+
+- [x] Implement and locally validate the separate OAuth installer and owned
+  provider adapters; verify the Vercel adapter on the authorized Hobby target.
+  Preserve unrun hosted OAuth/Edge Management/removal/button gates.
+- [x] Run 1,000 exact deterministic jobs on each hosted profile and bounded
+  restart/fencing, incomplete EOF and slow-reader probes. Record four-active-job
+  caller admission and the rejected Edge five-request burst without changing
+  limits. Actual Auth rejection acceptance is pending the corrected probe report.
 
 - [x] Add and run `--bounded-lifecycle` against both hosted profiles: four-job
   queueing/capacity-two enforcement, explicit cancellation stopping the worker,
@@ -342,6 +350,60 @@ for both gateway implementations, including the Vercel profile.
 | October 11, 2026 | Initial bounded hosted lifecycle on both profiles | Capacity/cancel/silence/expiry pass; cleanup wait times out because 60 seconds is shorter than the configured five-minute intent quarantine; no due deletion or failed Storage claim observed |
 | October 11, 2026 | Corrected checked-in `--bounded-lifecycle` on Edge and Vercel | Both exit successfully; four async jobs succeed with peak two and queued work; explicit cancellation stops worker; silence deadline/heartbeat pass; metadata takes 0.27/0.80 seconds; signed/content expiry retain success tombstone; each runner removes two expired objects after normal quarantine |
 | October 11, 2026 | Final service-free suite including active-installation guard | 304 passed in 11.85 seconds; targeted probe/maintenance guards 10 passed; production runtime/migration source unchanged |
+
+## October 12 independent implementation and qualification
+
+Implemented the separate local OAuth control service, encrypted expiring records,
+durable queued shared-engine setup, private portable worker exports, explicit
+inference verification and ownership-bound Edge/Vercel deployment/removal adapters.
+The [installer runbook](experiments/local-installer.md) records local commands and
+the unrun hosted OAuth/button gates. The user chose local-first implementation
+because no OAuth app/callback/service exists yet. Applied SQL and gateway/runtime
+contracts are unchanged; both profiles remain experimental.
+
+Evidence collected in this slice:
+
+- Full contracts/SystemOne plus real local operator/Storage selection: **347
+  passed in 51.87 seconds**, one upstream TestClient warning. The subsequent
+  corrected Auth-probe subset has **9 passes**, including 401/403 rejection and
+  failure on a still-valid 200 response. Final totals are recorded below when run.
+- Both hosted profiles completed **1,000 exact deterministic jobs** at concurrency
+  two. Edge load duration 453.49 seconds, p50/p95/max 0.640/1.291/4.443 seconds;
+  Vercel 741.74 seconds, 1.235/1.943/4.035 seconds. Worker control and metadata
+  stayed available through a one-hour observed refresh/persistence cycle.
+- The first full soak exited unsuccessfully at the final old-token check because
+  it accepted only 401; the original response status was not recorded. GoTrue's
+  [JWT parser](https://github.com/supabase/auth/blob/master/internal/api/auth.go)
+  uses 403 for invalid JWTs. The corrected harness accepts rejection via 401/403,
+  still fails on 200, and records the status. A separate `--auth-soak` repeats
+  actual expiry acceptance without repeating load; its completion remains pending
+  until the final report is collected. No JWT lifetime was shortened.
+- Both `--recovery` probes pass: two actual worker restarts advance generation,
+  old heartbeat/append/failure mutations are fenced, pre-output work retries once,
+  durable/incomplete output never retries, and exact 536,405-byte slow-reader
+  responses succeed in 8.89/10.16 seconds. Probe-process peak RSS was
+  69,730,304/69,058,560 bytes; it includes the client/fake upstream, not hosted
+  gateway memory.
+- One/five-reader workload on Vercel returned exact NDJSON; maximum first-record
+  time 2.462/15.482 seconds. Edge's repeated five-reader burst returns **429
+  `capacity_exceeded`**. Both clusters retain the actual default caller budget
+  **four active jobs**, total 128, queued/running 64, and an enrolled capacity-two
+  worker. Five overlapping HTTP requests do not prove five simultaneously admitted
+  jobs; no limit was raised to remove the rejection.
+- Vercel adapter actual Hobby/account/verified-domain preflight, eight encrypted
+  Production-only values, clean-wheel deployment, anonymous denial/authenticated
+  health and repeat-deployment reconciliation pass. No database password/session
+  or Preview secrets uploaded, and no hosted resource removed.
+- A direct dirty-tree wheel retained old test files and was rejected **before
+  upload**. Rebuilding from the clean source archive excluded tests/private state.
+  The installed wheel's source/assets hashes and CLI doctor passed from a clean
+  working directory without checkout imports.
+
+Remaining gates: existing strict disconnect failures, wider size/backpressure
+and quota envelope, real hosted OAuth/Marketplace/button onboarding, actual Edge
+Management-adapter deployment and reviewed disposable-resource removal. Short
+functional/load checks do not qualify a profile. The current user decision
+preserves the contract and experimental status.
 
 ## Handoff discipline
 

@@ -204,6 +204,70 @@ setting or production migration was changed. The updated service-free suite has
 304 passing tests, including refusal to start a fake worker on an active
 installation.
 
+## October 12 load, recovery and installer evidence
+
+Both profiles completed 1,000 exact deterministic short jobs at concurrency two:
+
+| Profile | Load duration | p50 | p95 | Maximum |
+| --- | --- | --- | --- | --- |
+| Edge Free | 453.49 s | 0.640 s | 1.291 s | 4.443 s |
+| Vercel Hobby | 741.74 s | 1.235 s | 1.943 s | 4.035 s |
+
+The first one-hour soak observed automatic worker refresh and private persistence,
+but exited unsuccessfully at a final check that expected only 401. Its original
+response status was not retained. GoTrue uses 403 for invalid JWTs; the corrected
+probe records the status and requires 401/403 rejection, current-token acceptance
+and exact inference after the original expiry. `--auth-soak` repeats that actual
+cycle without repeating load; final acceptance is pending its completed report.
+No server expiry configuration or local JWT schedule was shortened.
+
+Both bounded recovery probes passed actual worker restarts before/after output,
+old-generation heartbeat/append/failure fencing, exactly one pre-output retry,
+no retry after durable output or incomplete EOF, and exact 536,405-byte slow
+HTTP reads. Slow responses completed in 8.89/10.16 seconds. Process peak RSS was
+69,730,304/69,058,560 bytes for the whole local probe/client/upstream process;
+hosted gateway memory was not measured.
+
+The default per-caller active-job limit is four on both clusters, total active
+128, queued/running 64, and worker capacity two. Vercel returned all five exact
+streams in a concurrent HTTP batch as earlier admissions finished; Edge's repeat
+returned 429 `capacity_exceeded`. This does not establish five simultaneous jobs
+for one caller. Limits were preserved. The first Edge failed batch did not record
+its status; the instrumented repeat records 429 and its stable code.
+
+Reproduce only on idle, dedicated installations with the enrolled test worker:
+
+```sh
+uv run --locked python -m scripts.supabase_hosted_check --soak \
+  --connection-file <private-connection.json> --state-dir <owned-operator-dir> \
+  --worker-session <private-worker-session.json> --report-file <private-report.json>
+# --auth-soak measures only actual expiry/refresh; --recovery is a separate mode.
+```
+
+These modes refuse active jobs before replacing the test worker and write 0600
+reports. Use separate loopback ports for concurrent profiles. Do not run local
+Edge integration cases while a hosted probe owns port 55324; run them sequentially
+or select another probe port before starting its expiry cycle. The one/five-reader
+script uses an already running isolated fixture worker and does not register or
+restart it:
+
+```sh
+uv run --locked python -m scripts.supabase_hosted_stream_load \
+  --connection-file <private-connection.json> --state-dir <owned-operator-dir> \
+  --report-file <private-stream-report.json>
+```
+
+The [local installer/adapters](local-installer.md) have ASGI/HTTP/CLI fault tests.
+Vercel's actual adapter verifies Hobby/project/domain ownership, encrypted
+Production-only configuration, a clean-wheel deployment, anonymous denial,
+authenticated health and a repeated call reusing the deployment. No database
+password/session or Preview secret was uploaded; no hosted gateway was deleted.
+New Edge Management/OAuth/button/removal acceptance remains unrun.
+
+All evidence is a bounded subset. Wider sizes, server-side backpressure and
+remaining provider quota are not established. Both profiles remain unqualified;
+none of these measurements closes reader-disconnect cancellation.
+
 The [Vercel cancellation API](https://vercel.com/docs/functions/functions-api-reference#cancel-requests)
 currently documents its `supportsCancellation` opt-in for Node.js only. It does
 not establish Python ASGI disconnect delivery. The production template therefore

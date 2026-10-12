@@ -144,7 +144,10 @@ async def run(args):
     if config.profile == "vercel_hobby" and not config.gateway_url:
         raise ValueError("vercel_gateway_url_required")
     state = Installation.load(args.state_dir, config)
-    if getattr(args, "bounded_lifecycle", False):
+    if any(
+        getattr(args, name, False)
+        for name in ("bounded_lifecycle", "soak", "auth_soak", "recovery")
+    ):
         cluster = str(UUID(str(state.cluster_id)))
         active = await asyncio.to_thread(
             Database(config).execute,
@@ -233,6 +236,30 @@ async def run(args):
 
                 await check_lifecycle(
                     client, app, worker, config, state, url, headers, results
+                )
+                return
+            if getattr(args, "soak", False) or getattr(args, "auth_soak", False):
+                from scripts.supabase_hosted_soak import check_soak
+
+                await check_soak(
+                    client,
+                    worker,
+                    task,
+                    config,
+                    state,
+                    url,
+                    headers,
+                    args.worker_session,
+                    args.report_file,
+                    results,
+                    load_jobs=0 if getattr(args, "auth_soak", False) else 1000,
+                )
+                return
+            if getattr(args, "recovery", False):
+                from scripts.supabase_hosted_recovery import check_recovery
+
+                await check_recovery(
+                    client, app, worker, task, config, state, url, headers, results
                 )
                 return
             cases = json.loads((fixtures / "routes.json").read_text())["cases"]
@@ -376,7 +403,8 @@ async def run(args):
     finally:
         stop.set()
         try:
-            await asyncio.wait_for(task, 15)
+            if not task.cancelled():
+                await asyncio.wait_for(task, 15)
         finally:
             await rpc.close()
             await auth.close()
@@ -402,6 +430,21 @@ def main():
         "--lifetimes",
         action="store_true",
         help="Measure the 135-second sync deadline and a 405-second async upstream; separate from strict cancellation.",
+    )
+    modes.add_argument(
+        "--recovery",
+        action="store_true",
+        help="Measure worker restarts/fencing, retry exclusion after durable output, incomplete EOF and a bounded slow HTTP reader on an idle installation.",
+    )
+    modes.add_argument(
+        "--auth-soak",
+        action="store_true",
+        help="Measure a real Auth expiry/refresh cycle without repeating the already measured load; reports load_jobs_target=0.",
+    )
+    modes.add_argument(
+        "--soak",
+        action="store_true",
+        help="Run 1,000 exact deterministic jobs and remain online through actual worker Auth expiry/refresh (at most 75 minutes). Isolated idle installations only.",
     )
     modes.add_argument(
         "--bounded-lifecycle",

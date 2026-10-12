@@ -1,6 +1,6 @@
 # Development handoff
 
-Updated October 11, 2026 after implementation commit `e29885d` on branch
+Updated October 12, 2026 on branch
 `supabase`. **Implemented and deployed as a candidate; not qualified for
 production.** Both hosted reader-disconnect checks fail. Tests use the explicitly
 authorized isolated Supabase Free and Vercel Hobby targets; this handoff does not
@@ -52,8 +52,11 @@ Supabase integration tests need the CLI and a compatible container runtime;
 Python characterization fixtures do not. Real Ollama/GPU access is unnecessary
 for deterministic protocol tests.
 
-The immediate work package is **hosted disconnect investigation and a supported
-lifecycle decision**, followed by bounded load/recovery qualification. Use the
+The user chose preserving the current contract and experimental status. Continue
+the remaining hosted envelope and installer acceptance. The
+[local installer/adapters](experiments/local-installer.md) are implemented and
+fault-tested; no OAuth app exists yet, and the user chose local validation first.
+Use the
 strict existing regression and real provider probes; do not repeat initial
 characterization as if implementation has not begun. The
 [ordered checklist](next-steps.md) gives acceptance criteria for cancellation,
@@ -121,6 +124,7 @@ runs on eligible pushes to `main` and does not currently ignore `docs/**`. A
 documentation merge may therefore trigger the release job; review it before
 merging. Candidate deployments are isolated test resources, not a public release.
 
-Continue with [step 1 of the next-steps checklist](next-steps.md#1-resolve-hosted-disconnect-cancellation).
+Continue with [the next-steps checklist](next-steps.md), preserving the decision
+to leave disconnect qualification open while completing independent work.
 Keep failed and unrun gates visible until actual evidence or an explicit reviewed
 contract decision closes them.

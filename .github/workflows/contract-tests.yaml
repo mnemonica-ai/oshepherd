@@ -15,7 +15,7 @@ jobs:
           version: '0.9.18'
           enable-cache: true
       - run: uv python install
-      - run: uv sync --locked --extra supabase
+      - run: uv sync --locked --extra supabase --extra installer
       - run: uv export --locked --all-extras --no-hashes --no-emit-project --output-file requirements.txt
       - run: git diff --exit-code -- requirements.txt
       - run: uv export --locked --no-dev --extra supabase --no-hashes --no-emit-project --no-annotate --no-header --output-file templates/vercel/runtime-requirements.txt

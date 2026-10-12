@@ -1,6 +1,6 @@
 # Supabase installation and hosting
 
-Updated October 11, 2026. Companion to the [implementation plan](implementation.md)
+Updated October 12, 2026. Companion to the [implementation plan](implementation.md)
 and [verification matrix](compatibility.md). Versioned SQL, the operator CLI and
 the self-contained Vercel template are implemented candidates with evidence in
 the [operator runbook](experiments/operator-lifecycle.md). Both isolated hosted
@@ -102,7 +102,12 @@ Uninstall first disables admission, drains/cancels jobs, revokes Oshepherd crede
 
 ## CLI fallback and worker onboarding
 
-The operator CLI uses protected connection files and transactional psql migrations, recording the official Supabase migration history. Deployment remains a separate manual provider step. `functions deploy --use-api` bundles remotely without Docker; local Supabase development still has its own requirements. See the [operator runbook](experiments/operator-lifecycle.md) for prerequisites and recovery. [Supabase CLI](https://supabase.com/docs/reference/cli)
+The [local installer/adapters runbook](experiments/local-installer.md) documents
+the implemented control service, encrypted records, queued shared-engine setup,
+private worker downloads and owned provider adapters. Hosted OAuth/button
+acceptance remains unrun under the user's local-first decision.
+
+The operator CLI uses protected connection files and transactional psql migrations, recording the official Supabase migration history. Deployment remains a separate provider step; ownership-bound adapters now supplement the manual path. `functions deploy --use-api` bundles remotely without Docker; local Supabase development still has its own requirements. See the [operator runbook](experiments/operator-lifecycle.md) for prerequisites and recovery. [Supabase CLI](https://supabase.com/docs/reference/cli)
 
 Available CLI, after preparing protected connection configuration and an explicit existing Auth owner:
 

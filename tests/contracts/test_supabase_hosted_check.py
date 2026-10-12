@@ -10,8 +10,10 @@ import pytest
 from scripts.supabase_hosted_check import check_lifetimes
 
 
+@pytest.mark.parametrize("mode", ["bounded_lifecycle", "soak", "auth_soak", "recovery"])
 def test_bounded_lifecycle_refuses_active_jobs_before_loading_worker_or_starting_upstream(
     monkeypatch,
+    mode,
 ):
     import scripts.supabase_hosted_check as probe
 
@@ -48,7 +50,7 @@ def test_bounded_lifecycle_refuses_active_jobs_before_loading_worker_or_starting
         asyncio.run(
             probe.run(
                 SimpleNamespace(
-                    connection_file="unused", state_dir="unused", bounded_lifecycle=True
+                    connection_file="unused", state_dir="unused", **{mode: True}
                 )
             )
         )
@@ -133,5 +135,128 @@ def test_cancel_ack_loss_preserves_failure_and_stops_the_concurrent_sync_request
         assert sync_stopped.is_set()
         assert results["async_status"] == "failed"
         assert results["async_cancel_acknowledged"] is False
+
+    asyncio.run(run())
+
+
+@pytest.mark.parametrize("expired_status", [401, 403, 200])
+def test_auth_soak_requires_rejection_persisted_rotation_and_post_expiry_inference(
+    tmp_path, monkeypatch, expired_status
+):
+    import json
+    from pathlib import Path
+    from pydantic import SecretStr
+    import scripts.supabase_hosted_soak as soak
+    from oshepherd.backends.supabase.sessions import WorkerSession
+
+    async def run():
+        url = "https://" + "a" * 20 + ".supabase.co"
+        identifier = uuid4()
+        original = WorkerSession(
+            supabase_url=url,
+            user_id=identifier,
+            access_token="old",
+            refresh_token="old-refresh",
+            expires_at=1061,
+        )
+        rotated = WorkerSession(
+            supabase_url=url,
+            user_id=identifier,
+            access_token="current",
+            refresh_token="current-refresh",
+            expires_at=4661,
+        )
+        filename = tmp_path / "private" / "session.json"
+        rotated.save(filename)
+        worker = SimpleNamespace(
+            auth_session=original, rpc=SimpleNamespace(rpc=None), interval=1
+        )
+        worker_task = asyncio.create_task(asyncio.Event().wait())
+        now = [1000]
+        sleep = asyncio.sleep
+
+        async def advance(seconds):
+            if seconds == 5:
+                now[0] = 1200
+                worker.auth_session = rotated
+                await sleep(0)
+            else:
+                await asyncio.Event().wait()
+
+        monkeypatch.setattr(soak.time, "time", lambda: now[0])
+        monkeypatch.setattr(soak.asyncio, "sleep", advance)
+        fixture = next(
+            item
+            for item in json.loads(
+                (
+                    Path(__file__).resolve().parents[2]
+                    / "protocol/v1/fixtures/routes.json"
+                ).read_text()
+            )["cases"]
+            if item["id"] == "generate-defaults"
+        )
+        requests = []
+
+        def handle(request):
+            requests.append(request)
+            if request.url.path == "/auth/v1/user":
+                if request.headers["Authorization"] == "Bearer old":
+                    return httpx.Response(
+                        expired_status, json={"error_code": "bad_jwt"}
+                    )
+                return httpx.Response(200, json={"id": str(identifier)})
+            return httpx.Response(
+                200,
+                json=(
+                    fixture["response"]["json"]
+                    if request.method == "POST"
+                    else {"models": []}
+                ),
+            )
+
+        results = {}
+        try:
+            async with httpx.AsyncClient(
+                transport=httpx.MockTransport(handle)
+            ) as client:
+                operation = soak.check_soak(
+                    client,
+                    worker,
+                    worker_task,
+                    SimpleNamespace(
+                        supabase_url=url, publishable_key=SecretStr("publishable")
+                    ),
+                    None,
+                    "https://gateway.test",
+                    {},
+                    filename,
+                    None,
+                    results,
+                    load_jobs=0,
+                )
+                if expired_status == 200:
+                    with pytest.raises(
+                        AssertionError, match="original_auth_not_expired"
+                    ):
+                        await operation
+                    assert not results["soak_complete"]
+                    assert not any(request.method == "POST" for request in requests)
+                else:
+                    await operation
+                    assert (
+                        results["soak_complete"]
+                        and results["refreshed_session_persisted"]
+                    )
+                    assert (
+                        results["post_expiry_inference"]
+                        and results["deterministic_jobs"] == 1
+                    )
+                    assert (
+                        results["load_jobs_target"] == 0
+                        and results["original_auth_status"] == expired_status
+                    )
+        finally:
+            worker_task.cancel()
+            await asyncio.gather(worker_task, return_exceptions=True)
 
     asyncio.run(run())

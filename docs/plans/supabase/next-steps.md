@@ -1,6 +1,6 @@
 # Supabase next steps
 
-Updated October 11, 2026, after implementation commit `e29885d`.
+Updated October 12, 2026.
 
 The candidate is implemented and deployed to the authorized isolated Supabase
 Free and Vercel Hobby targets. Both return genuine local Ollama inference, pass
@@ -13,7 +13,9 @@ Both hosted reader-disconnect checks fail: SQL reaches `succeeded` after the
 HTTP reader closes. Neither hosting profile is qualified. See the
 [hosted evidence](experiments/hosted-qualification.md) and
 [full progress ledger](progress.md). Installation includes a CLI and versioned
-migrations; provider automation, OAuth and physical resource removal are pending.
+migrations. The [local installer/adapters](experiments/local-installer.md) are
+implemented and fault-tested; hosted OAuth/button and new adapter deployment/
+removal acceptance remain pending.
 
 ## 1. Resolve hosted disconnect cancellation
 
@@ -65,8 +67,9 @@ are recorded. Extend the reproducible harness for the remaining measurements.
 The additional [bounded lifecycle mode](experiments/hosted-qualification.md#reproduce-bounded-lifecycle-checks)
 covers capacity-two queueing, explicit cancellation, silence deadlines and result
 expiry/maintenance on dedicated idle installations. Treat it as a functional
-subset; sustained load, slow-reader/backpressure, restart fencing and a soak
-through real Auth expiry/refresh remain required measurements.
+subset. New `--soak`, `--auth-soak` and `--recovery` modes measure deterministic
+load, actual Auth expiry/refresh, restart fencing, incomplete EOF and a bounded
+slow reader. Consult the hosted report for completed results and remaining gates.
 
 Measure both authorized profiles with delayed/silent upstreams, queue saturation,
 slow readers, near-limit JSON/NDJSON, incomplete EOF, restarts and concurrent
@@ -103,7 +106,9 @@ distinction between `uninstall` (cluster disablement) and provider deletion.
 
 ## 4. Implement provider deployment and removal adapters
 
-Extend the shared operator engine with actual ownership/plan preflight, existing
+The adapters and ownership receipts are implemented and locally fault-tested;
+Vercel's actual Hobby/project/domain preflight passed read-only validation.
+Continue hosted acceptance of ownership/plan preflight, existing
 API-schema discovery, deployment, configuration and independent deployment
 verification. Preserve unrelated resources/exposure and recover lost provider
 acknowledgements. Deployment remains separate from enrollment. Provider deletion
@@ -118,8 +123,11 @@ the concrete destructive operation reviewed before execution.
 ## 5. Deliver the OAuth installer and deploy-button flow
 
 Build on the verified operator/adapters rather than a second installation engine.
-Implement project selection, ownership binding, private resumable journals,
-credential handling, callback validation and recovery from partial installation.
+The separate single-operator service implements project selection, ownership
+binding, encrypted expiring records, callback validation, durable queued setup,
+CLI recovery, worker downloads and explicit inference checks. Its
+[local tests and setup commands](experiments/local-installer.md) are available;
+real hosted consent/onboarding remains unrun.
 The Vercel button must use the pinned wheel/template and verify the database and
 gateway independently; a successful frontend deployment is insufficient.
 

@@ -24,6 +24,7 @@ setup(
         "requests",
     ],
     extras_require={
+        'installer': ["cryptography==50.0.2"],
         'supabase': ["httpx==0.28.1", "ollama==0.6.3"],
         'dev': [
             "pytest",
