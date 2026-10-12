@@ -18,6 +18,15 @@ criteria and separates external installer setup from work possible now.
 
 ## Completed
 
+- [x] Trace actual hosted disconnect signals with bounded event-only diagnostics:
+  Edge delivers abort after stream completion and lacks handler completion info;
+  Vercel ASGI receives disconnect after the final body. Restore both normal
+  gateways and remove temporary diagnostic cloud objects/function. Retain strict
+  failing gates; see the [signal report](experiments/disconnect-signals.md).
+- [x] Promote lifetime measurement into checked-in `scripts.supabase_hosted_check`
+  `--lifetimes`, with bounded delays/polling, owned-job cancellation on failure,
+  foreign status-URL rejection and cancellation-acknowledgement-loss regressions.
+  Both hosted profiles pass this mode; it does not waive disconnect qualification.
 - [x] Create the explicitly approved isolated Supabase organization/project with
   the default Free plan, install on PostgreSQL 17.11, deploy Edge, enroll/login
   an actual CLI worker, and return genuine local Ollama inference. Hosted route
@@ -213,6 +222,12 @@ decision before claiming the gate is closed. The existing strict assertion stays
 in place. October 11 hosted deployments reproduce the failure on both Edge and
 Vercel Python. The hosted report records these measurements and Vercel's
 Node.js-only documented cancellation opt-in.
+The later [signal investigation](experiments/disconnect-signals.md) observes
+the cleanup signal arriving after stream completion on both deployments. No
+transport/deployment contract change has been made; independent qualification
+continues. The user explicitly selected preservation of the existing contract
+and experimental status on October 11. Both strict cancellation gates remain
+open; no alternative ingress/client protocol is part of the current work.
 
 The October 7 review run also observed a 503 at initial async admission in
 `test_real_edge_large_success_requires_authorized_download`; its focused rerun
@@ -312,6 +327,11 @@ for both gateway implementations, including the Vercel profile.
 | October 11, 2026 | Real two-session Storage commit-lock regression before fix | Production case fails: non-key metadata update succeeds while trigger transaction holds only key-share; spike case passes |
 | October 11, 2026 | Additive `20261011000500` upgrade and final combined suite | Hosted upgrades succeed; both clusters have zero active jobs; 370 passed, one known strict Edge disconnect failed, two model cases deselected in 112.62 seconds; concurrency regression passes |
 | October 11, 2026 | Final wheel/locked Vercel export and post-upgrade hosted probes | Seven immutable SQL artifacts verified; both hosted routes/NDJSON/auth/downloads pass again; early records at 0.55/1.81 seconds; both strict disconnect assertions fail with `succeeded` |
+| October 11, 2026 | Hosted Edge event-only control/disconnect diagnostic | Completion hook unavailable; reader closes after first record; pulls continue through 8 seconds; abort follows stream completion; temporary function and two private objects removed |
+| October 11, 2026 | Traced Vercel strict probe with private event reports | First record/reader close at 1.27 client seconds; final body and ASGI disconnect at 4.97 handler seconds; SQL `succeeded`; routes/NDJSON/download pass; three reports deleted and normal gateway restored |
+| October 11, 2026 | Checked-in `--lifetimes` mode on both isolated profiles | Edge/Vercel sync expire at 135.25/135.91 seconds; async fixture completions succeed at 408.69/408.55 seconds; both mode exits successful |
+| October 11, 2026 | Lifetime failure guards plus gateway/operator contracts | 39 passed in 0.45 seconds; foreign status URL receives no key, owned cancellation attempted, lost cancellation acknowledgement preserves failure and stops concurrent sync request |
+| October 11, 2026 | Final service-free contracts/SystemOne suite for the probe slice | 303 passed in 11.85 seconds; runtime/package source unchanged; one upstream TestClient deprecation warning |
 
 ## Handoff discipline
 

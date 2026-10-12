@@ -5,6 +5,7 @@ Uses real provider HTTP, SQL/Auth/Storage and a loopback fake Ollama socket.
 Creates jobs in the supplied installation and temporarily replaces its worker's
 model inventory. Use only an isolated test installation with no other workers.
 A failed disconnect assertion is a failed check, never a qualification claim.
+Use --lifetimes for a separate bounded synchronous/async duration check.
 """
 
 import argparse
@@ -28,6 +29,110 @@ from oshepherd.backends.supabase.worker import SupabaseWorker
 from oshepherd.worker.executor import OllamaExecutor
 from tests.integration.supabase.test_worker import upstream
 from tests.support.fake_ollama import Scenario
+
+
+async def check_lifetimes(client, app, url, headers, results):
+    """Real hosted deadlines; async work outlives a gateway invocation."""
+    completion = {
+        "model": "fixture:latest",
+        "response": "lifetime fixture",
+        "done": True,
+    }
+    marker = "lifetime-async-" + str(uuid4())
+    app.overrides["/api/generate"] = Scenario.from_json(
+        {"json": completion, "first_delay_s": 405}
+    )
+    accepted = await client.post(
+        url + "/jobs",
+        headers={**headers, "Idempotency-Key": str(uuid4())},
+        json={
+            "endpoint": "/api/generate",
+            "payload": {"model": "fixture", "prompt": marker},
+        },
+    )
+    assert accepted.status_code == 202, "lifetime_async_admission_failed"
+    job_id = str(UUID(accepted.json()["id"]))
+    job_url = url.rstrip("/") + "/jobs/" + job_id
+    sync_task = None
+    succeeded = False
+    try:
+        assert accepted.json()["status_url"] == job_url, "unexpected_async_status_url"
+        async with asyncio.timeout(30):
+            while not any(
+                item["path"] == "/api/generate" and item["json"].get("prompt") == marker
+                for item in app.requests
+            ):
+                await asyncio.sleep(0.1)
+        started = time.monotonic()
+        results["async_upstream_delay_seconds"] = 405
+        # The first scenario has already been captured by the upstream socket.
+        app.overrides["/api/generate"] = Scenario.from_json(
+            {"json": completion, "first_delay_s": 145}
+        )
+
+        async def synchronous():
+            initial = time.monotonic()
+            response = await client.post(
+                url + "/api/generate",
+                headers=headers,
+                json={"model": "fixture", "prompt": "lifetime-sync", "stream": False},
+                timeout=160,
+            )
+            error = response.json().get("error")
+            results.update(
+                sync_status=response.status_code,
+                sync_seconds=round(time.monotonic() - initial, 2),
+                sync_expired=error == "execution_expired",
+            )
+            assert (
+                response.status_code == 504 and results["sync_expired"]
+            ), "sync_deadline_not_enforced"
+            print("hosted_sync_lifetime", json.dumps(results), flush=True)
+
+        sync_task = asyncio.create_task(synchronous())
+        async with asyncio.timeout(450):
+            polls = 0
+            while True:
+                if sync_task.done():
+                    await sync_task
+                response = await client.get(job_url, headers=headers)
+                assert response.status_code == 200, "lifetime_status_failed"
+                state = response.json()["status"]
+                if state not in ("queued", "running"):
+                    results.update(
+                        async_status=state,
+                        async_seconds=round(time.monotonic() - started, 2),
+                    )
+                    assert state == "succeeded", "async_lifetime_failed"
+                    break
+                if polls % 3 == 0:
+                    print(
+                        "hosted_lifetime_progress_seconds",
+                        round(time.monotonic() - started),
+                        flush=True,
+                    )
+                polls += 1
+                await asyncio.sleep(10)
+        result = await client.get(job_url + "/result", headers=headers)
+        results["async_done"] = (
+            result.status_code == 200 and result.json().get("done") is True
+        )
+        assert (
+            results["async_done"] and results["async_seconds"] >= 400
+        ), "async_lifetime_not_verified"
+        await sync_task
+        succeeded = True
+        print("hosted_lifetimes", json.dumps(results), flush=True)
+    finally:
+        if not succeeded:
+            try:
+                cancelled = await client.delete(job_url, headers=headers, timeout=10)
+                results["async_cancel_acknowledged"] = cancelled.status_code == 200
+            except httpx.HTTPError:
+                results["async_cancel_acknowledged"] = False
+        if sync_task is not None:
+            sync_task.cancel()
+            await asyncio.gather(sync_task, return_exceptions=True)
 
 
 async def run(args):
@@ -68,7 +173,7 @@ async def run(args):
         uvicorn.Config(
             app,
             host="127.0.0.1",
-            port=55324,
+            port=getattr(args, "upstream_port", 55324),
             log_level="critical",
             lifespan="off",
             access_log=False,
@@ -80,7 +185,9 @@ async def run(args):
             if server_task.done():
                 await server_task
             await asyncio.sleep(0.02)
-    executor = OllamaExecutor("http://127.0.0.1:55324")
+    executor = OllamaExecutor(
+        "http://127.0.0.1:" + str(getattr(args, "upstream_port", 55324))
+    )
     worker = SupabaseWorker(
         rpc,
         executor,
@@ -107,6 +214,9 @@ async def run(args):
                 await client.get(url + "/health", headers=headers)
             ).status_code == 200
             results["auth"] = True
+            if getattr(args, "lifetimes", False):
+                await check_lifetimes(client, app, url, headers, results)
+                return
             cases = json.loads((fixtures / "routes.json").read_text())["cases"]
             for name in (
                 "generate-defaults",
@@ -269,7 +379,20 @@ def main():
     parser.add_argument("--state-dir", type=Path, required=True)
     parser.add_argument("--worker-session", type=Path, required=True)
     parser.add_argument("--report-file", type=Path)
+    parser.add_argument(
+        "--lifetimes",
+        action="store_true",
+        help="Measure the 135-second sync deadline and a 405-second async upstream; separate from strict cancellation.",
+    )
+    parser.add_argument(
+        "--upstream-port",
+        type=int,
+        default=55324,
+        help="Loopback fake-upstream port (default: 55324).",
+    )
     args = parser.parse_args()
+    if not 1024 <= args.upstream_port <= 65535:
+        parser.error("--upstream-port must be between 1024 and 65535")
     asyncio.run(run(args))
 
 

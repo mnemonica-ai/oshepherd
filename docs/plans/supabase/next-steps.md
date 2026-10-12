@@ -26,12 +26,21 @@ uv run --locked pytest -q tests/integration/supabase/test_edge.py \
   -k first_record --tb=short
 ```
 
-Trace the actual request-abort, response-completion, stream-cancel and ASGI
-disconnect signals through each provider proxy. Use protected diagnostics with
+The [signal investigation](experiments/disconnect-signals.md) now records late
+signals on both hosted providers and the absence of Edge handler completion info.
+The next cancellation step is a supported lifecycle/transport decision, rather
+than assuming another local listener will repair the measured behavior. Any
+further tracing should use protected diagnostics with
 job IDs, event names and timings; keep credentials and request/output content out
 of reports. Determine whether a supported lifecycle hook can reach SQL cleanup.
 The Vercel Python candidate cannot claim that Node.js cancellation opt-in fixes
 its failure; the documented limitation is linked in the hosted report.
+
+On October 11 the user selected preserving the current contract and experimental
+status while continuing independent qualification and installer work. No
+alternative ingress or client cancellation protocol is the next implementation
+direction. Keep this release gate open; the next active work package is step 2
+below.
 
 If the selected host cannot supply a reliable signal, record a supported
 transport/deployment decision in the architecture and compatibility documents
@@ -48,9 +57,10 @@ Do not skip, weaken or replace the failing hosted assertion with mocked evidence
 ## 2. Complete hosted limits, load and recovery qualification
 
 Work that is independent of disconnect propagation can proceed alongside step 1.
-Promote the lifetime experiment into a checked-in, bounded harness: the existing
-route probe is reproducible, but the 405-second upstream-delay controller was a
-private qualification helper. Record exact parameters and safe results.
+The lifetime experiment is now a checked-in, bounded `--lifetimes` mode in the
+hosted probe and passed against both profiles. Its
+[commands and parameters](experiments/hosted-qualification.md#reproduce-hosted-lifetime-checks)
+are recorded. Extend the reproducible harness for the remaining measurements.
 
 Measure both authorized profiles with delayed/silent upstreams, queue saturation,
 slow readers, near-limit JSON/NDJSON, incomplete EOF, restarts and concurrent

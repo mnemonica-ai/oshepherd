@@ -99,6 +99,12 @@ test project, private journals and generated test data remain available for
 review. Neither a configured stage nor successful inference marks the full
 hosting profile qualified.
 
+The subsequent [disconnect signal investigation](disconnect-signals.md) measured
+late provider signals: Edge aborts after stream completion, and Vercel Python
+receives `http.disconnect` after the final body. The normal gateways were restored
+and temporary diagnostic function/report objects removed. The strict assertions
+remain failing; no product contract or hosting default changed.
+
 ## Reproduce the strict hosted probe
 
 Use a dedicated isolated installation, enroll a worker with capacity two, and
@@ -124,6 +130,33 @@ not cancel; the failure must not be skipped, weakened or replaced with FastAPI
 evidence. For real-model inference, run the normal enrolled CLI worker and use
 `supabase verify-inference --model llama3.2:3b` with the same private connection
 and state directory.
+
+## Reproduce hosted lifetime checks
+
+Use the same isolated installation/session with capacity two and stop other
+workers first. This separate mode runs a 405-second async upstream alongside a
+145-second synchronous upstream, checks the 135-second application deadline,
+and verifies the retained async completion. It waits for the async upstream
+request to start before changing scenarios. The async poll budget is 450 seconds
+with ten-second polling; expect roughly seven minutes overall. It does not run or
+waive the strict reader-disconnect test.
+
+```sh
+uv run --locked python -m scripts.supabase_hosted_check --lifetimes \
+  --connection-file <private-operator-connection.json> \
+  --state-dir <private-operator-state-directory> \
+  --worker-session <private-enrolled-worker-session.json> \
+  --report-file <private-lifetime-report.json>
+```
+
+Use `--upstream-port <port>` for a distinct loopback port when testing separate
+clusters concurrently. Do not start two workers for the same enrollment/session.
+The checked-in mode passed on both providers: Edge/Vercel synchronous expiry at
+135.25/135.91 seconds and async success at 408.69/408.55 seconds. Reports contain
+safe booleans, states and timings. A failed check attempts explicit cancellation
+of its accepted async job and stops its concurrent synchronous request, preserving
+the original failure if a cancellation acknowledgement is lost. It rejects a
+foreign status URL before sending credentials and cancels via the known owned URL.
 
 The [Vercel cancellation API](https://vercel.com/docs/functions/functions-api-reference#cancel-requests)
 currently documents its `supportsCancellation` opt-in for Node.js only. It does
