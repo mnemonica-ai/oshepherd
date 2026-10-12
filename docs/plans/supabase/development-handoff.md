@@ -1,39 +1,41 @@
 # Development handoff
 
-Reviewed October 4, 2026 against runtime baseline `1ed65b0` on branch `supabase`. **Ready to start development; not yet validated for production.** The remaining uncertainty is explicitly assigned to implementation and hosted experiments below. This handoff does not authorize cloud spending or deployment to an unspecified account.
+Updated October 11, 2026 after implementation commit `e29885d` on branch
+`supabase`. **Implemented and deployed as a candidate; not qualified for
+production.** Both hosted reader-disconnect checks fail. Tests use the explicitly
+authorized isolated Supabase Free and Vercel Hobby targets; this handoff does not
+authorize paid upgrades or deployment to another unspecified account.
 
 ## Start here
 
-Read the [decisions](index.md), [implementation plan](implementation.md), [compatibility matrix](compatibility.md), then [installation plan](installation.md). The implementation plan owns architecture and state-machine invariants; the matrix owns existing route behavior and verification gates; the installation plan owns hosting profiles and setup. Record any changed decision in those documents so the next agent does not depend on chat history.
+Read the [next steps](next-steps.md), [progress ledger](progress.md) and
+[hosted evidence](experiments/hosted-qualification.md) first. The
+[implementation plan](implementation.md) owns architecture and state-machine
+invariants; the [compatibility matrix](compatibility.md) owns route behavior and
+verification gates; the [installation plan](installation.md) owns hosting
+profiles and setup. Record changed decisions there so another agent can continue
+without chat history.
 
 Keep Redis as the existing CLI default. Supabase uses Edge by default, includes async jobs, and supports optional FastAPI gateways. All nine existing routes are in scope. Do not substitute a FastAPI-only implementation for a failed Edge spike, broaden Ollama fields incidentally, or implement an automatic cross-backend retry.
 
-Implementation is underway. The [progress ledger](progress.md) records actual
-runtime, SQL, CLI artifacts and verification. Versioned release-candidate SQL now
-coexists with the isolated spike without modifying its schema. A real local Edge → external worker →
-Ollama lifecycle passed; [repeatable commands and the open disconnect
-gate](experiments/local-edge-lifecycle.md) are documented. The
-[operator lifecycle](experiments/operator-lifecycle.md) and Vercel template now
-pass local checks. An explicitly approved isolated Free project now passes
-hosted Edge inference, route fixtures, exact NDJSON and private async downloads;
-the [hosted report](experiments/hosted-qualification.md) records the compatible
-baseline/upgrade paths and the still-failing hosted disconnect assertion.
-Provider automation, OAuth installer and full hosted qualification remain
-pending. Vercel Production configuration was explicitly approved and uploaded
-only to the isolated Hobby test project. Both deployed gateways return genuine
-Ollama inference and pass route/stream/private-download probes; both strict
-reader-disconnect assertions fail. Their measured synchronous deadline is 135
-seconds. Full qualification remains open in the hosted report.
-Persistent local setup,
-supervision, doctor and JSON/NDJSON request commands are available in that runbook;
-the optional FastAPI backend now passes real local routes and socket cancellation.
-Durable Storage cleanup, orphan reconciliation, an independent operator runner
-and actual bounded local Cron execution also passed; see
-[maintenance evidence](experiments/local-maintenance.md).
+Both hosted gateways return genuine Ollama inference and pass route fixtures,
+exact NDJSON and signed private downloads (1.2 MB Edge, 4.2 MB Vercel). They
+enforce a measured 135-second synchronous deadline and complete async jobs beyond
+400 seconds. The final combined suite has **370 passes, one known local Edge
+disconnect failure and two opt-in real-model cases deselected**; hosted
+real-model checks passed separately. Both hosted disconnect probes also fail:
+SQL becomes `succeeded` after the reader closes. Keep both profiles unqualified.
 
-Implementation started with the local characterization portion of step 0: [versioned route schemas/fixtures](../../../protocol/README.md), a controllable fake Ollama upstream, and a service-free contract suite are available. The combined suite passes **162 tests**. See the [evidence report](experiments/step-0-local-characterization.md) for scope, exact commands, versions and findings. RPC/Auth/async protocol finalization, the isolated relay spike and hosted/installer experiments remain open; step 0 is not complete.
+The [operator lifecycle](experiments/operator-lifecycle.md) covers versioned
+migrations, enrollment, upgrade/recovery and the verified wheel-backed Vercel
+template. Fresh and legacy migration histories have distinct supported paths;
+applied files remain immutable. The candidate fixes modern Storage compatibility,
+commit locking, drift detection and preservation of API exposure. The local spike
+remains separate. Local FastAPI socket cancellation and
+[maintenance checks](experiments/local-maintenance.md) pass, but do not close
+hosted proxy, load/soak or installer gates.
 
-## Local prerequisites and first work package
+## Checkout prerequisites and immediate work
 
 Use uv by default; Conda is optional. Python 3.12 is selected for development,
 matching the minimum in [project metadata](../../../pyproject.toml). From a fresh
@@ -50,19 +52,26 @@ Supabase integration tests need the CLI and a compatible container runtime;
 Python characterization fixtures do not. Real Ollama/GPU access is unnecessary
 for deterministic protocol tests.
 
-The first work package is **characterization fixtures plus a reproducible relay spike**, corresponding to delivery step 0:
+The immediate work package is **hosted disconnect investigation and a supported
+lifecycle decision**, followed by bounded load/recovery qualification. Use the
+strict existing regression and real provider probes; do not repeat initial
+characterization as if implementation has not begun. The
+[ordered checklist](next-steps.md) gives acceptance criteria for cancellation,
+hosted limits/soak, clean-machine CLI onboarding, provider adapters, OAuth/button
+flows and release review. Independent load and installer implementation can
+proceed while cancellation is investigated; qualification remains blocked.
 
-1. Capture current normalized payloads, default values, errors and response bodies for C01–C09. Add a controllable fake Ollama upstream supporting delayed first output, long silence, exact NDJSON, disconnects and large responses. Do not use sampled model prose as an equality oracle.
-2. Write the versioned protocol schemas/fixtures described below. Keep these independent of the Python and TypeScript clients.
-3. Prototype the smallest authorized submit/claim/append/read/finish path, with one external fake worker and an Edge relay. Include two identities to check isolation. Temporary spike migrations and resources must remain isolated from production migration history.
-4. Exercise a minimal Vercel ASGI relay separately. Probe the required installer APIs/CLI and Marketplace permissions before claiming either button can complete installation.
-5. Commit reproducible harnesses and a redacted evidence report under a new `docs/plans/supabase/experiments/` directory. Record runtime versions, project plan/region, configured limits, input/output bytes, timings, terminal-marker behavior, CPU/memory evidence where available, failures and cleanup.
+Shared [protocol schemas/fixtures](../../../protocol/README.md) and the fake
+upstream already exist. The [initial characterization report](experiments/step-0-local-characterization.md)
+retains the original 162-test evidence as history. Each new slice should remain
+independently reviewable and leave the Redis baseline passing.
 
-After local characterization passes, shared contract/executor extraction can proceed while hosted access is arranged. Hosted results gate the advertised workload envelope and release, not all local development. Follow the delivery sequence for database, complete Edge routes, streaming/async, FastAPI and installation. Each slice should be independently reviewable and leave the Redis baseline passing.
+## Protocol contracts to preserve and audit
 
-## Finalize the protocol before production migrations
-
-The plan specifies semantic contracts, not complete wire schemas. Producing those schemas and tests is part of the first implementation slice, not a reason to guess different formats in each component. Resolve and record the following in `protocol/` before database/gateway/worker implementations diverge:
+Candidate wire schemas and implementations are present in `protocol/`, SQL and
+both clients. Preserve and audit the contracts below against the remaining
+compatibility gates. Any changed format needs versioned fixtures and a reviewed
+migration; do not guess a different format in another component:
 
 | Contract | Required decisions and fixtures |
 | --- | --- |
@@ -89,12 +98,17 @@ Submission disconnect does not cancel an accepted async job. Idempotency keys re
 
 | Needed for | External inputs | Work possible without them |
 | --- | --- | --- |
-| Edge limits | Isolated Supabase test project(s), Free/paid coverage, selected region, authorized deployment credentials and test budget | Fixtures, local SQL/RLS tests, fake worker and relay implementation |
-| Vercel profile | Isolated Vercel project/team, plan-specific test access, deployment configuration and budget | ASGI factory/template and deterministic request-reader tests |
+| Edge qualification | Isolated default-Free project in São Paulo already deployed and authorized; no paid testing authorized | Strict disconnect investigation, bounded limits/load/recovery checks on that target |
+| Vercel qualification | Isolated Hobby project deployed with approved encrypted Production-only configuration | Strict hosted disconnect investigation, bounded limits/load/recovery checks |
 | Web installer | Registered Supabase OAuth app, controlled HTTPS callback domain, installer hosting/credential store, maintenance owner; verified Marketplace access | Bootstrap manifest, CLI path, provider adapters with mocked failure cases |
-| Real model smoke | Worker machine, local Ollama version, selected models/digests, model-specific capabilities and hardware | Deterministic transport, lease, retry and API tests |
+| Real model smoke | Local Ollama 0.40.2 and installed `llama3.2:3b` already verified through both hosted gateways | Repeat bounded real inference after material runtime changes; deterministic tests remain the equality oracle |
 
-Do not assume credentials are present, print secret files, or borrow a production project for destructive fault tests. When an external dependency is missing, report the affected gates as **not run** and continue independent local work. Do not mark the whole backend ready because the available subset passed. No hosted resources were provisioned during planning.
+Use the existing private operator journals for the selected isolated targets;
+do not print secret files or borrow another project for destructive fault tests.
+When an external dependency is missing, report affected gates as **not run** and
+continue independent work. CLI access does not establish OAuth app/callback
+prerequisites. Do not mark the whole backend ready because the available subset
+passed.
 
 ## Completion evidence and repository precautions
 
@@ -102,6 +116,11 @@ Every implementation slice should state which C/V cases it covers, exact command
 
 Keep credentials out of Git and release bundles. Extend ignore/package rules for worker session files and generated CLI state before creating them. Check both `pyproject.toml` and `setup.py` when adding the Supabase extra. Do not include model files in deployment artifacts.
 
-The existing [release workflow](../../../.github/workflows/bump-and-release.yaml) runs on eligible pushes to `main` and does not currently ignore `docs/**`. A future documentation merge may therefore trigger the release job; review that workflow deliberately before merging. This planning commit stays on `supabase` and does not deploy or publish anything.
+The existing [release workflow](../../../.github/workflows/bump-and-release.yaml)
+runs on eligible pushes to `main` and does not currently ignore `docs/**`. A
+documentation merge may therefore trigger the release job; review it before
+merging. Candidate deployments are isolated test resources, not a public release.
 
-Start development with the first work package above. Product architecture is settled; protocol details, workload measurements and installer integration proof are assigned deliverables with clear gates, rather than hidden assumptions.
+Continue with [step 1 of the next-steps checklist](next-steps.md#1-resolve-hosted-disconnect-cancellation).
+Keep failed and unrun gates visible until actual evidence or an explicit reviewed
+contract decision closes them.

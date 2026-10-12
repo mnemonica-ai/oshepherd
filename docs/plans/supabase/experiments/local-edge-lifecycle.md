@@ -1,8 +1,11 @@
 # Local Edge lifecycle experiment
 
-Updated October 6, 2026. Experimental checkout harness; production migrations and the
-released installer remain pending. The [progress ledger](../progress.md) owns
-the remaining gates.
+Local experiment evidence recorded October 6, 2026; status references updated
+October 11. This is the experimental spike checkout harness. Independent versioned
+candidate migrations now exist, but production qualification and the released
+installer remain pending. The [progress ledger](../progress.md) and
+[next steps](../next-steps.md) own the current gates; historical timings below
+describe their original runs.
 
 ## Verified lifecycle
 
@@ -175,8 +178,9 @@ a main runtime proxy before the user runtime. The cause within that proxy remain
 unconfirmed. Do not advertise disconnect cancellation as verified or mark the
 streaming matrix complete.
 
-Output/backpressure/load tests, extended process/refresh recovery, production
-migrations, installer and hosted measurements remain open.
+The [hosted report](hosted-qualification.md) now records both deployed candidates:
+inference/routes/downloads pass, while disconnect checks fail. Full hosted
+backpressure/load/soak, installer and release qualification remain open.
 
 ## Optional FastAPI follow-up
 
@@ -205,7 +209,9 @@ task runs inside the gateway. Authenticated responses use private/no-store cachi
 `create_vercel_app()` adds explicit backend/profile and preview-default-denial
 checks without Uvicorn or signal setup. A wheel-backed candidate deployment
 template now passes clean-cache local installation/import checks; see the
-[operator runbook](operator-lifecycle.md). Hosted Vercel measurements remain pending.
+[operator runbook](operator-lifecycle.md). Subsequent hosted Vercel checks pass
+inference/routes/downloads and measured application deadlines, but fail reader
+disconnect cancellation; see the [hosted report](hosted-qualification.md).
 
 Both profiles currently honor the experimental SQL maximum of 135 seconds;
 larger planned persistent/Vercel budgets are not implemented or advertised.
@@ -221,10 +227,12 @@ when ordinary retrieval returned 413. Explicit signed download returned exact
 bytes and SHA-256; another application key received 404. Status/download URLs
 use the public project origin rather than the container origin.
 
-Uploads are scoped to current non-streaming attempts. SQL uses a foreign key to
+Uploads are scoped to current non-streaming attempts. The local spike uses a foreign key to
 immutable Storage bucket/path metadata, so missing objects cannot become
 successful results. The restricted owner receives no Storage SELECT grant.
-The sole private-schema EXECUTE grant to authenticated users is a boolean
+The versioned candidate instead uses the modern-Storage-compatible commit trigger
+and scoped runtime reads described in the [operator runbook](operator-lifecycle.md).
+The spike's sole private-schema EXECUTE grant to authenticated users is a boolean
 Storage policy predicate; direct application table grants stay revoked.
 Async workers store small results as objects too, supporting explicit download.
 Gateway JSON retrieval is capped at 1 MiB; larger async success uses download.

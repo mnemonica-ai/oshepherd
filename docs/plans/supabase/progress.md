@@ -11,6 +11,11 @@ is still unfinished; production qualification, hosted/load verification and the
 hosted proxy disconnect gates remain open below. New Python work uses uv by default;
 older verification-log commands retain their original invocation.
 
+Continue with the [ordered next steps](next-steps.md): hosted cancellation first,
+then complete load/recovery evidence, clean-machine onboarding, provider adapters,
+OAuth/button flows and release qualification. That checklist defines acceptance
+criteria and separates external installer setup from work possible now.
+
 ## Completed
 
 - [x] Create the explicitly approved isolated Supabase organization/project with
@@ -167,7 +172,7 @@ older verification-log commands retain their original invocation.
 | Async jobs, expiry, cancellation and authorized results/downloads | Inline/private-object paths implemented | Edge/FastAPI async and downloads passed; full expiry/adversarial matrix pending |
 | Private Storage results and cleanup/reconciliation | Upload/sign/read, deletion outbox, orphan reconciliation, operator runner and private Cron sweeps implemented | Local authorization, recovery, purge, Cron and operator schedule reconciliation passed; hosted/load pending |
 | Optional FastAPI backend and Vercel template | Backend-aware API, Vercel ASGI factory and wheel-backed candidate template deployed on Hobby | Hosted real model/routes/download and 135-second application limit passed; hosted disconnect fails; platform ceiling and load pending |
-| CLI bootstrap/doctor and operator administration | Protected candidate configure/install/enroll/doctor/upgrade/rotate/revoke/disable implemented | Six local lifecycle/recovery cases passed; hosted deployment and physical uninstall pending |
+| CLI bootstrap/doctor and operator administration | Protected candidate configure/install/enroll/doctor/upgrade/rotate/revoke/disable implemented | Local lifecycle/recovery and manual hosted install/deploy/enrollment passed; clean-machine onboarding, automated deployment and physical uninstall pending |
 | Installation manifest, OAuth installer and provider adapters | Hash-verified packaged manifest and explicit schema-exposure adapter implemented | Local resumability/ownership/upgrade passed; OAuth and provider automation pending |
 | Runbook and automated Edge → worker → response harness | Local and [operator runbooks](experiments/operator-lifecycle.md), disposable two-schema harness available | Real inference passed in both schemas; complete hosted clean-machine setup pending |
 | Hosted limits, load/cost, lifecycle and installation | Isolated Supabase project deployed on default Free plan; Vercel Hobby verified and approved Production configuration deployed | Both real inference/routes/download pass; sync deadlines and async jobs beyond 400 seconds measured; both disconnect checks fail; broader measurements pending |

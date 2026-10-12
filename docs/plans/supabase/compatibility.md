@@ -2,7 +2,16 @@
 
 Companion to the [implementation plan](implementation.md), inspected October 4, 2026. This is a specification and implementation test checklist. Unless explicitly marked as locally verified below, acceptance tests are **planned**, not passing or implemented.
 
-Current evidence is recorded in the [progress ledger](progress.md), updated October 10, 2026. The Python service-free suite passes 294 tests; the local Supabase suite has 62 passes and one strict Edge disconnect failure, with two real-model cases verified separately. Deno has 44 passing contracts. Local Edge/FastAPI routes, SQL/Auth/Storage, versioned installation and recovery have evidence; the broad matrix below remains an acceptance specification. Hosted limits, JavaScript SDK parity, load/cost, soak and OAuth/provider installation flows remain unverified.
+Current evidence is recorded in the [progress ledger](progress.md), updated
+October 11, 2026. The final combined Python contracts/SystemOne/local integration
+suite has 370 passes, one strict local Edge disconnect failure and two opt-in
+real-model cases deselected. Deno's latest recorded suite has 44 passing contracts.
+Both hosted gateways pass real-model inference, route/NDJSON/private-download
+probes, measured 135-second synchronous deadlines and async work beyond 400
+seconds. Both hosted disconnect checks fail. The broad matrix below remains an
+acceptance specification; full provider ceilings, JavaScript SDK parity,
+load/cost, soak and OAuth/provider installation flows remain unverified.
+The [next-steps checklist](next-steps.md) orders the remaining gates.
 
 ## Product contract
 

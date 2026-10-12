@@ -246,9 +246,13 @@ results and private downloads also pass. The official CLI recognizes installed
 migration history. The self-contained Vercel wheel import denies unauthenticated
 health and previews without initializing Redis or Celery.
 
+Both isolated hosted gateways subsequently passed real-model inference, route
+fixtures, exact NDJSON and private downloads. Their synchronous deadline was
+measured at 135 seconds, and async jobs completed beyond 400 seconds; see the
+[hosted report](hosted-qualification.md). Both hosted disconnect checks fail.
+
 Remaining: clean-machine CLI onboarding, automated provider deployment/removal
-and ownership preflight, OAuth installer service/registered callback, real Free
-Supabase and Hobby Vercel limits/load/cost measurements, and the strict failing
-Supabase and Vercel proxy disconnect gates. The [progress ledger](../progress.md) owns exact
-commands, counts and current status. No cloud resource was provisioned by these
-local checks.
+and ownership preflight, OAuth installer service/registered callback, complete
+Free/Hobby limits/load/cost/soak measurements, and both strict proxy disconnect
+gates. The [next-steps checklist](../next-steps.md) gives the order and acceptance
+criteria; the [progress ledger](../progress.md) owns exact commands and results.

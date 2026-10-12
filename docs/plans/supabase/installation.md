@@ -1,6 +1,13 @@
 # Supabase installation and hosting
 
-Updated October 10, 2026. Companion to the [implementation plan](implementation.md) and [verification matrix](compatibility.md). The versioned SQL, operator CLI and self-contained Vercel template are implemented release candidates with local evidence in the [operator runbook](experiments/operator-lifecycle.md). OAuth, provider creation/deployment automation and installation buttons remain proposed. Hosted qualification is pending.
+Updated October 11, 2026. Companion to the [implementation plan](implementation.md)
+and [verification matrix](compatibility.md). Versioned SQL, the operator CLI and
+the self-contained Vercel template are implemented candidates with evidence in
+the [operator runbook](experiments/operator-lifecycle.md). Both isolated hosted
+gateways return genuine inference; their disconnect checks fail, so full
+qualification remains pending. OAuth, provider creation/deployment/removal
+automation and installation buttons remain proposed. The
+[next steps](next-steps.md) separate those deliverables from the working CLI path.
 
 ## Installation promise
 
