@@ -18,6 +18,13 @@ criteria and separates external installer setup from work possible now.
 
 ## Completed
 
+- [x] Add and run `--bounded-lifecycle` against both hosted profiles: four-job
+  queueing/capacity-two enforcement, explicit cancellation stopping the worker,
+  silent-upstream deadline with independent metadata/heartbeat, signed/content
+  expiry and actual cluster-scoped expired-object cleanup. Respect the five-minute
+  deletion quarantine; guard against active installations before worker startup.
+  Both mode runs pass. This functional subset does not close soak/load/disconnect
+  qualification; see the [hosted report](experiments/hosted-qualification.md).
 - [x] Trace actual hosted disconnect signals with bounded event-only diagnostics:
   Edge delivers abort after stream completion and lacks handler completion info;
   Vercel ASGI receives disconnect after the final body. Restore both normal
@@ -332,6 +339,9 @@ for both gateway implementations, including the Vercel profile.
 | October 11, 2026 | Checked-in `--lifetimes` mode on both isolated profiles | Edge/Vercel sync expire at 135.25/135.91 seconds; async fixture completions succeed at 408.69/408.55 seconds; both mode exits successful |
 | October 11, 2026 | Lifetime failure guards plus gateway/operator contracts | 39 passed in 0.45 seconds; foreign status URL receives no key, owned cancellation attempted, lost cancellation acknowledgement preserves failure and stops concurrent sync request |
 | October 11, 2026 | Final service-free contracts/SystemOne suite for the probe slice | 303 passed in 11.85 seconds; runtime/package source unchanged; one upstream TestClient deprecation warning |
+| October 11, 2026 | Initial bounded hosted lifecycle on both profiles | Capacity/cancel/silence/expiry pass; cleanup wait times out because 60 seconds is shorter than the configured five-minute intent quarantine; no due deletion or failed Storage claim observed |
+| October 11, 2026 | Corrected checked-in `--bounded-lifecycle` on Edge and Vercel | Both exit successfully; four async jobs succeed with peak two and queued work; explicit cancellation stops worker; silence deadline/heartbeat pass; metadata takes 0.27/0.80 seconds; signed/content expiry retain success tombstone; each runner removes two expired objects after normal quarantine |
+| October 11, 2026 | Final service-free suite including active-installation guard | 304 passed in 11.85 seconds; targeted probe/maintenance guards 10 passed; production runtime/migration source unchanged |
 
 ## Handoff discipline
 

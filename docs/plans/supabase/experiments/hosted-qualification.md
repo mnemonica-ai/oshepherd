@@ -158,6 +158,52 @@ of its accepted async job and stops its concurrent synchronous request, preservi
 the original failure if a cancellation acknowledgement is lost. It rejects a
 foreign status URL before sending credentials and cancels via the known owned URL.
 
+## Reproduce bounded lifecycle checks
+
+`--bounded-lifecycle` tests four async jobs through an enrolled capacity-two
+worker, queued/running observations, explicit cancellation, a silent upstream
+under a ten-second total deadline, live metadata/heartbeat control, signed URL
+expiry, retained success tombstones after content expiry, and actual expired
+Storage-object removal by the cluster-scoped maintenance runner.
+
+```sh
+uv run --locked python -m scripts.supabase_hosted_check --bounded-lifecycle \
+  --connection-file <private-operator-connection.json> \
+  --state-dir <private-operator-state-directory> \
+  --worker-session <private-enrolled-worker-session.json> \
+  --report-file <private-lifecycle-report.json>
+```
+
+Use an idle, dedicated isolated test installation with no other worker processes;
+the mode checks for active jobs before starting its fake worker. It creates six
+synthetic jobs and shortens content retention only for one newly generated
+successful job. Maintenance applies the cluster's existing expiry policy, so it
+can also remove previously expired test data in that same installation. It does
+not delete other clusters or modify the production schema/configuration.
+
+Fresh deletion intents have a five-minute quarantine. The first run incorrectly
+used a 60-second cleanup wait and timed out with no due deletion claim; outbox
+inspection confirmed this was the harness budget, not a failed Storage request.
+The corrected mode honors that interval, polling maintenance every ten seconds
+within a 390-second cleanup budget. Expect roughly six minutes overall. The
+fake server has bounded graceful shutdown for pending silent requests.
+
+The hosted burst/cancel/deadline/expiry cases passed on both providers: four
+successes, peak two worker jobs, queued work observed, explicit cancellation
+stopping the worker, deadline expiry during silence, fresh heartbeat and live
+metadata. These are bounded functional checks, not sustained load/soak or proof
+of HTTP reader-disconnect cancellation. The strict default mode remains separate.
+
+Both corrected mode runs exited successfully. Metadata during upstream silence
+returned in 0.27 seconds on Edge and 0.80 seconds on Vercel; heartbeats remained
+fresh. The signed URL expired before physical removal, ordinary result retrieval
+returned 410, and status retained `succeeded` with unavailable content. Each
+maintenance runner removed two expired objects, including the prior run's pending
+intent and the new test object, after their configured quarantine. No quarantine
+setting or production migration was changed. The updated service-free suite has
+304 passing tests, including refusal to start a fake worker on an active
+installation.
+
 The [Vercel cancellation API](https://vercel.com/docs/functions/functions-api-reference#cancel-requests)
 currently documents its `supportsCancellation` opt-in for Node.js only. It does
 not establish Python ASGI disconnect delivery. The production template therefore

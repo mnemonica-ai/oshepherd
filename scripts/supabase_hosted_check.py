@@ -6,6 +6,8 @@ Creates jobs in the supplied installation and temporarily replaces its worker's
 model inventory. Use only an isolated test installation with no other workers.
 A failed disconnect assertion is a failed check, never a qualification claim.
 Use --lifetimes for a separate bounded synchronous/async duration check.
+Use --bounded-lifecycle for capacity, explicit cancellation, deadline, expiry
+and maintenance checks; cleanup honors the five-minute deletion quarantine.
 """
 
 import argparse
@@ -142,6 +144,14 @@ async def run(args):
     if config.profile == "vercel_hobby" and not config.gateway_url:
         raise ValueError("vercel_gateway_url_required")
     state = Installation.load(args.state_dir, config)
+    if getattr(args, "bounded_lifecycle", False):
+        cluster = str(UUID(str(state.cluster_id)))
+        active = await asyncio.to_thread(
+            Database(config).execute,
+            f"select count(*) from oshepherd.jobs where cluster_id='{cluster}' and state in ('queued','running');",
+        )
+        if active != "0":
+            raise ValueError("bounded_lifecycle_requires_idle_test_installation")
     saved = WorkerSession.load(args.worker_session, supabase_url=config.supabase_url)
     if saved.user_id not in {
         item.auth_subject
@@ -177,6 +187,7 @@ async def run(args):
             log_level="critical",
             lifespan="off",
             access_log=False,
+            timeout_graceful_shutdown=1,
         )
     )
     server_task = asyncio.create_task(server.serve())
@@ -216,6 +227,13 @@ async def run(args):
             results["auth"] = True
             if getattr(args, "lifetimes", False):
                 await check_lifetimes(client, app, url, headers, results)
+                return
+            if getattr(args, "bounded_lifecycle", False):
+                from scripts.supabase_hosted_lifecycle import check_lifecycle
+
+                await check_lifecycle(
+                    client, app, worker, config, state, url, headers, results
+                )
                 return
             cases = json.loads((fixtures / "routes.json").read_text())["cases"]
             for name in (
@@ -379,10 +397,16 @@ def main():
     parser.add_argument("--state-dir", type=Path, required=True)
     parser.add_argument("--worker-session", type=Path, required=True)
     parser.add_argument("--report-file", type=Path)
-    parser.add_argument(
+    modes = parser.add_mutually_exclusive_group()
+    modes.add_argument(
         "--lifetimes",
         action="store_true",
         help="Measure the 135-second sync deadline and a 405-second async upstream; separate from strict cancellation.",
+    )
+    modes.add_argument(
+        "--bounded-lifecycle",
+        action="store_true",
+        help="Test four-job capacity, explicit cancellation, silence deadlines, signed/content expiry and cluster-scoped maintenance in an isolated installation.",
     )
     parser.add_argument(
         "--upstream-port",

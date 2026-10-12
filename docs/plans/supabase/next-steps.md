@@ -62,6 +62,12 @@ hosted probe and passed against both profiles. Its
 [commands and parameters](experiments/hosted-qualification.md#reproduce-hosted-lifetime-checks)
 are recorded. Extend the reproducible harness for the remaining measurements.
 
+The additional [bounded lifecycle mode](experiments/hosted-qualification.md#reproduce-bounded-lifecycle-checks)
+covers capacity-two queueing, explicit cancellation, silence deadlines and result
+expiry/maintenance on dedicated idle installations. Treat it as a functional
+subset; sustained load, slow-reader/backpressure, restart fencing and a soak
+through real Auth expiry/refresh remain required measurements.
+
 Measure both authorized profiles with delayed/silent upstreams, queue saturation,
 slow readers, near-limit JSON/NDJSON, incomplete EOF, restarts and concurrent
 cancel/finish. Cover retry exclusions after durable output, capacity and generation

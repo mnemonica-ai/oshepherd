@@ -10,6 +10,52 @@ import pytest
 from scripts.supabase_hosted_check import check_lifetimes
 
 
+def test_bounded_lifecycle_refuses_active_jobs_before_loading_worker_or_starting_upstream(
+    monkeypatch,
+):
+    import scripts.supabase_hosted_check as probe
+
+    cluster = str(uuid4())
+    queries = []
+    monkeypatch.setattr(
+        probe.OperatorConfig,
+        "load",
+        lambda _: SimpleNamespace(
+            project_ref="a" * 20, profile="edge_free", gateway_url=None
+        ),
+    )
+    monkeypatch.setattr(
+        probe.Installation, "load", lambda *_: SimpleNamespace(cluster_id=cluster)
+    )
+
+    class Database:
+        def __init__(self, _):
+            pass
+
+        def execute(self, sql):
+            queries.append(sql)
+            return "1"
+
+    def forbidden(*_, **__):
+        pytest.fail("Active installation must not start a fake worker/upstream")
+
+    monkeypatch.setattr(probe, "Database", Database)
+    monkeypatch.setattr(probe.WorkerSession, "load", forbidden)
+    monkeypatch.setattr(probe, "upstream", forbidden)
+    with pytest.raises(
+        ValueError, match="bounded_lifecycle_requires_idle_test_installation"
+    ):
+        asyncio.run(
+            probe.run(
+                SimpleNamespace(
+                    connection_file="unused", state_dir="unused", bounded_lifecycle=True
+                )
+            )
+        )
+    assert len(queries) == 1 and "cluster_id='" + cluster + "'" in queries[0]
+    assert queries[0].startswith("select count(*)")
+
+
 def test_foreign_status_url_never_receives_application_key_and_owned_job_is_cancelled():
     async def run():
         identifier = str(uuid4())
