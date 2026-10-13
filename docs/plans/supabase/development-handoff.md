@@ -1,6 +1,6 @@
 # Development handoff
 
-Updated October 12, 2026 on branch
+Updated October 13, 2026 on branch
 `supabase`. **Implemented and deployed as a candidate; not qualified for
 production.** Both hosted reader-disconnect checks fail. Tests use the explicitly
 authorized isolated Supabase Free and Vercel Hobby targets; this handoff does not
@@ -21,9 +21,11 @@ Keep Redis as the existing CLI default. Supabase uses Edge by default, includes 
 Both hosted gateways return genuine Ollama inference and pass route fixtures,
 exact NDJSON and signed private downloads (1.2 MB Edge, 4.2 MB Vercel). They
 enforce a measured 135-second synchronous deadline and complete async jobs beyond
-400 seconds. The final combined suite has **370 passes, one known local Edge
-disconnect failure and two opt-in real-model cases deselected**; hosted
-real-model checks passed separately. Both hosted disconnect probes also fail:
+400 seconds. The October 12 offline suite has **337 passes**, and Deno has
+**44 passes**. Deterministic/local selections together cover **406 passing
+cases**, with the known strict local Edge disconnect failure retained; these
+are combined selections, not a single clean invocation. Hosted real-model checks
+passed separately. Both hosted disconnect probes also fail:
 SQL becomes `succeeded` after the reader closes. Keep both profiles unqualified.
 
 The [operator lifecycle](experiments/operator-lifecycle.md) covers versioned
@@ -33,7 +35,7 @@ applied files remain immutable. The candidate fixes modern Storage compatibility
 commit locking, drift detection and preservation of API exposure. The local spike
 remains separate. Local FastAPI socket cancellation and
 [maintenance checks](experiments/local-maintenance.md) pass, but do not close
-hosted proxy, load/soak or installer gates.
+the remaining hosted envelope, disconnect or installer gates.
 
 ## Checkout prerequisites and immediate work
 
@@ -42,13 +44,12 @@ matching the minimum in [project metadata](../../../pyproject.toml). From a fres
 checkout, prepare the locked environment with:
 
 ```sh
-uv sync --locked --extra supabase
+uv sync --locked --extra supabase --extra installer
 uv run --locked pytest -q tests/test_systemone.py
 ```
 
-Record actual Python and dependency versions. Add `--extra installer` when running the complete
-contract suite or the installer service. The current offline suite has 337
-passes; final local Edge rerun retains the known disconnect failure. Hosted
+Record actual Python and dependency versions. Include `--extra installer` when
+running the complete contract suite or the installer service. Hosted
 1,000-job loads, restart/fencing/EOF/slow-reader and corrected actual Auth expiry
 checks now have evidence in the progress ledger; wider envelope and installer
 onboarding remain unrun.
@@ -63,13 +64,14 @@ The user chose preserving the current contract and experimental status. Continue
 the remaining hosted envelope and installer acceptance. The
 [local installer/adapters](experiments/local-installer.md) are implemented and
 fault-tested; no OAuth app exists yet, and the user chose local validation first.
-Use the
-strict existing regression and real provider probes; do not repeat initial
-characterization as if implementation has not begun. The
-[ordered checklist](next-steps.md) gives acceptance criteria for cancellation,
-hosted limits/soak, clean-machine CLI onboarding, provider adapters, OAuth/button
-flows and release review. Independent load and installer implementation can
-proceed while cancellation is investigated; qualification remains blocked.
+Actual Vercel adapter deployment/repeat reconciliation and isolated installed-wheel
+doctor also pass. Next finish broader hosted measurements, fresh/repeated packaged
+CLI onboarding, actual Edge Management-adapter acceptance and reviewed disposable
+removal. Hosted OAuth/button work needs external setup before acceptance can run.
+The [ordered checklist](next-steps.md) maps these to delivery steps 6–7 and keeps
+cancellation as an open release gate. Use the strict existing regression and real
+provider probes; do not repeat completed work as if implementation has not begun.
+No alternative ingress/client cancellation protocol is the current direction.
 
 Shared [protocol schemas/fixtures](../../../protocol/README.md) and the fake
 upstream already exist. The [initial characterization report](experiments/step-0-local-characterization.md)
@@ -108,9 +110,9 @@ Submission disconnect does not cancel an accepted async job. Idempotency keys re
 
 | Needed for | External inputs | Work possible without them |
 | --- | --- | --- |
-| Edge qualification | Isolated default-Free project in São Paulo already deployed and authorized; no paid testing authorized | Strict disconnect investigation, bounded limits/load/recovery checks on that target |
-| Vercel qualification | Isolated Hobby project deployed with approved encrypted Production-only configuration | Strict hosted disconnect investigation, bounded limits/load/recovery checks |
-| Web installer | Registered Supabase OAuth app, controlled HTTPS callback domain, installer hosting/credential store, maintenance owner; verified Marketplace access | Bootstrap manifest, CLI path, provider adapters with mocked failure cases |
+| Edge qualification | Isolated default-Free project in São Paulo already deployed and authorized; no paid testing authorized | Remaining size/backpressure/quota envelope and Edge adapter acceptance; strict disconnect gate stays open |
+| Vercel qualification | Isolated Hobby project deployed with approved encrypted Production-only configuration | Remaining size/backpressure/quota envelope and packaged CLI onboarding; strict disconnect gate stays open |
+| Web installer | Registered Supabase OAuth app, controlled HTTPS callback domain, installer hosting/credential store, maintenance owner; verified Marketplace access | Local service, bootstrap manifest, CLI and provider fault tests are delivered; continue independent CLI/adapter acceptance |
 | Real model smoke | Local Ollama 0.40.2 and installed `llama3.2:3b` already verified through both hosted gateways | Repeat bounded real inference after material runtime changes; deterministic tests remain the equality oracle |
 
 Use the existing private operator journals for the selected isolated targets;

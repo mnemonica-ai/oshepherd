@@ -1,20 +1,21 @@
 # Supabase implementation progress
 
-Updated October 12, 2026. The objective is to finish the implementation so
+Updated October 13, 2026. The objective is to finish the implementation so
 an Ollama client can send a request to an Edge Function and receive inference
 from a local Ollama model. This ledger records authoritative artifacts and
 verification; an implementation checkbox does not imply hosted validation.
 
 The local testing milestone is achieved: a real Edge Function request reaches
 the external worker and returns genuine Ollama inference. The complete handoff
-is still unfinished; production qualification, hosted/load verification and the
-hosted proxy disconnect gates remain open below. New Python work uses uv by default;
+is still unfinished; production qualification, the broader hosted envelope,
+installation acceptance and proxy disconnect gates remain open below. New Python
+work uses uv by default;
 older verification-log commands retain their original invocation.
 
 Continue with the [ordered next steps](next-steps.md), preserving the user's
 choice to keep the current contract and experimental status while completing
-independent load/recovery and installer work. That checklist defines acceptance
-criteria and separates external installer setup from work possible now.
+independent envelope and installation acceptance work. That checklist defines
+acceptance criteria and separates external installer setup from work possible now.
 
 ## Completed
 
@@ -190,17 +191,17 @@ criteria and separates external installer setup from work possible now.
 | Shared executor and backend-specific startup/configuration | Executor/config/RPC/Auth and API/worker CLI selection implemented | Redis characterization remains passing; full error matrix pending |
 | Isolated local Supabase configuration and pinned toolchain | Local stack/Auth/Edge running | Real model lifecycle passed; disconnect/hosted limits open |
 | Database schema, RPC grants/RLS, capacity, leases and fencing | Spike plus independent versioned candidate migrations implemented | Local history/drift, identity, quota, races, replay/fencing passed; hosted and full adversarial matrix pending |
-| Worker enrollment/session storage and refresh | Auth/storage/membership/login and operator enrollment implemented | Local recovery/refresh passed; actual hosted enrollment and CLI login passed; hosted refresh/long soak pending |
-| External local Ollama worker and independent heartbeat | Implemented with separate bounded metadata pool | Fake/real model, deterministic restart/fencing, saturation and refresh passed; drain/extended soak pending |
+| Worker enrollment/session storage and refresh | Auth/storage/membership/login and operator enrollment implemented | Local recovery/refresh, actual hosted enrollment/CLI login and corrected actual hosted Auth expiry/refresh passed; broader adversarial matrix pending |
+| External local Ollama worker and independent heartbeat | Implemented with separate bounded metadata pool | Fake/real model, hosted restart/fencing, capacity-two load and actual Auth-cycle control/metadata passed; broader drain/extended envelope pending |
 | All nine Edge routes and application-key authentication | Implemented | Local and hosted route fixtures/auth/metadata passed; full adversarial matrix pending |
-| Durable streaming, cancellation and output limits | Implemented in SQL/worker/gateway | Exact bytes, local FastAPI cancellation and controlled ASGI stall passed; **local Edge and both hosted reader-disconnect checks fail**; hosted slow-reader/load pending |
+| Durable streaming, cancellation and output limits | Implemented in SQL/worker/gateway | Exact bytes, local FastAPI cancellation, controlled ASGI stall, bounded hosted slow reader and 1,000-job loads passed; **local Edge and both hosted reader-disconnect checks fail**; near-limit/backpressure envelope pending |
 | Async jobs, expiry, cancellation and authorized results/downloads | Inline/private-object paths implemented | Edge/FastAPI async and downloads passed; full expiry/adversarial matrix pending |
-| Private Storage results and cleanup/reconciliation | Upload/sign/read, deletion outbox, orphan reconciliation, operator runner and private Cron sweeps implemented | Local authorization, recovery, purge, Cron and operator schedule reconciliation passed; hosted/load pending |
-| Optional FastAPI backend and Vercel template | Backend-aware API, Vercel ASGI factory and wheel-backed candidate template deployed on Hobby | Hosted real model/routes/download and 135-second application limit passed; hosted disconnect fails; platform ceiling and load pending |
-| CLI bootstrap/doctor and operator administration | Protected candidate configure/install/enroll/doctor/upgrade/rotate/revoke/disable implemented | Local lifecycle/recovery and manual hosted install/deploy/enrollment passed; clean-machine onboarding, automated deployment and physical uninstall pending |
-| Installation manifest, OAuth installer and provider adapters | Hash-verified packaged manifest and explicit schema-exposure adapter implemented | Local resumability/ownership/upgrade passed; OAuth and provider automation pending |
+| Private Storage results and cleanup/reconciliation | Upload/sign/read, deletion outbox, orphan reconciliation, operator runner and private Cron sweeps implemented | Local authorization/recovery/purge/Cron and bounded hosted signed/content expiry plus actual expired-object cleanup passed; broader hosted retention/maintenance envelope pending |
+| Optional FastAPI backend and Vercel template | Backend-aware API, Vercel ASGI factory and wheel-backed candidate template deployed on Hobby | Hosted real model/routes/download, 135-second application limit and 1,000-job load passed; hosted disconnect fails; platform ceiling and size/backpressure envelope pending |
+| CLI bootstrap/doctor and operator administration | Protected candidate configure/install/enroll/doctor/upgrade/rotate/revoke/disable implemented | Local lifecycle/recovery, manual hosted setup and clean installed-wheel doctor passed; full fresh/repeated packaged onboarding and hosted removal pending |
+| Installation manifest, OAuth installer and provider adapters | Hash-verified manifest, schema exposure, separate OAuth control service and owned Edge/Vercel adapters implemented | Local resumability/ownership/upgrade/fault tests and actual Vercel deployment/repeat passed; hosted OAuth/button, Edge Management deployment and removal pending |
 | Runbook and automated Edge → worker → response harness | Local and [operator runbooks](experiments/operator-lifecycle.md), disposable two-schema harness available | Real inference passed in both schemas; complete hosted clean-machine setup pending |
-| Hosted limits, load/cost, lifecycle and installation | Isolated Supabase project deployed on default Free plan; Vercel Hobby verified and approved Production configuration deployed | Both real inference/routes/download pass; sync deadlines and async jobs beyond 400 seconds measured; both disconnect checks fail; broader measurements pending |
+| Hosted limits, load/cost, lifecycle and installation | Isolated Supabase project deployed on default Free plan; Vercel Hobby verified and approved Production configuration deployed | Both real inference/routes/download, 1,000-job loads, corrected actual Auth expiry and recovery pass; sync deadlines and async jobs beyond 400 seconds measured; disconnect fails; broader envelope/quota and installation acceptance pending |
 
 ## Current decisions and remaining dependencies
 
@@ -420,6 +421,28 @@ and quota envelope, real hosted OAuth/Marketplace/button onboarding, actual Edge
 Management-adapter deployment and reviewed disposable-resource removal. Short
 functional/load checks do not qualify a profile. The current user decision
 preserves the contract and experimental status.
+
+## October 13 documentation reconciliation and next work
+
+Reconciled the summary tables, [handoff](development-handoff.md),
+[installation status](installation.md) and [ordered next steps](next-steps.md)
+with the October 12 evidence. This documentation-only slice adds no runtime
+changes or new hosted validation. Delivery steps 6–7 remain open for:
+
+1. Broader hosted size, backpressure, latency and quota measurements within the
+   existing Free/Hobby authorization.
+2. Full fresh/repeated packaged CLI onboarding; installed-wheel doctor alone
+   does not establish the entire lifecycle.
+3. Actual Edge Management-adapter deploy/adoption/recovery and reviewed removal
+   of explicitly selected disposable owned resources.
+4. Real OAuth prerequisites, hosted consent/onboarding and published pinned
+   template/button acceptance against V16–V21.
+5. Final release review only when the required profile gates pass.
+
+The strict disconnect failures remain an open release gate under the user's
+contract-preservation decision. Independent acceptance work cannot qualify either
+profile while that gate fails. Paid cases, API expansion and an alternative
+cancellation protocol are outside the current work.
 
 ## Handoff discipline
 

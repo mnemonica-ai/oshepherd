@@ -1,12 +1,15 @@
 # Supabase installation and hosting
 
-Updated October 12, 2026. Companion to the [implementation plan](implementation.md)
+Updated October 13, 2026. Companion to the [implementation plan](implementation.md)
 and [verification matrix](compatibility.md). Versioned SQL, the operator CLI and
 the self-contained Vercel template are implemented candidates with evidence in
 the [operator runbook](experiments/operator-lifecycle.md). Both isolated hosted
 gateways return genuine inference; their disconnect checks fail, so full
-qualification remains pending. OAuth, provider creation/deployment/removal
-automation and installation buttons remain proposed. The
+qualification remains pending. The separate OAuth control service and owned
+deployment/removal adapters are implemented and locally fault-tested; actual
+Vercel adapter deployment and repeat reconciliation pass. Hosted OAuth/button
+onboarding, Edge Management-adapter deployment and hosted removal remain unrun.
+Automatic provider project creation is outside the delivered installer. The
 [next steps](next-steps.md) separate those deliverables from the working CLI path.
 
 ## Installation promise
@@ -142,4 +145,4 @@ Implement the bootstrap manifest/CLI first, then the Supabase OAuth UI and Verce
 
 Required artifacts: CLI commands, release manifest, migrations/config/functions, secure installer service, Vercel template and generated button, example configuration, worker enrollment, doctor, upgrade/uninstall guidance and CI smoke/fault tests. Keep Supabase-specific implementation grouped as described in the [implementation layout](implementation.md#proposed-code-layout).
 
-Acceptance gates V16–V21 in the [matrix](compatibility.md) cover fresh installs, repeated/partial setup, ownership, previews, Vercel limits, upgrades and real onboarding. Measure time to cloud readiness and first successful inference separately. Until those tests exist and run on hosted projects, installation feasibility remains researched rather than demonstrated.
+Acceptance gates V16–V21 in the [matrix](compatibility.md) cover fresh installs, repeated/partial setup, ownership, previews, Vercel limits, upgrades and real onboarding. Measure time to cloud readiness and first successful inference separately. Local installer/fault tests, manual hosted setup, installed-wheel doctor and Vercel adapter deployment provide partial evidence; full fresh/repeated packaged CLI onboarding and hosted browser/button acceptance remain unrun. Follow the [remaining work](next-steps.md) before claiming either installation flow complete.
