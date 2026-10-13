@@ -24,7 +24,8 @@ criteria and separates external installer setup from work possible now.
 - [x] Run 1,000 exact deterministic jobs on each hosted profile and bounded
   restart/fencing, incomplete EOF and slow-reader probes. Record four-active-job
   caller admission and the rejected Edge five-request burst without changing
-  limits. Actual Auth rejection acceptance is pending the corrected probe report.
+  limits. Both corrected actual Auth expiry/refresh probes pass, including old
+  JWT rejection, saved new-session acceptance and inference after expiry.
 
 - [x] Add and run `--bounded-lifecycle` against both hosted profiles: four-job
   queueing/capacity-two enforcement, explicit cancellation stopping the worker,
@@ -366,7 +367,13 @@ Evidence collected in this slice:
 - Full contracts/SystemOne plus real local operator/Storage selection: **347
   passed in 51.87 seconds**, one upstream TestClient warning. The subsequent
   corrected Auth-probe subset has **9 passes**, including 401/403 rejection and
-  failure on a still-valid 200 response. Final totals are recorded below when run.
+  failure on a still-valid 200 response. Final offline suite: **337 passed in
+  13.67 seconds**. Broad deterministic/local selection: **402 passed**, with
+  five Edge cases initially blocked by the hosted probe's port. Sequential Edge
+  rerun: **four passed, one known strict disconnect failure, two model cases
+  deselected in 22.12 seconds**. Together these cover 406 passing cases; this is
+  combined selection evidence, not a claim of one clean combined invocation.
+  Deno: **44 passed**, entrypoint type check passed.
 - Both hosted profiles completed **1,000 exact deterministic jobs** at concurrency
   two. Edge load duration 453.49 seconds, p50/p95/max 0.640/1.291/4.443 seconds;
   Vercel 741.74 seconds, 1.235/1.943/4.035 seconds. Worker control and metadata
@@ -376,8 +383,12 @@ Evidence collected in this slice:
   [JWT parser](https://github.com/supabase/auth/blob/master/internal/api/auth.go)
   uses 403 for invalid JWTs. The corrected harness accepts rejection via 401/403,
   still fails on 200, and records the status. A separate `--auth-soak` repeats
-  actual expiry acceptance without repeating load; its completion remains pending
-  until the final report is collected. No JWT lifetime was shortened.
+  actual expiry acceptance without repeating load. Both corrected modes now
+  exit successfully: original JWT **403**, current JWT **200**, unchanged user,
+  atomic private persistence, live control/metadata and exact inference after
+  expiry. Edge/Vercel elapsed **3224.12/3225.09 seconds** from sessions initially
+  having 3209/3208 seconds remaining. Metadata checks **107/104**. These repeat
+  zero load jobs plus one final inference each; no JWT lifetime was shortened.
 - Both `--recovery` probes pass: two actual worker restarts advance generation,
   old heartbeat/append/failure mutations are fenced, pre-output work retries once,
   durable/incomplete output never retries, and exact 536,405-byte slow-reader
@@ -398,6 +409,11 @@ Evidence collected in this slice:
   upload**. Rebuilding from the clean source archive excluded tests/private state.
   The installed wheel's source/assets hashes and CLI doctor passed from a clean
   working directory without checkout imports.
+- Aggregate observation on the owned database: **26,138,291 bytes**, zero active
+  jobs, 1,067/1,063 retained cluster jobs and 13 private result objects per cluster.
+  The observation includes earlier isolated tests and ordinary retention; it is
+  not a claim about remaining provider quota. Auth workers stopped cleanly and
+  the user's Ollama/local stack were preserved.
 
 Remaining gates: existing strict disconnect failures, wider size/backpressure
 and quota envelope, real hosted OAuth/Marketplace/button onboarding, actual Edge

@@ -218,8 +218,12 @@ but exited unsuccessfully at a final check that expected only 401. Its original
 response status was not retained. GoTrue uses 403 for invalid JWTs; the corrected
 probe records the status and requires 401/403 rejection, current-token acceptance
 and exact inference after the original expiry. `--auth-soak` repeats that actual
-cycle without repeating load; final acceptance is pending its completed report.
-No server expiry configuration or local JWT schedule was shortened.
+cycle without repeating load. Both corrected runs now pass: original JWT 403,
+refreshed JWT 200 for the same user, saved session equality and exact inference
+after expiry. They ran 3224.12/3225.09 seconds with 3209/3208 seconds initially
+remaining, checking metadata 107/104 times. Each repeats zero load jobs and one
+post-expiry inference. No server expiry configuration or local JWT schedule was
+shortened. The initial failed reports remain separate.
 
 Both bounded recovery probes passed actual worker restarts before/after output,
 old-generation heartbeat/append/failure fencing, exactly one pre-output retry,

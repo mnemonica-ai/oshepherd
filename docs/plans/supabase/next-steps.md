@@ -5,7 +5,7 @@ Updated October 12, 2026.
 The candidate is implemented and deployed to the authorized isolated Supabase
 Free and Vercel Hobby targets. Both return genuine local Ollama inference, pass
 route/NDJSON/private-download probes, enforce a measured 135-second synchronous
-deadline, and complete async work beyond 400 seconds. The final combined suite
+deadline, and complete async work beyond 400 seconds. The October 11 combined suite
 has 370 passes, one known strict local Edge disconnect failure, and two opt-in
 model cases deselected; real-model hosted checks passed separately.
 

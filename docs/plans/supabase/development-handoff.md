@@ -46,7 +46,14 @@ uv sync --locked --extra supabase
 uv run --locked pytest -q tests/test_systemone.py
 ```
 
-Record actual Python and dependency versions. The experimental toolchain is pinned
+Record actual Python and dependency versions. Add `--extra installer` when running the complete
+contract suite or the installer service. The current offline suite has 337
+passes; final local Edge rerun retains the known disconnect failure. Hosted
+1,000-job loads, restart/fencing/EOF/slow-reader and corrected actual Auth expiry
+checks now have evidence in the progress ledger; wider envelope and installer
+onboarding remain unrun.
+
+The experimental toolchain is pinned
 in `supabase/toolchain.json`; release qualification remains pending. Local
 Supabase integration tests need the CLI and a compatible container runtime;
 Python characterization fixtures do not. Real Ollama/GPU access is unnecessary
