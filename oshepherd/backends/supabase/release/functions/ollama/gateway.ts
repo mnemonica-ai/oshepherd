@@ -117,7 +117,12 @@ export function createGateway(
       const parseBody = async (): Promise<JsonObject> => {
         try {
           const input = JSON.parse(
-            decoder.decode(await bodyBytes(request.body, 1048576)),
+            decoder.decode(
+              await bodyBytes(request.body, 1048576, {
+                bytes: 8 * 1048576,
+                milliseconds: 5000,
+              }),
+            ),
           );
           if (!object(input)) throw new GatewayError("invalid_request", 422);
           return input;

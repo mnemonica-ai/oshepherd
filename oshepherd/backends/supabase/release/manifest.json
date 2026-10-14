@@ -81,10 +81,10 @@
     ]
   ],
   "artifacts": {
-    "functions/ollama/gateway.ts": "d5dc8c800debc3948652b30ee3a7d3bfa95b2c0585a0a3a136694fc9dc589e3d",
+    "functions/ollama/gateway.ts": "b7b599b074ceb8aab8f8a06faccf02f9800c3079e82398a4d8b2fa214071660b",
     "functions/ollama/index.ts": "b705c20e49f5d0cf69ccd6ac3c1638cc9555233335fd8009f3008edd4ddc65db",
     "functions/ollama/normalize.ts": "b41527fa362f7123f8b08071509c1d15a58d90723d46c5b6dbfb2ef2f9e4b415",
-    "functions/ollama/rpc.ts": "f63073b91c585d394e490fad715e74dca677fc53778e8caa37f4577dc82fe6d0",
+    "functions/ollama/rpc.ts": "67cee51debf522ad348dd7d1872a82ecdbf9d162913ad02ba032b2ff66af92ca",
     "functions/ollama/storage.ts": "d99f9b7980ba11f2bb074464a600af2e9101c95768e52fcba70618bf37d3271b",
     "templates/vercel/.python-version": "7b55f8e67b5623c4bef3fa691288da9437d79d3aba156de48d481db32ac7d16d",
     "templates/vercel/.vercelignore": "58a4a454e6bb299824d6ad3b00c92bbba228cfbd5297ce5d67c680765cb5ed9a",
@@ -130,7 +130,7 @@
     "backends/supabase/__init__.py": "b5fac1e853bc2aa2d1a9f12a96292e28a7bb65aa6a2fc5f99c76c45ad89c2593",
     "backends/supabase/client.py": "537aa798bc95ff904e7fb551e46d15aaa1d6f9488a28a9332fedc8ab526a4795",
     "backends/supabase/config.py": "ce07611c20c1ff9423fbdb1d234bd4fa375e611be0e2fb8057bb38cd684affcd",
-    "backends/supabase/edge_deployment.py": "b0060712677205401139b567128b41849699002d5e7edd5939f664bcc328ea14",
+    "backends/supabase/edge_deployment.py": "dcecd38fb42fa59bc9d78429c47eac70ce33e67f628d74a669bf1d9efddc5659",
     "backends/supabase/gateway.py": "7df9c51df0f4fab256aa1b4b8e85b90d81424cee9dda64704770057bea0a121b",
     "backends/supabase/gateway_storage.py": "d5a44f761109a393f4a222e81f7f4310e04664ba633e6d944ef57e6026259a91",
     "backends/supabase/installer.py": "e59ade75f213f280b8b2870c5945d3f71b6085a255339d0123eb2c9a6fa9bc74",

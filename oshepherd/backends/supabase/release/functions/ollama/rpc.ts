@@ -8,6 +8,7 @@ export const RPC_RESPONSE_BYTES = 2 * 1024 * 1024;
 export async function bodyBytes(
   body: ReadableStream<Uint8Array> | null,
   limit: number,
+  rejectDrain?: { bytes: number; milliseconds: number },
 ): Promise<Uint8Array> {
   if (!body) return new Uint8Array();
   const reader = body.getReader();
@@ -18,11 +19,42 @@ export async function bodyBytes(
       const { value, done } = await reader.read();
       if (done) break;
       size += value.length;
-      if (size > limit) throw new GatewayError("request_too_large", 413);
+      if (size > limit) {
+        // Some HTTP proxies cannot deliver an early response until the incoming
+        // upload reaches EOF. Discard a finite tail without retaining it. This
+        // never raises the accepted payload budget, and is opt-in for requests.
+        if (rejectDrain) {
+          let timer: number | undefined;
+          try {
+            await Promise.race([
+              (async () => {
+                let discarded = 0;
+                while (discarded < rejectDrain.bytes) {
+                  const tail = await reader.read();
+                  if (tail.done) return;
+                  discarded += tail.value.length;
+                }
+              })(),
+              new Promise((_, reject) => {
+                timer = setTimeout(
+                  () => reject(new Error("drain deadline")),
+                  rejectDrain.milliseconds,
+                );
+              }),
+            ]).catch(() => {});
+          } finally {
+            clearTimeout(timer);
+          }
+        }
+        throw new GatewayError("request_too_large", 413);
+      }
       chunks.push(value);
     }
   } catch (error) {
-    await reader.cancel().catch(() => {});
+    // The runtime may wait for the remote request body to finish before its
+    // cancellation promise settles. Reject admission promptly; cancellation
+    // must not turn an oversized upload into an unbounded handler wait.
+    void reader.cancel().catch(() => {});
     throw error;
   } finally {
     reader.releaseLock();

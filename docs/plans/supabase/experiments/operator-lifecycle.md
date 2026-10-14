@@ -1,8 +1,14 @@
 # Versioned operator lifecycle candidate
 
-Updated October 11, 2026. This is an implemented CLI path with local and hosted
+Updated October 14, 2026. This is an implemented CLI path with local and hosted
 Edge/Vercel evidence, not a production qualification claim. Redis remains the default.
 The persistent local demo keeps using `oshepherd_spike_api`; it is unaffected.
+
+The complete installed-wheel local CLI lifecycle and reviewed hosted removal
+acceptance now pass. Both hosted qualification clusters are disabled and their
+reviewed gateway resources removed; provider projects/shared configuration remain.
+See [current acceptance](independent-acceptance.md). Old sessions/keys cannot be
+reused for hosted inference.
 
 ## Release and migration ownership
 
@@ -49,8 +55,9 @@ preserves their order, and reconciles again on upgrades/replay. Unchanged exposu
 does not rewrite role settings or trigger another PostgREST reload. For hosted
 installs, supply the actual existing exposed-schema list from the project's API
 settings; installation refuses to guess it. It checks that unrelated schemas
-exist before committing exposure. Automatic Management API discovery is a
-remaining provider-adapter deliverable.
+exist before committing exposure. The implemented Management adapter discovers
+the selected project's existing API configuration for the local installer;
+real hosted OAuth discovery/onboarding acceptance remains unrun.
 
 ## Configure and install
 
@@ -149,7 +156,8 @@ performs application-key authentication. Its server configuration binds one
 cluster. Do not overwrite project-wide Oshepherd secrets for another installation.
 The [new provider adapters and local installer](local-installer.md) supplement
 these manual commands with ownership receipts and failure reconciliation;
-hosted OAuth/Edge Management-adapter acceptance remains pending. A deployed
+actual Edge adoption/upgrade/reconciliation now pass, while hosted OAuth acceptance
+remains pending. A deployed
 health response alone does not prove artifact ownership.
 
 For the optional Vercel profile, configure a separate operator state directory
@@ -243,8 +251,9 @@ a pending rotation with `rotate-key` before invoking install/upgrade.
 `uninstall` currently performs cluster disablement: deny admission, cancel active
 jobs, revoke application keys and workers, preserve retained data. It keeps the
 shared schemas, gateway artifact and cleanup schedules. Physical provider
-resource removal and destructive purge are unimplemented; do not describe this
-command as deleting the entire project or a complete provider uninstall.
+resource removal is implemented by receipt-bound adapter SDK methods and passes
+reviewed hosted acceptance; destructive database purge is outside that operation.
+Do not describe `uninstall` as deleting a gateway or the entire provider project.
 
 ## Evidence and remaining gates
 
@@ -261,8 +270,9 @@ fixtures, exact NDJSON and private downloads. Their synchronous deadline was
 measured at 135 seconds, and async jobs completed beyond 400 seconds; see the
 [hosted report](hosted-qualification.md). Both hosted disconnect checks fail.
 
-Remaining: clean-machine CLI onboarding, automated provider deployment/removal
-and ownership preflight, OAuth installer service/registered callback, complete
-Free/Hobby limits/load/cost/soak measurements, and both strict proxy disconnect
-gates. The [next-steps checklist](../next-steps.md) gives the order and acceptance
+The full current installed-wheel local CLI lifecycle, actual provider preflight/
+deployment/reconciliation and reviewed physical removal now pass. Remaining:
+fresh hosted/browser onboarding and overlapping-version upgrades, real OAuth
+app/callback/host setup, wider performance/resource/cost/quota evidence and both
+strict proxy disconnect gates. The [next-steps checklist](../next-steps.md) gives the order and acceptance
 criteria; the [progress ledger](../progress.md) owns exact commands and results.

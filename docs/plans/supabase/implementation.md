@@ -1,6 +1,12 @@
 # Optional Supabase backend: implementation plan
 
-Updated October 4, 2026. Status: implementation proposal, informed by repository inspection and official documentation. No Supabase backend has been implemented or benchmarked. The [compatibility and verification matrix](compatibility.md) and [installation and hosting plan](installation.md) are part of this plan. Start at the [Supabase index](index.md).
+Updated October 14, 2026. Status: implemented experimental candidate with local
+and bounded hosted evidence in the [progress ledger](progress.md). The strict
+Edge/Vercel reader-disconnect gates still fail; full release qualification and
+hosted OAuth/button onboarding remain incomplete. The user-approved test gateway
+removals are complete, so those hosted installations are retired. The
+[compatibility matrix](compatibility.md) and [installation plan](installation.md)
+remain the acceptance specification. Start at the [Supabase index](index.md).
 
 ## 1. Decision
 

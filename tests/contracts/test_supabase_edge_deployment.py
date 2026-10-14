@@ -71,7 +71,7 @@ class Cloud:
                 )
             )
             assert (
-                metadata["entrypoint_path"] == "index.ts"
+                metadata["entrypoint_path"] == "supabase/functions/ollama/index.ts"
                 and metadata["verify_jwt"] is False
             )
             files = {
@@ -81,7 +81,7 @@ class Cloud:
             }
             root, manifest = release_assets()
             assert files == {
-                name.rsplit("/", 1)[-1]: root.joinpath(name).read_bytes()
+                "supabase/" + name: root.joinpath(name).read_bytes()
                 for name in manifest["artifacts"]
                 if name.startswith("functions/ollama/")
             }

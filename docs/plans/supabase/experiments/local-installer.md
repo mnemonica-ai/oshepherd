@@ -1,9 +1,13 @@
 # Local installer and provider adapters
 
-October 12, 2026. Candidate implementation; hosted OAuth/button onboarding is
+Updated October 14, 2026. Candidate implementation; hosted OAuth/button onboarding is
 **not run**. No OAuth app/callback/hosting exists yet; the user chose local
 implementation and validation first. Both gateways remain experimental under
 the existing disconnect contract.
+
+Actual Edge/Vercel adapter acceptance and reviewed live removal now pass; both
+test gateways are removed and their clusters disabled. See
+[independent acceptance](independent-acceptance.md) before reproducing hosted tests.
 
 The installer is a separate, single-operator FastAPI control service. The browser
 queues durable requests; a persistent runner uses the existing `Operator.install`
@@ -96,22 +100,29 @@ ambiguous deployment; a missing match requires investigation rather than a blind
 duplicate. READY and stable-domain authentication are independent checks.
 The approved isolated Hobby target passed actual preflight, encrypted Production
 configuration, a clean-wheel deployment, independent health/denial verification
-and a repeated call reusing the same deployment. Edge's Management adapter still
-has only local fault evidence. [Vercel CLI](https://vercel.com/docs/cli/deploy)
+and a repeated call reusing the same deployment. Edge's Management adapter now
+passes actual exact CLI artifact adoption, upgrade and repeated reconciliation.
+Its source-relative upload paths match the official CLI's bundle hash; ownership
+checks remain strict. [Vercel CLI](https://vercel.com/docs/cli/deploy)
 
 `plan-edge-removal` prints an owned-resource plan without mutation. Both adapters
 expose `removal_plan()` and `remove(expected_*_id, operator)` for a reviewed exact
 resource. Admission is disabled first; only the receipt-bound Edge function or
 Vercel deployment is removed. Shared schedules, data, environments/secrets,
 other deployments and provider projects remain. Existing CLI `uninstall` remains
-cluster disablement. Removal tests are local; no hosted gateway was deleted.
+cluster disablement. Reviewed hosted removal tests now pass on both providers,
+including recovery after simulated acknowledgement loss following actual
+deletion, repeated removal, and independent preservation checks. The
+[removal harness](independent-acceptance.md#actual-provider-adapter-and-removal-acceptance)
+defaults to read-only planning; execution requires its saved reviewed plan.
 Serialize provider administration during removal: provider read/delete calls are
 not a cross-service transaction.
 
 ## Remaining acceptance
 
-Real consent/refresh/revocation, HTTPS callbacks, fresh hosted provisioning,
-actual Edge adapter deployment and hosted destructive-removal recovery, real browserless-worker onboarding
-and a published pinned template/button remain unrun. Marketplace access and
+Real consent/refresh/revocation, HTTPS callbacks, fresh hosted/browser onboarding
+and a published pinned template/button remain unrun. The current packaged CLI
+browserless-worker lifecycle passes locally; it does not establish hosted browser
+acceptance. Marketplace access and
 installer hosting/service ownership are still prerequisites. These local tests
 do not close hosted V16–V21 or justify publishing a placeholder button.

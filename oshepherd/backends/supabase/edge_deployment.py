@@ -118,7 +118,11 @@ class EdgeDeployment:
                 (
                     "file",
                     (
-                        Path(name).name,
+                        # Match the official CLI's source-relative module URLs.
+                        # Flattening filenames changes the provider's ESZIP hash
+                        # even when every source byte is identical, preventing
+                        # strict adoption of a CLI-deployed function.
+                        "supabase/" + name,
                         root.joinpath(name).read_bytes(),
                         "application/typescript",
                     ),
@@ -172,7 +176,7 @@ class EdgeDeployment:
             )
             metadata = {
                 "name": name,
-                "entrypoint_path": "index.ts",
+                "entrypoint_path": "supabase/functions/ollama/index.ts",
                 "verify_jwt": False,
             }
             # Bundling has no deployment side effect. Save its provider hash so

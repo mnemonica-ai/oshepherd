@@ -144,9 +144,11 @@ async def run(args):
     if config.profile == "vercel_hobby" and not config.gateway_url:
         raise ValueError("vercel_gateway_url_required")
     state = Installation.load(args.state_dir, config)
+    if state.stage != "configured":
+        raise ValueError("qualification_requires_configured_installation")
     if any(
         getattr(args, name, False)
-        for name in ("bounded_lifecycle", "soak", "auth_soak", "recovery")
+        for name in ("bounded_lifecycle", "soak", "auth_soak", "recovery", "envelope")
     ):
         cluster = str(UUID(str(state.cluster_id)))
         active = await asyncio.to_thread(
@@ -260,6 +262,13 @@ async def run(args):
 
                 await check_recovery(
                     client, app, worker, task, config, state, url, headers, results
+                )
+                return
+            if getattr(args, "envelope", False):
+                from scripts.supabase_hosted_envelope import check_envelope
+
+                await check_envelope(
+                    client, app, worker, config, state, url, headers, results
                 )
                 return
             cases = json.loads((fixtures / "routes.json").read_text())["cases"]
@@ -426,6 +435,11 @@ def main():
     parser.add_argument("--worker-session", type=Path, required=True)
     parser.add_argument("--report-file", type=Path)
     modes = parser.add_mutually_exclusive_group()
+    modes.add_argument(
+        "--envelope",
+        action="store_true",
+        help="Bounded request/JSON/NDJSON size checks and slow-reader/control observations on an idle isolated installation (at most 10 minutes).",
+    )
     modes.add_argument(
         "--lifetimes",
         action="store_true",

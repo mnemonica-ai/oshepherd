@@ -1,6 +1,6 @@
 import { createGateway } from "./gateway.ts";
 import { GatewayError, normalize } from "./normalize.ts";
-import { encoder, Rpc, sha256 } from "./rpc.ts";
+import { bodyBytes, encoder, Rpc, sha256 } from "./rpc.ts";
 
 const fixtures = JSON.parse(
   await Deno.readTextFile(
@@ -32,6 +32,122 @@ function equal(actual: unknown, expected: unknown, label: string) {
     );
   assert(canonical(actual) === canonical(expected), label);
 }
+
+Deno.test("oversized body rejects while transport cancellation stays pending", async () => {
+  let cancelled = false;
+  let finishCancel!: () => void;
+  const body = new ReadableStream<Uint8Array>({
+    start(sink) {
+      sink.enqueue(new Uint8Array(9));
+    },
+    cancel() {
+      cancelled = true;
+      return new Promise<void>((resolve) => finishCancel = resolve);
+    },
+  });
+  let timer: number | undefined;
+  try {
+    await Promise.race([
+      bodyBytes(body, 8).then(
+        () => {
+          throw new Error("oversized body accepted");
+        },
+        (error) => {
+          assert(
+            error instanceof GatewayError && error.code === "request_too_large",
+          );
+        },
+      ),
+      new Promise((_, reject) => {
+        timer = setTimeout(
+          () => reject(new Error("body rejection blocked on cancel")),
+          100,
+        );
+      }),
+    ]);
+    assert(
+      cancelled && !body.locked,
+      "reader cancellation or lock cleanup missing",
+    );
+  } finally {
+    clearTimeout(timer);
+    finishCancel?.();
+  }
+});
+
+Deno.test("oversized request drains a finite tail without accepting or retaining it", async () => {
+  let reads = 0;
+  const body = new ReadableStream<Uint8Array>({
+    pull(sink) {
+      reads++;
+      if (reads <= 3) sink.enqueue(new Uint8Array(9));
+      else sink.close();
+    },
+  }, { highWaterMark: 0 });
+  try {
+    await bodyBytes(body, 8, { bytes: 32, milliseconds: 100 });
+    throw new Error("oversized body accepted");
+  } catch (error) {
+    assert(error instanceof GatewayError && error.code === "request_too_large");
+  }
+  assert(reads === 4 && !body.locked, "tail was not drained to EOF");
+});
+
+Deno.test("oversized request tail drain obeys its deadline", async () => {
+  let finishCancel!: () => void;
+  const body = new ReadableStream<Uint8Array>({
+    start(sink) {
+      sink.enqueue(new Uint8Array(9));
+    },
+    cancel() {
+      return new Promise<void>((resolve) => finishCancel = resolve);
+    },
+  });
+  let guard: number | undefined;
+  try {
+    await Promise.race([
+      bodyBytes(body, 8, { bytes: 32, milliseconds: 5 }).catch((error) => {
+        assert(
+          error instanceof GatewayError && error.code === "request_too_large",
+        );
+      }),
+      new Promise((_, reject) => {
+        guard = setTimeout(
+          () => reject(new Error("unbounded tail drain")),
+          100,
+        );
+      }),
+    ]);
+    assert(!body.locked, "reader lock retained");
+  } finally {
+    clearTimeout(guard);
+    finishCancel?.();
+  }
+});
+
+Deno.test("oversized request tail drain obeys its byte bound", async () => {
+  let reads = 0;
+  let cancelled = false;
+  const body = new ReadableStream<Uint8Array>({
+    pull(sink) {
+      reads++;
+      sink.enqueue(new Uint8Array(9));
+    },
+    cancel() {
+      cancelled = true;
+    },
+  }, { highWaterMark: 0 });
+  try {
+    await bodyBytes(body, 8, { bytes: 32, milliseconds: 100 });
+    throw new Error("oversized body accepted");
+  } catch (error) {
+    assert(error instanceof GatewayError && error.code === "request_too_large");
+  }
+  assert(
+    reads === 5 && cancelled && !body.locked,
+    "tail drain exceeded byte bound",
+  );
+});
 
 for (const fixture of fixtures.cases.filter((value: any) => value.normalized)) {
   Deno.test("payload fixture: " + fixture.id, () => {
@@ -332,13 +448,21 @@ Deno.test("unconsumed stream stalls without polling or unbounded buffering", asy
     return { jobs: [statusJob({ state: "running", mode: "sync" })] };
   }, { readerStallMs: 10, deadlineMs: 500 });
   const response = await gateway(request("/api/generate", {
-    model: "fixture", prompt: "", stream: true,
+    model: "fixture",
+    prompt: "",
+    stream: true,
   }));
   let timer: ReturnType<typeof setTimeout>;
   try {
-    await Promise.race([cancelled, new Promise((_, reject) => {
-      timer = setTimeout(() => reject(new Error("stall timeout did not cancel")), 250);
-    })]);
+    await Promise.race([
+      cancelled,
+      new Promise((_, reject) => {
+        timer = setTimeout(
+          () => reject(new Error("stall timeout did not cancel")),
+          250,
+        );
+      }),
+    ]);
     assert(reason === "reader_stalled" && reads === 0);
     const reader = response.body!.getReader();
     const first = await reader.read();
@@ -362,13 +486,21 @@ Deno.test("active reader waiting for inference is not a stalled reader", async (
       cancellations.push(payload.reason);
       return {};
     }
-    return { jobs: [statusJob({
-      state: ready ? "succeeded" : "running", mode: "sync", last_seq: ready ? 1 : 0,
-      chunks: ready && payload.cursors[0].cursor === 0 ? [{ seq: 1, content, checksum }] : [],
-    })] };
+    return {
+      jobs: [statusJob({
+        state: ready ? "succeeded" : "running",
+        mode: "sync",
+        last_seq: ready ? 1 : 0,
+        chunks: ready && payload.cursors[0].cursor === 0
+          ? [{ seq: 1, content, checksum }]
+          : [],
+      })],
+    };
   }, { readerStallMs: 10, deadlineMs: 1000 });
   const response = await gateway(request("/api/generate", {
-    model: "fixture", prompt: "", stream: true,
+    model: "fixture",
+    prompt: "",
+    stream: true,
   }));
   const reader = response.body!.getReader();
   try {

@@ -1,10 +1,15 @@
 # Development handoff
 
-Updated October 13, 2026 on branch
+Updated October 14, 2026 on branch
 `supabase`. **Implemented and deployed as a candidate; not qualified for
 production.** Both hosted reader-disconnect checks fail. Tests use the explicitly
 authorized isolated Supabase Free and Vercel Hobby targets; this handoff does not
 authorize paid upgrades or deployment to another unspecified account.
+
+The user-approved physical gateway removals are complete. Both hosted test
+clusters are disabled; their application keys/workers are revoked. Projects,
+retained data and shared configuration remain. Do not run inference/probes with
+the retired sessions. See [October 14 acceptance](experiments/independent-acceptance.md).
 
 ## Start here
 
@@ -18,14 +23,13 @@ without chat history.
 
 Keep Redis as the existing CLI default. Supabase uses Edge by default, includes async jobs, and supports optional FastAPI gateways. All nine existing routes are in scope. Do not substitute a FastAPI-only implementation for a failed Edge spike, broaden Ollama fields incidentally, or implement an automatic cross-backend retry.
 
-Both hosted gateways return genuine Ollama inference and pass route fixtures,
+Both hosted gateways returned genuine Ollama inference and passed route fixtures,
 exact NDJSON and signed private downloads (1.2 MB Edge, 4.2 MB Vercel). They
 enforce a measured 135-second synchronous deadline and complete async jobs beyond
-400 seconds. The October 12 offline suite has **337 passes**, and Deno has
-**44 passes**. Deterministic/local selections together cover **406 passing
-cases**, with the known strict local Edge disconnect failure retained; these
-are combined selections, not a single clean invocation. Hosted real-model checks
-passed separately. Both hosted disconnect probes also fail:
+400 seconds. The October 14 combined selection has **429 passes**, one strict
+local Edge disconnect failure and two opt-in real-model cases deselected; later
+probe guards have separate evidence in the ledger. Deno has **48 passes**. Hosted
+real-model checks passed separately. Both final hosted disconnect probes also fail:
 SQL becomes `succeeded` after the reader closes. Keep both profiles unqualified.
 
 The [operator lifecycle](experiments/operator-lifecycle.md) covers versioned
@@ -64,10 +68,11 @@ The user chose preserving the current contract and experimental status. Continue
 the remaining hosted envelope and installer acceptance. The
 [local installer/adapters](experiments/local-installer.md) are implemented and
 fault-tested; no OAuth app exists yet, and the user chose local validation first.
-Actual Vercel adapter deployment/repeat reconciliation and isolated installed-wheel
-doctor also pass. Next finish broader hosted measurements, fresh/repeated packaged
-CLI onboarding, actual Edge Management-adapter acceptance and reviewed disposable
-removal. Hosted OAuth/button work needs external setup before acceptance can run.
+Actual Edge/Vercel adapter deployment/repeat reconciliation, reviewed live removal
+and the complete installed-wheel local CLI lifecycle pass. Remaining hosted
+performance/resource measurements and fresh browser/project onboarding need
+new explicitly selected disposable installations. Hosted OAuth/button work needs
+external setup; the user reconfirmed local-first work on October 14.
 The [ordered checklist](next-steps.md) maps these to delivery steps 6–7 and keeps
 cancellation as an open release gate. Use the strict existing regression and real
 provider probes; do not repeat completed work as if implementation has not begun.
@@ -110,8 +115,8 @@ Submission disconnect does not cancel an accepted async job. Idempotency keys re
 
 | Needed for | External inputs | Work possible without them |
 | --- | --- | --- |
-| Edge qualification | Isolated default-Free project in São Paulo already deployed and authorized; no paid testing authorized | Remaining size/backpressure/quota envelope and Edge adapter acceptance; strict disconnect gate stays open |
-| Vercel qualification | Isolated Hobby project deployed with approved encrypted Production-only configuration | Remaining size/backpressure/quota envelope and packaged CLI onboarding; strict disconnect gate stays open |
+| Edge qualification | Free project preserved; reviewed test function removed and cluster disabled; new disposable installation needed for more hosted probes | Existing bounded size/adapter/removal evidence is recorded; strict disconnect and broader resource gates stay open |
+| Vercel qualification | Hobby project/configuration preserved; reviewed deployment removed and cluster disabled | Existing bounded size/adapter/removal evidence is recorded; strict disconnect and broader resource gates stay open |
 | Web installer | Registered Supabase OAuth app, controlled HTTPS callback domain, installer hosting/credential store, maintenance owner; verified Marketplace access | Local service, bootstrap manifest, CLI and provider fault tests are delivered; continue independent CLI/adapter acceptance |
 | Real model smoke | Local Ollama 0.40.2 and installed `llama3.2:3b` already verified through both hosted gateways | Repeat bounded real inference after material runtime changes; deterministic tests remain the equality oracle |
 

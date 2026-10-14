@@ -10,7 +10,9 @@ import pytest
 from scripts.supabase_hosted_check import check_lifetimes
 
 
-@pytest.mark.parametrize("mode", ["bounded_lifecycle", "soak", "auth_soak", "recovery"])
+@pytest.mark.parametrize(
+    "mode", ["bounded_lifecycle", "soak", "auth_soak", "recovery", "envelope"]
+)
 def test_bounded_lifecycle_refuses_active_jobs_before_loading_worker_or_starting_upstream(
     monkeypatch,
     mode,
@@ -27,7 +29,9 @@ def test_bounded_lifecycle_refuses_active_jobs_before_loading_worker_or_starting
         ),
     )
     monkeypatch.setattr(
-        probe.Installation, "load", lambda *_: SimpleNamespace(cluster_id=cluster)
+        probe.Installation,
+        "load",
+        lambda *_: SimpleNamespace(cluster_id=cluster, stage="configured"),
     )
 
     class Database:
@@ -56,6 +60,32 @@ def test_bounded_lifecycle_refuses_active_jobs_before_loading_worker_or_starting
         )
     assert len(queries) == 1 and "cluster_id='" + cluster + "'" in queries[0]
     assert queries[0].startswith("select count(*)")
+
+
+def test_retired_installation_is_refused_before_auth_or_upstream(monkeypatch):
+    import scripts.supabase_hosted_check as probe
+
+    monkeypatch.setattr(
+        probe.OperatorConfig,
+        "load",
+        lambda _: SimpleNamespace(project_ref="a" * 20, profile="edge_free"),
+    )
+    monkeypatch.setattr(
+        probe.Installation, "load", lambda *_: SimpleNamespace(stage="disabled")
+    )
+
+    def forbidden(*_, **__):
+        pytest.fail("retired installation must not access Auth/SQL or start upstream")
+
+    monkeypatch.setattr(probe, "Database", forbidden)
+    monkeypatch.setattr(probe.WorkerSession, "load", forbidden)
+    monkeypatch.setattr(probe, "upstream", forbidden)
+    with pytest.raises(
+        ValueError, match="qualification_requires_configured_installation"
+    ):
+        asyncio.run(
+            probe.run(SimpleNamespace(connection_file="unused", state_dir="unused"))
+        )
 
 
 def test_foreign_status_url_never_receives_application_key_and_owned_job_is_cancelled():

@@ -1,9 +1,12 @@
 # Optional Supabase backend
 
-Updated October 11, 2026. Status: deployed experimental candidate. Both hosted
-Edge and Vercel return genuine local Ollama inference and pass route/stream/private
-download checks. Both hosted reader-disconnect checks fail; full load/soak
-qualification, provider automation and OAuth/button flows remain pending.
+Updated October 14, 2026. Status: implemented experimental candidate. Both hosted
+profiles passed genuine inference, route/stream/private-download checks, bounded
+load/Auth/recovery and size probes. Installed-wheel local CLI onboarding and actual
+provider adapter/removal acceptance pass. The approved test gateways are now
+removed and their clusters disabled. Both strict reader-disconnect checks still
+fail; broader performance/resource evidence and hosted OAuth/button flows remain
+incomplete. See [October 14 acceptance](experiments/independent-acceptance.md).
 See the [next steps](next-steps.md) and [progress ledger](progress.md).
 
 The local lifecycle now includes experimental SQL, worker enrollment, Edge and
@@ -33,15 +36,17 @@ the original fixture and test evidence.
 | [Installation and hosting](installation.md) | Supabase installer, Vercel Deploy button, hosting profiles, onboarding and upgrade/recovery |
 | [Compatibility and verification](compatibility.md) | Existing behavior, known gaps, local evidence and required implementation tests |
 
-## What could invalidate the proposal?
+## What still prevents qualification?
 
 The architecture is plausible, but hosted measurements must establish a useful Edge workload envelope. The largest risks are forced termination without a client-visible error, the small Edge CPU budget, database write/read amplification for streams, unbounded admission relative to GPU capacity, and mistakes in authorization or lease recovery. Large responses must fit the selected gateway even when stored in Supabase Storage. [Runtime analysis](implementation.md#10-default-edge-gateway-and-asynchronous-jobs), [size policy](implementation.md#size-and-retention-policy).
 
 Installation adds a separate product to maintain: a privileged bootstrap service, versioned deployment artifacts and safe upgrades. An official generic Supabase button that installs this whole application was not established by the reviewed sources; the proposed web flow uses Supabase OAuth and Management APIs. Vercel supplies a Deploy button, but database migrations and worker onboarding remain our responsibility. [Installation evidence and design](installation.md).
 
-Versioned candidate migrations and the operator CLI are implemented. Remaining
-work includes hosted disconnect behavior, clean-machine onboarding, provider and
-OAuth/button flows, physical removal and complete hosted/load qualification. The
+Versioned migrations, the CLI, local installer and owned provider adapters are
+implemented candidates. Remaining work includes strict disconnect qualification,
+fresh hosted/browser onboarding, OAuth/Marketplace/public button setup, and the
+broader performance/cost/resource envelope. Do not reuse the retired test
+sessions or assume the preserved provider projects are ready for inference. The
 [development handoff](development-handoff.md) defines the complete scope; the
 [progress ledger](progress.md) identifies the next unverified acceptance gates.
 

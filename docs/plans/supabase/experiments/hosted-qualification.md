@@ -1,9 +1,15 @@
 # Hosted candidate qualification
 
-Updated October 11, 2026. Hosted Edge and Vercel inference work, but both profiles
+Updated October 14, 2026. Hosted Edge and Vercel inference passed, but both profiles
 remain experimental because their strict reader-disconnect checks fail. This report
 records actual provider behavior; local or mocked evidence does not close that
 gate.
+
+The October 14 [independent acceptance](independent-acceptance.md) records current
+size/adapter/packaged CLI and reviewed live-removal evidence. Both hosted test
+clusters are now disabled and their reviewed gateway resources removed. Provider
+projects, retained data and shared configuration remain; the commands below
+require newly selected disposable installations, not the retired keys/sessions.
 
 ## Isolated targets and setup
 
@@ -266,9 +272,12 @@ Vercel's actual adapter verifies Hobby/project/domain ownership, encrypted
 Production-only configuration, a clean-wheel deployment, anonymous denial,
 authenticated health and a repeated call reusing the deployment. No database
 password/session or Preview secret was uploaded; no hosted gateway was deleted.
-New Edge Management/OAuth/button/removal acceptance remains unrun.
+At the end of October 12, Edge Management/OAuth/button/removal acceptance was
+unrun. October 14 closes the tested Edge adapter and live removal subset; real
+OAuth/button onboarding remains unrun.
 
-All evidence is a bounded subset. Wider sizes, server-side backpressure and
+All evidence is a bounded subset. October 14 adds tested size boundaries and
+paused readers. Sustained server-side backpressure, gateway memory and
 remaining provider quota are not established. Both profiles remain unqualified;
 none of these measurements closes reader-disconnect cancellation.
 

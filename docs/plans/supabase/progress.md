@@ -1,6 +1,6 @@
 # Supabase implementation progress
 
-Updated October 13, 2026. The objective is to finish the implementation so
+Updated October 14, 2026. The objective is to finish the implementation so
 an Ollama client can send a request to an Edge Function and receive inference
 from a local Ollama model. This ledger records authoritative artifacts and
 verification; an implementation checkbox does not imply hosted validation.
@@ -17,11 +17,25 @@ choice to keep the current contract and experimental status while completing
 independent envelope and installation acceptance work. That checklist defines
 acceptance criteria and separates external installer setup from work possible now.
 
+October 14 independent acceptance is recorded in the
+[current report](experiments/independent-acceptance.md). Both approved hosted
+gateway removals are complete and their clusters are disabled; retained data and
+shared provider configuration remain. Hosted inference needs a new explicitly
+selected installation; retired keys/sessions cannot be reused.
+
 ## Completed
 
+- [x] Add bounded hosted request/JSON/NDJSON envelope checks and validate both
+  profiles. Fix Edge upload-tail rejection and source-relative Management adapter
+  bundling without changing inference cancellation or applied SQL.
+- [x] Validate the complete current installed-wheel local CLI lifecycle, including
+  genuine Ollama inference, generation advancement, rotation and repeated disablement.
+- [x] Pass actual Edge adoption/upgrade/repeat reconciliation and user-approved
+  removal/recovery on both providers; verify retained jobs/schema/schedules,
+  Edge secret digests and Vercel encrypted Production-only configuration.
 - [x] Implement and locally validate the separate OAuth installer and owned
   provider adapters; verify the Vercel adapter on the authorized Hobby target.
-  Preserve unrun hosted OAuth/Edge Management/removal/button gates.
+  Hosted OAuth/button gates remain unrun; later Edge/removal acceptance is above.
 - [x] Run 1,000 exact deterministic jobs on each hosted profile and bounded
   restart/fencing, incomplete EOF and slow-reader probes. Record four-active-job
   caller admission and the rejected Edge five-request burst without changing
@@ -77,8 +91,9 @@ acceptance criteria and separates external installer setup from work possible no
 - [x] Isolate bounded metadata from inference connections and validate inventory.
   Eleven deterministic recovery/control cases pass, including actual socket
   saturation, Auth refresh, restart fencing and a blocked ASGI reader. See
-  [worker recovery evidence](experiments/worker-recovery.md). Soak and hosted
-  downstream backpressure remain unverified.
+  [worker recovery evidence](experiments/worker-recovery.md). Subsequent load/Auth
+  and bounded slow-reader evidence is recorded below; sustained server-side
+  backpressure remains unverified.
 - [x] Fix the local startup helper to retrieve explicit status JSON after the
   human-readable start summary. Preserve private logs and existing credentials
   on failures. Verify the user's exact command against the running isolated
@@ -194,12 +209,12 @@ acceptance criteria and separates external installer setup from work possible no
 | Worker enrollment/session storage and refresh | Auth/storage/membership/login and operator enrollment implemented | Local recovery/refresh, actual hosted enrollment/CLI login and corrected actual hosted Auth expiry/refresh passed; broader adversarial matrix pending |
 | External local Ollama worker and independent heartbeat | Implemented with separate bounded metadata pool | Fake/real model, hosted restart/fencing, capacity-two load and actual Auth-cycle control/metadata passed; broader drain/extended envelope pending |
 | All nine Edge routes and application-key authentication | Implemented | Local and hosted route fixtures/auth/metadata passed; full adversarial matrix pending |
-| Durable streaming, cancellation and output limits | Implemented in SQL/worker/gateway | Exact bytes, local FastAPI cancellation, controlled ASGI stall, bounded hosted slow reader and 1,000-job loads passed; **local Edge and both hosted reader-disconnect checks fail**; near-limit/backpressure envelope pending |
+| Durable streaming, cancellation and output limits | Implemented in SQL/worker/gateway | Exact bytes, local FastAPI cancellation, controlled ASGI stall, bounded hosted size/slow reader and 1,000-job loads passed; **local Edge and both hosted reader-disconnect checks fail**; sustained backpressure/gateway memory pending |
 | Async jobs, expiry, cancellation and authorized results/downloads | Inline/private-object paths implemented | Edge/FastAPI async and downloads passed; full expiry/adversarial matrix pending |
 | Private Storage results and cleanup/reconciliation | Upload/sign/read, deletion outbox, orphan reconciliation, operator runner and private Cron sweeps implemented | Local authorization/recovery/purge/Cron and bounded hosted signed/content expiry plus actual expired-object cleanup passed; broader hosted retention/maintenance envelope pending |
-| Optional FastAPI backend and Vercel template | Backend-aware API, Vercel ASGI factory and wheel-backed candidate template deployed on Hobby | Hosted real model/routes/download, 135-second application limit and 1,000-job load passed; hosted disconnect fails; platform ceiling and size/backpressure envelope pending |
-| CLI bootstrap/doctor and operator administration | Protected candidate configure/install/enroll/doctor/upgrade/rotate/revoke/disable implemented | Local lifecycle/recovery, manual hosted setup and clean installed-wheel doctor passed; full fresh/repeated packaged onboarding and hosted removal pending |
-| Installation manifest, OAuth installer and provider adapters | Hash-verified manifest, schema exposure, separate OAuth control service and owned Edge/Vercel adapters implemented | Local resumability/ownership/upgrade/fault tests and actual Vercel deployment/repeat passed; hosted OAuth/button, Edge Management deployment and removal pending |
+| Optional FastAPI backend and Vercel template | Backend-aware API and verified wheel-backed template implemented; approved test deployment now removed | Hosted real model/routes/download, 135-second application limit, response-budget JSON and 1,000-job load passed; disconnect fails; platform ceiling and broader resource envelope pending |
+| CLI bootstrap/doctor and operator administration | Protected candidate configure/install/enroll/doctor/upgrade/rotate/revoke/disable implemented | Full installed-wheel local CLI lifecycle and actual hosted removal passed; fresh hosted/browser onboarding remains unrun |
+| Installation manifest, OAuth installer and provider adapters | Hash-verified manifest, schema exposure, separate OAuth control service and owned Edge/Vercel adapters implemented | Local resumability/fault tests, actual Edge/Vercel deployment/reconciliation and reviewed live removal passed; hosted OAuth/Marketplace/button acceptance pending |
 | Runbook and automated Edge → worker → response harness | Local and [operator runbooks](experiments/operator-lifecycle.md), disposable two-schema harness available | Real inference passed in both schemas; complete hosted clean-machine setup pending |
 | Hosted limits, load/cost, lifecycle and installation | Isolated Supabase project deployed on default Free plan; Vercel Hobby verified and approved Production configuration deployed | Both real inference/routes/download, 1,000-job loads, corrected actual Auth expiry and recovery pass; sync deadlines and async jobs beyond 400 seconds measured; disconnect fails; broader envelope/quota and installation acceptance pending |
 
@@ -443,6 +458,49 @@ The strict disconnect failures remain an open release gate under the user's
 contract-preservation decision. Independent acceptance work cannot qualify either
 profile while that gate fails. Paid cases, API expansion and an alternative
 cancellation protocol are outside the current work.
+
+## October 14 independent acceptance and resource retirement
+
+The [acceptance report](experiments/independent-acceptance.md) records the new
+envelope, installed-wheel and reviewed-removal harnesses, exact hosted sizes and
+remaining gates. Real acceptance found and fixed two defects: flattened Edge
+upload paths prevented exact CLI artifact adoption; oversized upload cancellation
+could stall rejection. Source-relative uploads preserve strict hash checks.
+Request rejection now discards a finite tail without retaining it, preserves the
+one-MiB accepted budget and returns 413 for a five-MiB Edge upload in 0.468 seconds.
+Applied SQL and inference cancellation contracts are unchanged.
+
+Verification:
+
+- Final offline contracts/SystemOne: **363 passed in 14.07 seconds**, one upstream
+  TestClient deprecation warning. Final combined deterministic/local selection:
+  **429 passed, one known strict Edge disconnect failure, two model cases
+  deselected in 122.79 seconds**; subsequent cleanup/retired-state guards are
+  included in the offline count, not that earlier combined invocation.
+- An earlier combined run had **422 passes and two failures in 129.96 seconds**:
+  strict disconnect and initial route-health 503. The route passed in a focused
+  rerun (**one pass in 5.93 seconds**) and the final full selection; its transient
+  cause remains unestablished. No retry/skip was added to its assertion.
+- Deno: **48 passed**, entrypoint type check passes. Current clean archive/wheel
+  build and full installed-wheel local lifecycle pass, including real JSON/
+  terminal NDJSON and generation advancement after CLI worker restart.
+- Both envelope modes pass with exact JSON at 1,048,576/4,000,000 bytes and paused
+  NDJSON reads of 819,224/3,178,592 bytes. Earlier Edge timeout reports are retained.
+- Both final hosted strict probes pass routes/NDJSON/downloads and still fail
+  reader disconnect cancellation, ending SQL `succeeded`.
+- Actual Edge adoption, Management upgrade and repeated reconciliation pass. Both
+  exact gateway removals were explicitly approved, then pass real deletion,
+  labelled simulated acknowledgement-loss recovery and repeated removal.
+  Retained job counts **1,059/1,031**, job-ID digests, schema fingerprint and Cron
+  commands match before/after. Post-removal reads verify Edge secret digests and
+  Vercel's eight encrypted Production-only variables remain; projects persist.
+
+Both hosted test clusters are now disabled and their keys/workers revoked.
+All owned test processes stop; the user's Ollama/local stack remain. The user
+reconfirmed local-first OAuth work because no app/callback/host exists. Fresh
+hosted/browser onboarding, wider performance/resource/quota evidence and public
+pinned templates/buttons remain unrun; strict disconnect qualification remains
+open and both manifest profiles stay `qualified: false`.
 
 ## Handoff discipline
 
