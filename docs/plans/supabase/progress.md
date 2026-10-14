@@ -12,10 +12,11 @@ installation acceptance and proxy disconnect gates remain open below. New Python
 work uses uv by default;
 older verification-log commands retain their original invocation.
 
-Continue with the [ordered next steps](next-steps.md), preserving the user's
-choice to keep the current contract and experimental status while completing
-independent envelope and installation acceptance work. That checklist defines
-acceptance criteria and separates external installer setup from work possible now.
+Continue with the [adoption-first CLI milestone](cli-onboarding.md) and
+[ordered next steps](next-steps.md). The user prioritized one uv entry to share
+Ollama and join another machine over hosted OAuth/buttons and more benchmarks,
+while preserving the current contract and experimental status. Implementation
+subagents are explicitly authorized under one orchestrator.
 
 October 14 independent acceptance is recorded in the
 [current report](experiments/independent-acceptance.md). Both approved hosted
@@ -24,6 +25,11 @@ shared provider configuration remain. Hosted inference needs a new explicitly
 selected installation; retired keys/sessions cannot be reused.
 
 ## Completed
+
+- [x] Reprioritize the roadmap around share/join and create-or-select provider setup;
+  document A1–A5 acceptance and distinguish the operator engine from the user journey.
+- [ ] Deliver A1–A5 CLI onboarding; at this planning commit, combined commands,
+  guided project creation and published-package acceptance remain unimplemented.
 
 - [x] Add bounded hosted request/JSON/NDJSON envelope checks and validate both
   profiles. Fix Edge upload-tail rejection and source-relative Management adapter

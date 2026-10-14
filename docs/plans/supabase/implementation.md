@@ -350,6 +350,14 @@ Async submission returns immediately; the external worker continues without an E
 
 ## 11. Delivery sequence
 
+October 14 priority update: the [CLI onboarding milestone](cli-onboarding.md)
+now drives implementation over the existing backend and operator engine. Deliver
+share/join, provider create-or-select setup, ongoing operation and installed-package
+user acceptance before hosted OAuth/buttons or expanded benchmarks. The delivery
+sequence below describes underlying backend dependencies; completing those pieces
+does not establish the finished one-command user journey. Existing contracts and
+qualification gates still apply.
+
 Each step is reviewable and leaves Redis operational. Migrations are additive; runtime support follows tested protocol versions.
 
 | Step | Concrete changes | Exit evidence |

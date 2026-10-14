@@ -9,6 +9,11 @@ fail; broader performance/resource evidence and hosted OAuth/button flows remain
 incomplete. See [October 14 acceptance](experiments/independent-acceptance.md).
 See the [next steps](next-steps.md) and [progress ledger](progress.md).
 
+**Current product priority:** [one-command CLI onboarding](cli-onboarding.md), from
+uv to sharing local Ollama, with guided create/use-existing provider setup and a
+second-machine join flow. The operator engine is implemented; this complete user
+journey is not yet delivered. Hosted OAuth/buttons follow this milestone.
+
 The local lifecycle now includes experimental SQL, worker enrollment, Edge and
 optional FastAPI gateways, async results, cleanup and a uv-based demo workflow.
 The [progress ledger](progress.md) records current verification and open gates,
@@ -24,13 +29,14 @@ the original fixture and test evidence.
 - Keep inference on external Ollama workers. Supabase stores jobs, output and worker state; it does not run the models.
 - Include async jobs in the initial Supabase release. Slow models are possible; the limiting factor for synchronous use is total request time, including queueing and model loading.
 - Target all nine existing routes within each declared gateway envelope. Do not silently replay a request on another backend.
-- Deliver guided Supabase and Vercel installation paths plus CLI recovery. Cloud deployment and worker enrollment are separate steps.
+- Prioritize guided CLI share/join with Supabase and optional Vercel; browser installation follows. Cloud deployment, worker readiness and real inference remain separately verified stages within the guided flow.
 
 ## Reading order
 
 | Document | What it answers |
 | --- | --- |
 | [Next steps](next-steps.md) | Ordered remaining work, acceptance criteria, external dependencies and optional manual smoke test |
+| [CLI onboarding](cli-onboarding.md) | Adoption-first share/join journeys, provider provisioning gaps and implementation slices |
 | [Development handoff](development-handoff.md) | Current candidate status, checkout setup, protocol contracts, hosted prerequisites and evidence requirements |
 | [Implementation and feasibility](implementation.md) | Architecture, hosted Edge limits, durable streaming, failures, security, cost and delivery sequence |
 | [Installation and hosting](installation.md) | Supabase installer, Vercel Deploy button, hosting profiles, onboarding and upgrade/recovery |

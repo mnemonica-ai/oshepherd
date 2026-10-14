@@ -2,6 +2,29 @@
 
 Updated October 14, 2026.
 
+**Priority: deliver the adoption-first CLI experience.** The user's primary journey
+is one uv entry to provision/connect cloud resources and share local Ollama, plus a
+simple entry to join another machine. Follow the new [CLI onboarding plan](cli-onboarding.md)
+before hosted OAuth/button setup or further benchmark expansion. The candidate
+operator workflow is the engine for this work, not the finished user experience.
+
+## 0. Deliver share and join
+
+Implement the ordered A1–A5 slices in the [CLI onboarding plan](cli-onboarding.md):
+portable worker enrollment and discovery; resumable share orchestration; guided
+provider authentication/create-or-select project setup; worker/cleanup operation;
+then published-package and fresh-user acceptance. Start A1/A2 in parallel and
+develop A3 provider discovery without waiting for a hosted OAuth application.
+The user authorized an orchestrator with implementation subagents.
+
+The finished acceptance is one uv entry from outside the checkout to authenticated
+real inference, and another machine joining with no administrative credentials.
+An intermediate share command requiring prepared operator configuration is useful
+but does not meet that complete promise. Supabase is required; Vercel is optional.
+Retain experimental labeling and the open cancellation gate throughout.
+
+## Existing evidence and remaining qualification
+
 Independent implementation and acceptance work is delivered: the local installer,
 owned deployment/removal adapters, installed-wheel local CLI lifecycle, and
 bounded hosted load/Auth/recovery/request/output probes. The
@@ -49,9 +72,10 @@ the full installation matrix or release qualification. Step 8 API expansion/
 optimization and alternative ingress/cancellation protocols remain outside this
 work.
 
-## 1. Supply OAuth prerequisites when ready for hosted onboarding
+## 1. Defer optional hosted OAuth onboarding until CLI adoption is delivered
 
-The user reconfirmed local-first validation on October 14. External setup remains:
+The user reconfirmed local-first validation on October 14 and subsequently made
+CLI adoption the priority. These inputs do not block CLI implementation. External setup remains:
 a registered Supabase OAuth app, controlled HTTPS callback domain, a POSIX
 installer host/private durable credential store and maintenance owner, and
 verified Marketplace/button integration access. The

@@ -13,6 +13,12 @@ the retired sessions. See [October 14 acceptance](experiments/independent-accept
 
 ## Start here
 
+The current priority is [adoption-first CLI onboarding](cli-onboarding.md): one uv
+entry to share this machine and another to join an existing installation. Deliver
+the A1–A5 slices before hosted OAuth/button setup and expanded benchmarking. The
+user explicitly authorized implementation subagents under one orchestrator/PM.
+Existing operator commands are reusable components, not completion of this journey.
+
 Read the [next steps](next-steps.md), [progress ledger](progress.md) and
 [hosted evidence](experiments/hosted-qualification.md) first. The
 [implementation plan](implementation.md) owns architecture and state-machine
@@ -64,8 +70,9 @@ Supabase integration tests need the CLI and a compatible container runtime;
 Python characterization fixtures do not. Real Ollama/GPU access is unnecessary
 for deterministic protocol tests.
 
-The user chose preserving the current contract and experimental status. Continue
-the remaining hosted envelope and installer acceptance. The
+The user chose preserving the current contract and experimental status. Prioritize
+the share/join CLI milestone; retain remaining hosted envelope and installer
+acceptance as open gates. The
 [local installer/adapters](experiments/local-installer.md) are implemented and
 fault-tested; no OAuth app exists yet, and the user chose local validation first.
 Actual Edge/Vercel adapter deployment/repeat reconciliation, reviewed live removal

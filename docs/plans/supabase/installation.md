@@ -11,12 +11,24 @@ Edge/Vercel adapter adoption/deployment/repeat reconciliation and approved hoste
 removal acceptance pass. The test gateways are removed and clusters disabled;
 see [current acceptance](experiments/independent-acceptance.md). Hosted OAuth/button
 onboarding remains unrun.
-Automatic provider project creation is outside the delivered installer. The
-[next steps](next-steps.md) separate those deliverables from the working CLI path.
+Automatic provider project creation is outside the delivered installer and is now
+in scope for the priority [CLI onboarding milestone](cli-onboarding.md). The
+[next steps](next-steps.md) distinguish the working operator engine from the
+unfinished user journey.
 
 ## Installation promise
 
-Provide two guided entry points: **Install on Supabase** for the default Edge gateway, and **Deploy with Vercel** for optional FastAPI + Supabase. Both use the same schema, credentials, worker protocol and bootstrap manifest. Provide a CLI path for operators who do not want a hosted installer or need to recover a failed setup.
+Prioritize one uv entry into a guided `share` flow, and a `join` flow for another
+machine. Share creates or selects provider projects, bootstraps and deploys through
+the shared engine, enrolls the local worker and verifies actual inference. Join
+uses a private one-time invitation and never needs provider administrator keys.
+The finished flow needs no checkout, handwritten configuration or hosted installer
+service. See the [implementation slices and acceptance](cli-onboarding.md).
+
+Supabase with Edge is the default sharing path. Optional Vercel hosting still uses
+Supabase; Vercel alone is not a supported backend. Later **Install on Supabase** and
+**Deploy with Vercel** browser entry points reuse the same schema, credentials,
+worker protocol and bootstrap manifest. They are not prerequisites for CLI adoption.
 
 “One click” means one entry point followed by account consent, project/region selection and provisioning. It cannot mean no accounts, billing choices or worker setup. Neither platform button installs Ollama, downloads models, grants hardware access or supplies a GPU. The success screen must distinguish **cloud ready**, **worker connected**, and **inference verified**. A deployment without a worker is a valid intermediate state, not a working inference service.
 
@@ -40,7 +52,7 @@ Vercel documents a **4.5 MB request or response payload limit**. Start with the 
 
 Published limits must come from hosted tests of each profile and plan. Default application limits may be lower than platform maxima. Where output size is unknown at admission, enforce growth in the worker and fail explicitly. A provider rejecting before the handler or killing it mid-response may produce its own error or abrupt EOF; document that exception to application error mapping.
 
-## Default path: Install on Supabase
+## Later browser path: Install on Supabase
 
 The reviewed official sources support a custom OAuth integration with a Connect Supabase button. They do not establish a generic application-template button that installs Oshepherd SQL, policies, secrets and functions together. We must build and operate that flow, with a registered OAuth app and server-side callback. Use state validation, PKCE S256 and a fixed callback allowlist; keep the OAuth client secret and token exchange on the installer server. [Supabase integration guide](https://supabase.com/docs/guides/integrations/build-a-supabase-oauth-integration)
 
@@ -143,7 +155,11 @@ The worker doctor checks Python/dependencies, enrollment/protocol, local Ollama 
 
 ## Delivery and acceptance
 
-Implement the bootstrap manifest/CLI first, then the Supabase OAuth UI and Vercel template over that engine. The installer service and registered provider integration are explicit release dependencies with an operator/maintenance owner. They are additional work beyond the inference backend; publish CLI setup earlier if needed, but do not claim the button-assisted release is complete until the hosted flows pass.
+Build the adoption-first share/join flows over the delivered bootstrap manifest,
+operator CLI and deployment adapters. Complete A1–A5 before the optional Supabase
+OAuth UI and public buttons. A hosted installer service and registered provider
+integration are dependencies of that later browser release, not prerequisites for
+the CLI milestone. Do not claim button-assisted setup until its hosted flows pass.
 
 Required artifacts: CLI commands, release manifest, migrations/config/functions, secure installer service, Vercel template and generated button, example configuration, worker enrollment, doctor, upgrade/uninstall guidance and CI smoke/fault tests. Keep Supabase-specific implementation grouped as described in the [implementation layout](implementation.md#proposed-code-layout).
 
