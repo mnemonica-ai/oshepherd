@@ -11,7 +11,7 @@ from .private_files import read_private_json
 from oshepherd.worker.executor import OllamaExecutor
 
 
-async def start_worker(config):
+async def start_worker(config, *, stop=None, ready=None):
     key = config.SUPABASE_PUBLISHABLE_KEY.get_secret_value()
     session = WorkerSession.load(
         config.WORKER_SESSION_FILE, supabase_url=config.SUPABASE_URL
@@ -24,13 +24,15 @@ async def start_worker(config):
     )
     auth = WorkerAuth(config.SUPABASE_URL, key)
     executor = OllamaExecutor(config.ollama_url)
-    stop = asyncio.Event()
+    owns_signals = stop is None
+    stop = stop if stop is not None else asyncio.Event()
     loop = asyncio.get_running_loop()
     signals = []
     try:
-        for signum in (signal.SIGINT, signal.SIGTERM):
-            loop.add_signal_handler(signum, stop.set)
-            signals.append(signum)
+        if owns_signals:
+            for signum in (signal.SIGINT, signal.SIGTERM):
+                loop.add_signal_handler(signum, stop.set)
+                signals.append(signum)
         # Refresh before registration when starting from an old saved session.
         import time
 
@@ -51,6 +53,8 @@ async def start_worker(config):
             systemone=config.SYSTEMONE_ENABLED,
             result_storage=WorkerResultStorage(rpc),
         )
+        if ready is not None:
+            worker.ready = ready
         await worker.run(stop)
     finally:
         for signum in signals:

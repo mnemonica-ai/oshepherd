@@ -19,6 +19,12 @@ the A1–A5 slices before hosted OAuth/button setup and expanded benchmarking. T
 user explicitly authorized implementation subagents under one orchestrator/PM.
 Existing operator commands are reusable components, not completion of this journey.
 
+The first source slice adds `share`, `invite` and `join`, including guided existing
+Edge project setup and supervised worker/cleanup. Follow the
+[candidate user guide](../../share-ollama.md) and ledger. Fresh project creation,
+guided Vercel setup, eliminating `psql`/private database URL input, background
+services and published-package user acceptance remain open.
+
 Read the [next steps](next-steps.md), [progress ledger](progress.md) and
 [hosted evidence](experiments/hosted-qualification.md) first. The
 [implementation plan](implementation.md) owns architecture and state-machine

@@ -4,8 +4,9 @@ import subprocess
 import sys
 
 import pytest
+from click.testing import CliRunner
 
-from oshepherd.cli import start_worker, start_api
+from oshepherd.cli import main, start_worker, start_api
 from oshepherd.backends.supabase.startup import read_enrollment
 
 
@@ -35,6 +36,29 @@ def test_supabase_startup_does_not_import_redis_or_celery():
         text=True,
     )
     assert result.returncode == 0, result.stderr
+
+
+def test_root_help_does_not_load_optional_onboarding_dependencies(monkeypatch):
+    import importlib
+
+    original = importlib.import_module
+
+    def guarded(name, *args, **kwargs):
+        if name.endswith((".share_cli", ".join_cli")):
+            raise AssertionError("onboarding loaded by unrelated CLI help")
+        return original(name, *args, **kwargs)
+
+    monkeypatch.setattr(importlib, "import_module", guarded)
+    result = CliRunner().invoke(main, ["--help"])
+    assert result.exit_code == 0, result.output
+    assert all(command in result.output for command in ("share", "join", "invite"))
+
+
+@pytest.mark.parametrize("command", ["share", "join", "invite"])
+def test_onboarding_commands_parse_their_own_help(command):
+    result = CliRunner().invoke(main, [command, "--help"])
+    assert result.exit_code == 0, result.output
+    assert "--state-dir" in result.output
 
 
 def test_enrollment_file_is_private_and_project_bound(tmp_path):

@@ -1,0 +1,115 @@
+# CLI adoption: first implementation and acceptance
+
+October 14, 2026. The user prioritized terminal-first adoption and explicitly
+authorized implementation subagents. The orchestrator committed that roadmap in
+`3ae5a70`, then integrated and reviewed independent join, share and provider-setup
+work. The [user guide](../../../share-ollama.md) describes the delivered surface;
+the [A1–A5 plan](../cli-onboarding.md) defines the complete promise.
+
+## Implemented scope
+
+- `share` discovers Ollama, selects an installed model, resumes the shared operator
+  engine, verifies gateway/worker/cleanup readiness, runs real bounded inference,
+  and supervises worker plus Storage cleanup in the foreground. `--check` stops
+  both services after verification. Existing startup functions retain their
+  default standalone lifecycle and accept externally owned stop/readiness events.
+- Without a prepared connection, share guides selection of an existing Supabase
+  Edge project using a hidden PAT and database URL. It discovers keys and schema
+  settings, generates protected configuration and binds a journaled managed Auth
+  owner. It requires `psql`, explicit target consent and user Free-plan attestation;
+  it does not claim independent billing verification. A completed, receipt-bound
+  installation restarts without the Management token or a new provider login.
+- `invite` issues an operator-authorized worker challenge and exports a portable
+  private invitation. `join` securely accepts that invitation, discovers Ollama,
+  persists a restricted worker session and runs in the foreground. A restart
+  checks its saved project and Auth subject and reuses the session. Join reports
+  worker registration, not a claim of gateway inference verification.
+- Locks prevent concurrent foreground use of the same state. Ambiguous one-use
+  Auth exchanges are journaled and require explicit renewal rather than silent
+  replay. Invitations contain no administrative credentials; provider state stays
+  on the operator host. Applied migrations, gateway contracts and qualification
+  flags are unchanged.
+
+## Review findings addressed
+
+Cross-review added Auth-subject checks to fresh share login and resumed join,
+bounded join readiness, and preserved normal Redis CLI loading through lazy
+onboarding command registration. It also removed overlapping signal handlers
+when worker and maintenance run together.
+
+The final orchestrator review found that an invitation overwrite regression used
+an invalid fixture publishable key and failed before exercising its intended
+write. The fixture and assertion were strengthened, and export now publishes a
+fully written private temporary file through an exclusive link: an output created
+during enrollment is preserved. This is tested with valid invitations and a
+successful export control, not merely a nonzero command exit.
+
+## Verification
+
+Offline coverage exercises invalid/admin/wrong-project invitations, redaction,
+session substitution, consumed/uncertain challenges, interrupted install replay,
+provider ownership and lost acknowledgements, worker/maintenance failure,
+inference failure, credential-independent resume and invitation output races.
+Provider wizard HTTP/Auth tests are mocked; they are not fresh hosted acceptance.
+
+```sh
+UV_CACHE_DIR=/private/tmp/oshepherd-uv-cache uv run --locked --no-sync pytest -q \
+  tests/contracts tests/test_systemone.py
+UV_CACHE_DIR=/private/tmp/oshepherd-uv-cache uv run --locked --no-sync pytest -q \
+  tests/integration/supabase/test_operator.py \
+  tests/integration/supabase/test_maintenance.py \
+  tests/integration/supabase/test_worker.py -k 'not local_ollama_model' --tb=short
+```
+
+The focused real local integration selection passed **24 tests in 22.78 seconds**.
+The final offline suite passed **454 tests in 14.44 seconds**, with the existing
+upstream Starlette TestClient deprecation warning. The final installed-wheel report
+`.oshepherd/local/onboarding-reviewed-20261014.json` records all checks passing,
+including foreground SIGINT; it uses the reviewed candidate from
+`.oshepherd/local/onboarding-reviewed-build/`. The [ledger](../progress.md)
+records the exact scope and retained private evidence.
+The unchanged strict Edge disconnect regression was not rerun for this Python
+onboarding slice; its previous failure remains open, as do both hosted failures.
+
+The standalone `scripts/supabase_onboarding_check.py` runs from outside the checkout
+under an isolated uv environment using the built wheel. It prepares a new cluster
+on the existing isolated local Supabase stack and a loopback persistent gateway,
+then exercises the installed share/invite/join CLI with the existing
+`llama3.2:3b` model. It verifies repeated share identity and SQL generation advance,
+foreground SIGINT shutdown, separate joined-worker state, no administrative secrets
+in joined files, join restart, genuine JSON and terminal NDJSON. This simulates a
+second machine through a separate state/process on the same host; it does not claim
+testing a second physical machine or a fresh hosted project.
+
+Reproduce with an absolute script/wheel path from a clean directory:
+
+```sh
+uv run --isolated --no-project --python 3.12 \
+  --with '/absolute/candidate.whl[supabase]' \
+  --with-requirements /absolute/repo/templates/vercel/runtime-requirements.txt \
+  python /absolute/repo/scripts/supabase_onboarding_check.py \
+  --local-from /absolute/repo/.oshepherd/local/connection.json \
+  --work-dir /absolute/private/fresh-check \
+  --report-file /absolute/private/check-report.json --model llama3.2:3b
+```
+
+The harness stops its processes and disables its owned cluster, retaining private
+evidence/journals. It does not stop the user's Ollama/local stack, download models,
+mutate cloud resources or reuse retired qualification gateways. It tests the
+existing-installation path; initial local setup in the harness is not represented
+as automatic cloud provisioning.
+
+## Remaining product and release work
+
+New Supabase/Vercel project creation with reconciled durable intent and safe billing
+selection, a guided Vercel flow, removal of `psql`/database URL prerequisites,
+optional service management and published-package fresh-user acceptance remain
+unfinished. The candidate version is still unpublished. Provider admin credentials
+remain in private operator files; renewed setup can reauthorize a saved expired PAT.
+All compatible models remain advertised rather than being restricted by the
+selected inference-check model. Storage cleanup needs the operator process running
+even if joined workers remain online.
+
+Hosted OAuth/buttons are a later distribution path. Neither improved CLI onboarding
+nor local inference closes the known hosted cancellation gate or broader resource
+qualification requirements. Continue with [next steps](../next-steps.md).

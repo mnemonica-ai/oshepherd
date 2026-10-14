@@ -25,6 +25,11 @@ uses a private one-time invitation and never needs provider administrator keys.
 The finished flow needs no checkout, handwritten configuration or hosted installer
 service. See the [implementation slices and acceptance](cli-onboarding.md).
 
+The source candidate now implements share/invite/join and a guided existing Edge
+project path; it still needs a private PAT/database URL and `psql`. See the
+[candidate sharing guide](../../share-ollama.md). Automatic project creation,
+guided Vercel setup, background services and the published release remain pending.
+
 Supabase with Edge is the default sharing path. Optional Vercel hosting still uses
 Supabase; Vercel alone is not a supported backend. Later **Install on Supabase** and
 **Deploy with Vercel** browser entry points reuse the same schema, credentials,

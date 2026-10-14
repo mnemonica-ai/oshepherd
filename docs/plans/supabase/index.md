@@ -13,6 +13,8 @@ See the [next steps](next-steps.md) and [progress ledger](progress.md).
 uv to sharing local Ollama, with guided create/use-existing provider setup and a
 second-machine join flow. The operator engine is implemented; this complete user
 journey is not yet delivered. Hosted OAuth/buttons follow this milestone.
+The source candidate's [sharing guide](../../share-ollama.md) documents the first
+share/invite/join implementation and existing-project prerequisites.
 
 The local lifecycle now includes experimental SQL, worker enrollment, Edge and
 optional FastAPI gateways, async results, cleanup and a uv-based demo workflow.

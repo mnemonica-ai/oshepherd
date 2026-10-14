@@ -3,7 +3,8 @@
 Updated October 14, 2026. This is the current implementation priority, ahead of
 hosted OAuth/buttons and additional benchmark work. Existing inference contracts,
 ownership checks and experimental status remain in force. This document describes
-the target experience; commands below are proposals until recorded as implemented.
+the target experience; the source candidate now includes `share`, `invite` and
+`join`, while the full A1–A5 promise remains incomplete.
 
 ## Product promise
 
@@ -20,8 +21,10 @@ uvx --from 'oshepherd[supabase]' oshepherd share
 uvx --from 'oshepherd[supabase]' oshepherd join
 ```
 
-These are target commands, not instructions to run against the currently published
-package. Publish a tested version before advertising them as available. uv manages
+These are target distribution commands, not instructions to run against the currently published
+package. Use the [candidate sharing guide](../../share-ollama.md) for implemented
+commands and remaining prerequisites. Publish a tested version before advertising
+the uvx commands as available. uv manages
 Python/dependencies; resolve or clearly report any remaining external tooling.
 
 `share` provisions or connects an installation, enrolls this machine, starts its
@@ -99,9 +102,16 @@ Broader resource/cost measurements and strict cancellation checks remain in
 
 ## Starting gap and evidence
 
-At adoption-priority approval, the candidate wheel supports separate operator
+At adoption-priority approval, the candidate wheel supported separate operator
 configure/install/deploy/enroll/login/start commands. Provider adapters and local
 installed-wheel lifecycle are tested. Automatic project creation, the combined
 share/join journey, automated service setup and a published candidate are missing.
-The [progress ledger](progress.md) must record each implemented slice and distinguish
+The first implementation adds portable invitation/join, share orchestration with
+worker/cleanup supervision, and a guided existing Supabase Edge project path.
+It still requires a hidden PAT, private database URL and `psql`. New project
+creation and guided Vercel setup remain missing. A configured installation can
+restart without a Management token; initial or interrupted setup still performs
+explicit provider selection/revalidation. See the [user guide](../../share-ollama.md).
+
+The [progress ledger](progress.md) records each implemented slice and distinguishes
 mocked adapter tests, genuine local inference and fresh hosted acceptance.

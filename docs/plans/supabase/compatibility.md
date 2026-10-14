@@ -17,6 +17,13 @@ JavaScript SDK parity, performance/cost/resource limits, fresh hosted/browser
 onboarding and OAuth/Marketplace/public button flows remain unverified.
 The [next-steps checklist](next-steps.md) orders the remaining gates.
 
+The later adoption-first CLI slice has **454 passing offline tests**, **24 passing
+focused local integration tests**, and actual installed-wheel share/invite/join
+with real Ollama JSON/NDJSON, restart and foreground shutdown. Its
+[acceptance report](experiments/cli-onboarding.md) distinguishes existing local
+installation evidence from mocked provider onboarding and unrun fresh hosted setup.
+It does not close the strict disconnect or browser installation gates.
+
 ## Product contract
 
 Supabase's default gateway is an Edge Function with declared time/size/concurrency limits. FastAPI with the same Supabase backend supports Vercel and persistent hosting profiles. Persistent hosting is the option for long synchronous work; Vercel has separate finite duration and payload limits. See the [installation plan](installation.md). Existing FastAPI/Celery/Redis installations remain supported with their current CLI defaults. All existing routes are required; Edge limits are accepted and explicit, not grounds to omit a route. Async jobs provide a default-gateway path for longer work and require a different client flow.

@@ -98,7 +98,7 @@ class ResultMaintenance:
                 counts[name] = count
         return counts
 
-    async def run(self, stop, *, interval=10):
+    async def run(self, stop, *, interval=10, ready=None, fail_fast=False):
         if not 10 <= interval <= 3600:
             raise ValueError("Invalid maintenance interval")
         while not stop.is_set():
@@ -106,6 +106,8 @@ class ResultMaintenance:
             try:
                 async with asyncio.timeout(30):
                     counts = await self.cycle()
+                if ready is not None:
+                    ready.set()
                 # Only aggregate categories; never object paths, payloads,
                 # provider responses or credentials in routine diagnostics.
                 logger.info(
@@ -123,8 +125,12 @@ class ResultMaintenance:
                     ),
                 )
             except RpcError as error:
+                if fail_fast:
+                    raise
                 logger.warning("maintenance error=%s", error.code)
             except TimeoutError:
+                if fail_fast:
+                    raise
                 logger.warning("maintenance error=cycle_timeout")
             try:
                 await asyncio.wait_for(
@@ -134,7 +140,9 @@ class ResultMaintenance:
                 pass
 
 
-async def run_maintenance(config, *, once=False):
+async def run_maintenance(
+    config, *, once=False, stop=None, ready=None, fail_fast=False
+):
     rpc = RpcClient(
         config.SUPABASE_URL,
         config.SUPABASE_SECRET_KEY.get_secret_value(),
@@ -145,15 +153,19 @@ async def run_maintenance(config, *, once=False):
     )
     signals = []
     loop = asyncio.get_running_loop()
-    stop = asyncio.Event()
+    owns_signals = stop is None
+    stop = stop if stop is not None else asyncio.Event()
     try:
         if once:
             async with asyncio.timeout(30):
                 return await runner.cycle()
-        for signum in (signal.SIGINT, signal.SIGTERM):
-            loop.add_signal_handler(signum, stop.set)
-            signals.append(signum)
-        await runner.run(stop, interval=config.MAINTENANCE_SECONDS)
+        if owns_signals:
+            for signum in (signal.SIGINT, signal.SIGTERM):
+                loop.add_signal_handler(signum, stop.set)
+                signals.append(signum)
+        await runner.run(
+            stop, interval=config.MAINTENANCE_SECONDS, ready=ready, fail_fast=fail_fast
+        )
     finally:
         for signum in signals:
             loop.remove_signal_handler(signum)

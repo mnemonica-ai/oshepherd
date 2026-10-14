@@ -28,8 +28,12 @@ selected installation; retired keys/sessions cannot be reused.
 
 - [x] Reprioritize the roadmap around share/join and create-or-select provider setup;
   document A1–A5 acceptance and distinguish the operator engine from the user journey.
-- [ ] Deliver A1–A5 CLI onboarding; at this planning commit, combined commands,
-  guided project creation and published-package acceptance remain unimplemented.
+- [x] Implement source `share`, `invite` and `join`, guided existing Supabase Edge
+  setup, restricted portable worker invitations and foreground worker/cleanup
+  supervision. Verification and limitations are recorded below.
+- [ ] Complete A1–A5 acceptance: fresh project creation, guided Vercel setup,
+  removal of database URL/psql prerequisites, optional services, published-package
+  distribution and fresh hosted user acceptance remain unfinished.
 
 - [x] Add bounded hosted request/JSON/NDJSON envelope checks and validate both
   profiles. Fix Edge upload-tail rejection and source-relative Management adapter
@@ -507,6 +511,44 @@ reconfirmed local-first OAuth work because no app/callback/host exists. Fresh
 hosted/browser onboarding, wider performance/resource/quota evidence and public
 pinned templates/buttons remain unrun; strict disconnect qualification remains
 open and both manifest profiles stay `qualified: false`.
+
+## October 14 adoption-first CLI implementation
+
+- Committed the user's revised priority in `3ae5a70`: share/join user adoption
+  ahead of hosted OAuth/buttons and further benchmark expansion. Three implementation
+  agents delivered separate invitation/join, share/supervision and provider setup
+  modules; the orchestrator integrated and cross-reviewed them.
+- Added source `share`, `invite` and `join`, a guided existing Supabase Edge project
+  path, private generated connection/owner state, portable restricted invitations,
+  restart without provider Management access after completed setup, and supervised
+  worker/Storage cleanup. See the [user guide](../../share-ollama.md) and
+  [acceptance report](experiments/cli-onboarding.md).
+- Review fixed worker-subject binding, uncertain one-time exchange replay,
+  overlapping signal ownership, early worker exits, actionable discovery errors,
+  and an invitation output race. The original race test failed before the intended
+  write because of invalid fixture credentials; corrected valid-key tests now prove
+  exclusive publication and successful export.
+- Final offline contracts/SystemOne: **454 passed in 14.44 seconds**, with the
+  existing upstream Starlette TestClient deprecation warning. Focused real local
+  operator/maintenance/worker regressions: **24 passed in 22.78 seconds**.
+  Provider setup's HTTP/Auth coverage is mocked, not hosted onboarding evidence.
+- Built the reviewed candidate sdist/wheel and ran
+  `scripts/supabase_onboarding_check.py` from `/private/tmp` under isolated uv with
+  that installed wheel. Repeated share preserved identity and advanced SQL worker
+  generation; foreground SIGINT stopped worker/cleanup successfully; invite/join
+  and join restart passed with separate state; joined files contained no admin,
+  database or application key; genuine `llama3.2:3b` JSON and terminal NDJSON passed.
+  This was a simulated second machine on the same host and an existing local
+  Supabase stack/persistent gateway, not a new hosted project.
+- Final private report: `.oshepherd/local/onboarding-reviewed-20261014.json`;
+  wheel: `.oshepherd/local/onboarding-reviewed-build/`. Harness-owned processes
+  stopped and its local cluster was disabled; user Ollama/local Supabase remained
+  running. No cloud writes, model downloads, public release or push occurred.
+- Remaining A1–A5 work: new project creation with durable reconciliation/free-plan
+  constraints, guided Vercel setup, eliminating the private database URL/`psql`
+  prerequisite, optional services, and published-package/fresh hosted acceptance.
+  SQL/gateway contracts and experimental flags are unchanged. Strict disconnect
+  failures remain open; this slice did not rerun or waive them.
 
 ## Handoff discipline
 

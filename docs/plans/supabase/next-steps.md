@@ -10,17 +10,21 @@ operator workflow is the engine for this work, not the finished user experience.
 
 ## 0. Deliver share and join
 
-Implement the ordered A1–A5 slices in the [CLI onboarding plan](cli-onboarding.md):
-portable worker enrollment and discovery; resumable share orchestration; guided
-provider authentication/create-or-select project setup; worker/cleanup operation;
-then published-package and fresh-user acceptance. Start A1/A2 in parallel and
-develop A3 provider discovery without waiting for a hosted OAuth application.
+Continue the ordered A1–A5 slices in the [CLI onboarding plan](cli-onboarding.md).
+The source candidate now includes portable worker invitation/join, resumable share
+with worker/cleanup supervision and guided existing Supabase Edge project setup.
+See the [user guide](../../share-ollama.md) and current evidence in the ledger.
 The user authorized an orchestrator with implementation subagents.
+
+Next implement fresh provider project creation with durable reconciliation and
+verified free-plan constraints, guided optional Vercel setup, removal of the
+database URL/psql prerequisite, optional service management, and published-package
+fresh-user acceptance. Hosted OAuth remains a later distribution path.
 
 The finished acceptance is one uv entry from outside the checkout to authenticated
 real inference, and another machine joining with no administrative credentials.
-An intermediate share command requiring prepared operator configuration is useful
-but does not meet that complete promise. Supabase is required; Vercel is optional.
+The existing-project wizard and prepared-configuration path do not meet that
+complete promise. Supabase is required; Vercel is optional.
 Retain experimental labeling and the open cancellation gate throughout.
 
 ## Existing evidence and remaining qualification
@@ -32,10 +36,13 @@ bounded hosted load/Auth/recovery/request/output probes. The
 found during acceptance: source paths for strict Edge adoption, and finite upload
 tail draining for prompt oversized-request rejection.
 
-The latest offline suite has **363 passes**; Deno has **48 passes**. The latest
-combined deterministic/local selection has **429 passes, one known strict Edge
-disconnect failure and two model cases deselected**; subsequent probe guards are
-covered by the offline suite. Both final hosted strict probes still fail reader
+The adoption slice's latest offline suite has **454 passes**; focused local
+operator/maintenance/worker integration has **24 passes** and installed-wheel
+share/invite/join with real Ollama passes. See [CLI acceptance](experiments/cli-onboarding.md).
+Deno's unchanged prior evidence has **48 passes**. The previous full combined
+deterministic/local selection has **429 passes, one known strict Edge
+disconnect failure and two model cases deselected**; it predates the CLI additions.
+Both final hosted strict probes still fail reader
 disconnect cancellation, so neither profile is qualified.
 
 **The user-approved removal tests are complete. Both hosted test clusters are

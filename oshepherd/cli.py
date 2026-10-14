@@ -169,7 +169,46 @@ def supabase_maintain(env_file, once):
 
 from oshepherd.backends.supabase.operator_cli import supabase
 
+
+class _OnboardingCommand(click.Command):
+    """Keep optional Supabase/POSIX dependencies out of existing Redis commands."""
+
+    def __init__(self, name, module, help):
+        super().__init__(name, help=help)
+        self.module = module
+
+    def _load(self):
+        from importlib import import_module
+
+        return getattr(import_module(self.module), self.name)
+
+    def make_context(self, info_name, args, parent=None, **extra):
+        return self._load().make_context(info_name, args, parent=parent, **extra)
+
+    def invoke(self, ctx):
+        return ctx.command.invoke(ctx)
+
+    def shell_complete(self, ctx, incomplete):
+        return self._load().shell_complete(ctx, incomplete)
+
+
 main.add_command(supabase)
+for _name, _module, _help in (
+    (
+        "share",
+        "share_cli",
+        "Share local Ollama through an experimental Supabase installation.",
+    ),
+    (
+        "join",
+        "join_cli",
+        "Join an installation or restart its saved foreground worker.",
+    ),
+    ("invite", "share_cli", "Create a private invitation for another machine."),
+):
+    main.add_command(
+        _OnboardingCommand(_name, "oshepherd.backends.supabase." + _module, _help)
+    )
 
 if __name__ == "__main__":
     main()

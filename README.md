@@ -24,6 +24,12 @@ uv tool install --python 3.12 oshepherd
 Install [uv](https://docs.astral.sh/uv/getting-started/installation/) first.
 For a source checkout, use the development setup below.
 
+The source candidate also provides experimental `share`, `invite` and `join`
+commands for sharing local Ollama through Supabase, with optional Vercel hosting.
+See the [sharing guide](docs/share-ollama.md) for the current existing-project flow
+and its prerequisites. These commands are not yet in the published release;
+automatic cloud project creation remains in progress.
+
 ### Usage
 
 1. Set up Redis:
