@@ -171,3 +171,6 @@ node_modules
 *.worker-session.json
 supabase/.temp/
 supabase/.branches/
+
+# CodeGraph
+.codegraph/
