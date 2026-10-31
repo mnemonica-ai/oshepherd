@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="oshepherd",
-    version="v0.0.24",
+    version="0.0.25a1",
     description="The Oshepherd guiding the Ollama(s) inference orchestration.",
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',

@@ -24,6 +24,13 @@ with real Ollama JSON/NDJSON, restart and foreground shutdown. Its
 installation evidence from mocked provider onboarding and unrun fresh hosted setup.
 It does not close the strict disconnect or browser installation gates.
 
+The October 31 `0.0.25a1` source adds provider creation/selection, Management SQL,
+Vercel REST onboarding and user services. These changes have separate contract and
+candidate-package checks in the ledger. Final fresh/live acceptance and actual
+published-package validation are pending consolidation; the matrix's unverified
+cases stay open. Candidate publication requires an explicit manual gate and does
+not qualify either profile.
+
 ## Product contract
 
 Supabase's default gateway is an Edge Function with declared time/size/concurrency limits. FastAPI with the same Supabase backend supports Vercel and persistent hosting profiles. Persistent hosting is the option for long synchronous work; Vercel has separate finite duration and payload limits. See the [installation plan](installation.md). Existing FastAPI/Celery/Redis installations remain supported with their current CLI defaults. All existing routes are required; Edge limits are accepted and explicit, not grounds to omit a route. Async jobs provide a default-gateway path for longer work and require a different client flow.

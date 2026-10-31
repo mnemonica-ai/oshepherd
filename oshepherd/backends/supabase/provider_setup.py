@@ -1,8 +1,4 @@
-"""Existing-project onboarding with private configuration and owned Auth identity.
-
-No project creation, billing changes, or implicit adoption. Provider discovery uses
-the Management API; migrations still require a privately supplied database URL.
-"""
+"""Project configuration discovery and journaled, owned Auth identities."""
 
 from pathlib import Path
 from uuid import UUID, uuid4
@@ -46,7 +42,14 @@ def private_configuration(config):
 
 
 async def prepare_existing_project(
-    provider, directory, project_ref, organization_id, database_url
+    provider,
+    directory,
+    project_ref,
+    organization_id,
+    database_url=None,
+    *,
+    profile="edge_free",
+    gateway_url=None,
 ):
     """Discover keys/schemas and persist only the explicitly selected target.
 
@@ -54,16 +57,26 @@ async def prepare_existing_project(
     no cloud mutations. A durable binding prevents another target replacing files
     after a partial write, and existing unowned files are never overwritten.
     """
-    try:
-        database_environment(database_url, project_ref)
-    except (ValueError, TypeError, AttributeError):
-        raise OperatorError("invalid_database_connection") from None
+    if profile not in ("edge_free", "vercel_hobby"):
+        raise OperatorError("invalid_provider_profile")
+    if database_url is not None:
+        try:
+            database_environment(database_url, project_ref)
+        except (ValueError, TypeError, AttributeError):
+            raise OperatorError("invalid_database_connection") from None
     config = await provider.configuration(project_ref, organization_id, database_url)
+    config = OperatorConfig.model_validate(
+        {
+            **private_configuration(config),
+            "profile": profile,
+            "gateway_url": gateway_url,
+        }
+    )
     binding = {
         "v": 1,
         "project_ref": project_ref,
         "organization_id": organization_id,
-        "profile": "edge_free",
+        "profile": profile,
     }
     connection = private_configuration(config)
     provider_values = {

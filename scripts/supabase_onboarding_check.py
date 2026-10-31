@@ -63,6 +63,7 @@ async def run(args):
         "oshepherd.cli",
     ]
     processes = []
+    owned_service = None
     logs = []
     result = {
         "installed_wheel": True,
@@ -101,13 +102,24 @@ async def run(args):
         return process
 
     def stop(process):
-        if process.poll() is None:
-            os.killpg(process.pid, signal.SIGINT)
+        for signum, timeout in (
+            (signal.SIGINT, 40),
+            (signal.SIGTERM, 15),
+            (signal.SIGKILL, 5),
+        ):
+            if process.poll() is not None:
+                return
             try:
-                process.wait(timeout=40)
+                os.killpg(process.pid, signum)
+            except ProcessLookupError:
+                process.wait(timeout=5)
+                return
+            try:
+                process.wait(timeout=timeout)
+                return
             except subprocess.TimeoutExpired:
-                os.killpg(process.pid, signal.SIGTERM)
-                process.wait(timeout=10)
+                continue
+        raise RuntimeError("owned_onboarding_process_cleanup_timeout")
 
     async def generation(worker_name):
         state = Installation.load(operator_dir, config)
@@ -274,22 +286,124 @@ async def run(args):
         assert response.status_code == 200, "joined_stream_failed"
         assert json.loads(response.content.splitlines()[-1])["done"] is True
         result["joined_real_terminal_ndjson"] = True
+        if args.service_check:
+            from oshepherd.backends.supabase.service import UserService
+
+            await asyncio.to_thread(stop, worker)
+            assert worker.returncode == 0, "joined_shutdown_before_service_failed"
+            owned_service = UserService(args.service_name, root=args.service_root)
+            assert (
+                not owned_service.receipt.exists() and not owned_service.unit.exists()
+            ), "acceptance_service_already_exists"
+
+            async def service_ready(phase, worker_name, previous):
+                async with asyncio.timeout(210):
+                    while True:
+                        status = await asyncio.to_thread(owned_service.status)
+                        if status["phase"] == "failed":
+                            raise AssertionError("acceptance_service_runtime_failed")
+                        if (
+                            status["manager_active"]
+                            and status["phase"] == phase
+                            and await generation(worker_name) > previous
+                        ):
+                            return status
+                        await asyncio.sleep(0.5)
+
+            async def service_inference():
+                await operator.verify_inference(args.model)
+                async with httpx.AsyncClient(timeout=90) as client:
+                    response = await client.post(
+                        config.gateway_url + "/api/generate",
+                        headers={
+                            "Authorization": "Bearer "
+                            + state.application_key.get_secret_value()
+                        },
+                        json={
+                            "model": args.model,
+                            "prompt": "Say hello",
+                            "stream": True,
+                            "options": {"num_predict": 8, "num_ctx": 512},
+                        },
+                    )
+                assert response.status_code == 200, "service_stream_failed"
+                assert (
+                    json.loads(response.content.splitlines()[-1])["done"] is True
+                ), "service_stream_incomplete"
+
+            # Both roles use the same service name sequentially; uninstall proves
+            # the owned launch registration is removed before the next install.
+            for kind, directory, worker_name, phase in (
+                ("share", operator_dir, "local", "sharing_foreground"),
+                ("join", join_dir, "another-machine", "worker_connected"),
+            ):
+                previous = await generation(worker_name)
+                await asyncio.to_thread(
+                    owned_service.install,
+                    kind,
+                    directory,
+                    connection_file=connection if kind == "share" else None,
+                )
+                await service_ready(phase, worker_name, previous)
+                await service_inference()
+                result["service_" + kind + "_real_json_ndjson"] = True
+                previous = await generation(worker_name)
+                await asyncio.to_thread(owned_service.stop)
+                assert not (await asyncio.to_thread(owned_service.status))[
+                    "manager_active"
+                ], "service_stop_failed"
+                await asyncio.to_thread(owned_service.start)
+                await service_ready(phase, worker_name, previous)
+                await service_inference()
+                result["service_" + kind + "_restart_generation_advanced"] = True
+                await asyncio.to_thread(owned_service.uninstall)
+                assert (
+                    not owned_service.unit.exists()
+                    and not owned_service.receipt.exists()
+                ), "service_uninstall_failed"
+                assert (
+                    directory
+                    / (
+                        "local.worker-session.json"
+                        if kind == "share"
+                        else "worker-session.json"
+                    )
+                ).exists(), "service_uninstall_removed_worker_state"
+            result["service_cleanup_preserved_worker_state"] = True
+            result["service_platform"] = owned_service.system
         result["passed"] = True
     finally:
-        try:
-            for process in reversed(processes):
+        cleanup_errors = []
+        if owned_service is not None and owned_service.receipt.exists():
+            try:
+                receipt = owned_service.owned()
+                assert receipt["target"]["state_dir"] in {
+                    str(operator_dir),
+                    str(root / "joined-machine"),
+                }, "service_cleanup_target_mismatch"
+                await asyncio.to_thread(owned_service.uninstall)
+            except Exception:
+                cleanup_errors.append("service")
+        for process in reversed(processes):
+            try:
                 await asyncio.to_thread(stop, process)
-            for log in logs:
-                log.close()
+            except Exception:
+                cleanup_errors.append("process")
+        for log in logs:
+            log.close()
+        try:
             if (operator_dir / "installation.json").exists():
                 await operator.disable()
         except Exception:
-            result["passed"] = False
-            result["cleanup_failed"] = True
-            raise
+            cleanup_errors.append("cluster")
         finally:
             await operator.close()
+            if cleanup_errors:
+                result["passed"] = False
+                result["cleanup_failed"] = cleanup_errors
             write_private_json(args.report_file, result)
+        if cleanup_errors:
+            raise RuntimeError("onboarding_acceptance_cleanup_failed")
     print(json.dumps(result))
 
 
@@ -300,6 +414,20 @@ if __name__ == "__main__":
     parser.add_argument("--report-file", type=Path, required=True)
     parser.add_argument("--model", required=True)
     parser.add_argument("--port", type=int, default=55326)
+    parser.add_argument(
+        "--service-check",
+        action="store_true",
+        help="Explicitly install, exercise and remove isolated real per-user services.",
+    )
+    parser.add_argument("--service-name", default="adoption-20261031")
+    parser.add_argument(
+        "--service-root",
+        type=Path,
+        default=Path(__file__).resolve().parents[1]
+        / ".oshepherd"
+        / "local"
+        / "services",
+    )
     arguments = parser.parse_args()
     if not 1024 <= arguments.port <= 65535:
         parser.error("port must be between 1024 and 65535")

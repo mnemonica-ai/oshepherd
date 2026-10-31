@@ -1,10 +1,10 @@
 # Adoption-first CLI onboarding
 
-Updated October 14, 2026. This is the current implementation priority, ahead of
+Updated October 31, 2026. This is the current implementation priority, ahead of
 hosted OAuth/buttons and additional benchmark work. Existing inference contracts,
 ownership checks and experimental status remain in force. This document describes
-the target experience; the source candidate now includes `share`, `invite` and
-`join`, while the full A1–A5 promise remains incomplete.
+the target experience; the source candidate now includes `share`, `invite`, `join`, provider creation/selection
+and optional services. The full A1–A5 acceptance and publication promise remains incomplete.
 
 ## Product promise
 
@@ -72,9 +72,11 @@ backend in this scope. Existing Redis commands retain their defaults.
 | A4: ongoing operation | Integrated worker/maintenance supervision, restart/status, optional service management | Foreground shutdown is clean; cleanup stays active while sharing; reconnect/revocation work; joined workers receive no admin secret |
 | A5: distribution and user acceptance | Published pinned package, concise user guide, fresh-machine tests | One uv entry from outside checkout to genuine JSON/NDJSON; repeat on second machine and existing projects; interruptions/upgrades/removal tested |
 
-A1 and A2 can proceed concurrently against existing engine interfaces. A3 starts
-with provider discovery and configuration adapters while A1/A2 are built. Do not
-mark A3 complete merely because a user can supply an already prepared connection.
+The October 31 implementation covers A1/A2, A3 provider creation/selection and
+Management SQL, A4 foreground supervision/user-service management, and A5 candidate
+verification plus an explicitly gated publication workflow. These implementation
+claims do not establish fresh hosted, real service-manager or published-package
+acceptance. Do not mark A3 complete merely because mocked creation passes.
 The orchestrator coordinates subagents, reviews their integration and maintains
 one evidence ledger. Work in separate files where possible; no agent edits applied
 migrations or deploys to an unspecified provider target.
@@ -105,13 +107,23 @@ Broader resource/cost measurements and strict cancellation checks remain in
 At adoption-priority approval, the candidate wheel supported separate operator
 configure/install/deploy/enroll/login/start commands. Provider adapters and local
 installed-wheel lifecycle are tested. Automatic project creation, the combined
-share/join journey, automated service setup and a published candidate are missing.
-The first implementation adds portable invitation/join, share orchestration with
-worker/cleanup supervision, and a guided existing Supabase Edge project path.
-It still requires a hidden PAT, private database URL and `psql`. New project
-creation and guided Vercel setup remain missing. A configured installation can
-restart without a Management token; initial or interrupted setup still performs
-explicit provider selection/revalidation. See the [user guide](../../share-ollama.md).
+share/join journey, automated service setup and a published candidate were missing.
+The October 31 candidate extends this with create-or-select Supabase organizations
+and projects, documented optional plan verification with explicit fallback
+attestation, bounded readiness and durable uncertain-creation reconciliation.
+Management SQL reuses the transactional migration engine without a database URL
+or external `psql`. Guided optional Vercel uses Hobby selection, provider REST
+deployment and the verified installed runtime rather than a provider CLI or
+manually supplied wheel. Dedicated user services support foreground-verified
+share and joined-worker state on macOS/Linux.
+
+The [distribution workflow](experiments/distribution.md) builds and verifies
+`0.0.25a1` artifacts and gates explicit experimental publication on prerelease
+versions, exact hashes and the protected PyPI environment. The candidate is not
+published. Service-manager operation has local evidence on macOS and containerized
+Linux systemd. Fresh hosted creation and clean-machine published-package acceptance
+still require their own evidence; validation is recorded in the ledger. Hosted
+cancellation remains unqualified.
 
 The [progress ledger](progress.md) records each implemented slice and distinguishes
 mocked adapter tests, genuine local inference and fresh hosted acceptance.

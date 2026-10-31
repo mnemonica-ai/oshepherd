@@ -1,6 +1,6 @@
 # Development handoff
 
-Updated October 14, 2026 on branch
+Updated October 31, 2026 on branch
 `supabase`. **Implemented and deployed as a candidate; not qualified for
 production.** Both hosted reader-disconnect checks fail. Tests use the explicitly
 authorized isolated Supabase Free and Vercel Hobby targets; this handoff does not
@@ -19,11 +19,15 @@ the A1–A5 slices before hosted OAuth/button setup and expanded benchmarking. T
 user explicitly authorized implementation subagents under one orchestrator/PM.
 Existing operator commands are reusable components, not completion of this journey.
 
-The first source slice adds `share`, `invite` and `join`, including guided existing
-Edge project setup and supervised worker/cleanup. Follow the
-[candidate user guide](../../share-ollama.md) and ledger. Fresh project creation,
-guided Vercel setup, eliminating `psql`/private database URL input, background
-services and published-package user acceptance remain open.
+The unpublished `0.0.25a1` candidate now implements `share`, `invite`, `join`,
+create/select Supabase Free projects, optional Vercel Hobby REST setup and user
+services. Guided SQL bootstrap uses the Management API; it no longer requires
+`psql` or a private database URL. The installed runtime supplies Vercel/service
+artifacts without a repository or manually assembled wheel. Follow the
+[candidate user guide](../../share-ollama.md), [distribution instructions](experiments/distribution.md)
+and ledger. Local service-manager and Management SQL acceptance passed on local
+containers. Fresh hosted acceptance and published-package user acceptance remain
+evidence gates; no package has been published as part of this work.
 
 Read the [next steps](next-steps.md), [progress ledger](progress.md) and
 [hosted evidence](experiments/hosted-qualification.md) first. The

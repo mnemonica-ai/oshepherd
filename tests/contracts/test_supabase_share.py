@@ -334,13 +334,17 @@ def test_fresh_login_wrong_identity_stops_before_worker(fixture, monkeypatch):
     assert events == ["cloud_ready"] and not stopped
 
 
-def test_completed_wizard_resume_does_not_need_provider_credentials(fixture):
+@pytest.mark.parametrize("profile", ["edge_free", "vercel_hobby"])
+def test_completed_wizard_resume_does_not_need_provider_credentials(fixture, profile):
     from oshepherd.backends.supabase.share_cli import configured_selection
     from oshepherd.backends.supabase.provider_setup import private_configuration
 
     operator, run, _, _ = fixture
     asyncio.run(run())
     state = Installation.load(operator.directory, operator.config)
+    operator.config = operator.config.model_copy(update={"profile": profile})
+    state.profile = profile
+    state.save(operator.directory)
     write_private_json(
         operator.directory / "connection.json", private_configuration(operator.config)
     )
@@ -350,7 +354,7 @@ def test_completed_wizard_resume_does_not_need_provider_credentials(fixture):
             "v": 1,
             "project_ref": "local",
             "organization_id": "selected-org",
-            "profile": "edge_free",
+            "profile": profile,
         },
     )
     write_private_json(
@@ -372,8 +376,31 @@ def test_completed_wizard_resume_does_not_need_provider_credentials(fixture):
             "stage": "deployed",
         },
     )
+    if profile == "vercel_hobby":
+        write_private_json(
+            operator.directory / "vercel-setup.json",
+            {
+                "team_id": "team_selected",
+                "project_id": "prj_selected",
+                "gateway_url": operator.config.gateway_url,
+            },
+        )
+        write_private_json(
+            operator.directory / "vercel-deployment.json",
+            {
+                "binding": {
+                    "team_id": "team_selected",
+                    "project_id": "prj_selected",
+                    "supabase_ref": "local",
+                    "cluster_id": str(state.cluster_id),
+                },
+                "gateway_verified": True,
+                "creating": False,
+            },
+        )
     assert configured_selection(operator.directory) == operator.config
     assert not (operator.directory / "edge-provider.json").exists()
+    assert not (operator.directory / "vercel-provider.json").exists()
     record = read_private_json(operator.directory / "provider-owner.json")
     record["owner_subject"] = str(uuid4())
     write_private_json(operator.directory / "provider-owner.json", record)
@@ -511,3 +538,94 @@ def test_cli_preserves_actionable_ollama_discovery_error(tmp_path, monkeypatch):
     assert result.exit_code != 0
     assert "Ollama has no installed models" in result.output
     assert "personal access token" not in result.output
+
+
+@pytest.mark.parametrize("profile", ["edge_free", "vercel_hobby"])
+def test_guided_cli_passes_management_database_and_selected_gateway(
+    tmp_path, monkeypatch, profile
+):
+    from oshepherd.backends.supabase import onboarding, operator as operator_module
+    from oshepherd.backends.supabase import (
+        provider_cli,
+        vercel_cli,
+        share_cli,
+        management_database,
+    )
+
+    config = OperatorConfig(
+        project_ref="a" * 20,
+        supabase_url="https://" + "a" * 20 + ".supabase.co",
+        publishable_key="sb_publishable_fixturekey",
+        secret_key="sb_secret_fake",
+        profile=profile,
+        exposed_schemas=["public"],
+    )
+    owner = uuid4()
+    provider_path = tmp_path / "edge-provider.json"
+    write_private_json(
+        provider_path, {"access_token": "private-pat", "organization_id": "selected"}
+    )
+    vercel_path = tmp_path / "vercel-provider.json"
+    events = []
+
+    async def discover(*args, **kwargs):
+        return onboarding.OllamaDiscovery(
+            "http://127.0.0.1:11434", ("fixture",), "fixture"
+        )
+
+    async def guided(directory, **kwargs):
+        assert directory == tmp_path and kwargs["profile"] == profile
+        return config, owner, provider_path
+
+    async def guided_vercel(directory):
+        return "https://fixture.vercel.app", vercel_path
+
+    class Database:
+        def __init__(self, config, token, organization):
+            assert token == "private-pat" and organization == "selected"
+            events.append("database")
+
+        def close(self):
+            events.append("database_closed")
+
+    class Operator:
+        def __init__(self, config, directory):
+            self.config, self.directory = config, directory
+
+        async def close(self):
+            events.append("operator_closed")
+
+    async def deploy(operator, provider, *, wheel):
+        assert provider == (provider_path if profile == "edge_free" else vercel_path)
+        assert wheel is None
+        events.append("deploy")
+
+    async def run(operator, **kwargs):
+        assert isinstance(kwargs["database"], Database)
+        assert kwargs["owner_subject"] == owner
+        assert kwargs["check"] is True
+        if profile == "vercel_hobby":
+            assert operator.config.gateway_url == "https://fixture.vercel.app"
+        await kwargs["deploy"]()
+        return {"inference_verified": True}
+
+    monkeypatch.setattr(onboarding, "discover_ollama", discover)
+    monkeypatch.setattr(provider_cli, "guided_existing_setup", guided)
+    monkeypatch.setattr(vercel_cli, "guided_vercel_setup", guided_vercel)
+    monkeypatch.setattr(management_database, "ManagementDatabase", Database)
+    monkeypatch.setattr(operator_module, "Operator", Operator)
+    monkeypatch.setattr(sharing, "run_share", run)
+    monkeypatch.setattr(share_cli, "deploy_selected", deploy)
+    result = CliRunner().invoke(
+        share,
+        [
+            "--state-dir",
+            str(tmp_path),
+            "--gateway",
+            "edge" if profile == "edge_free" else "vercel",
+            "--check",
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    assert events == ["database", "deploy", "database_closed", "operator_closed"]
+    assert "private-pat" not in result.output

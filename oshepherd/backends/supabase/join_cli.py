@@ -172,7 +172,7 @@ async def prepare_join(
     return config
 
 
-async def run_join(config, *, readiness_seconds=60):
+async def run_join(config, *, readiness_seconds=60, on_ready=lambda: None):
     ready, stop = asyncio.Event(), asyncio.Event()
     loop = asyncio.get_running_loop()
     signals = []
@@ -197,6 +197,10 @@ async def run_join(config, *, readiness_seconds=60):
             if not stop.is_set():
                 raise OnboardingError("Worker stopped before connecting")
             return
+        from .service import record_readiness
+
+        record_readiness("join", config.WORKER_SESSION_FILE.parent)
+        on_ready()
         click.echo(
             "Worker connected. Foreground sharing is active; press Ctrl-C to stop."
         )

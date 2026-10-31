@@ -1,4 +1,4 @@
-"""Hobby-only CLI deployment adapter with provider ownership verification.
+"""Hobby-only REST deployment adapter with provider ownership verification.
 
 Use an explicit existing project, verified release wheel, Production-only
 configuration and a private receipt. A lost deployment acknowledgement is
@@ -6,15 +6,14 @@ reconciled by operation metadata rather than creating another deployment.
 """
 
 import asyncio
+import base64
 import hashlib
 import json
-import os
 from pathlib import Path
 import re
 import subprocess
-import tempfile
 import time
-from urllib.parse import urlsplit, quote
+from urllib.parse import urlsplit
 from uuid import uuid4
 
 import httpx
@@ -22,8 +21,9 @@ from pydantic import BaseModel, ConfigDict, Field, SecretStr
 
 from .client import bounded_response, RpcError
 from .operator import Installation, installation_lock
-from .private_files import read_private_json, write_private_json, private_directory
+from .private_files import read_private_json, write_private_json
 from .releases import OperatorError, export_vercel
+from .runtime_bundle import materialize_current_wheel
 
 
 class VercelTarget(BaseModel):
@@ -58,9 +58,9 @@ class VercelDeployment:
         if self.owns_client:
             await self.client.aclose()
 
-    async def request(self, path, *, method="GET", **params):
+    async def request(self, path, *, method="GET", body=None, **params):
         # Only official provider requests. Scope cannot be overridden.
-        if method not in ("GET", "DELETE"):
+        if method not in ("GET", "DELETE", "POST"):
             raise OperatorError("unsupported_vercel_operation")
         try:
             async with asyncio.timeout(10):
@@ -72,15 +72,14 @@ class VercelDeployment:
                         "Authorization": "Bearer "
                         + self.target.access_token.get_secret_value()
                     },
+                    json=body,
                     follow_redirects=False,
                 ) as response:
                     if response.status_code in (401, 403):
                         raise OperatorError("vercel_access_denied")
                     if response.status_code == 404:
                         raise OperatorError("vercel_resource_missing")
-                    if response.status_code not in (
-                        (200, 204) if method == "DELETE" else (200,)
-                    ):
+                    if response.status_code not in (200, 201, 204):
                         raise OperatorError("vercel_provider_failed")
                     content = await bounded_response(response, 1024 * 1024)
                     value = json.loads(content) if content else None
@@ -91,7 +90,11 @@ class VercelDeployment:
             raise OperatorError(
                 "vercel_provider_unavailable"
                 if method == "GET"
-                else "vercel_removal_outcome_ambiguous"
+                else (
+                    "vercel_removal_outcome_ambiguous"
+                    if method == "DELETE"
+                    else "vercel_write_outcome_ambiguous"
+                )
             ) from None
         except (ValueError, RpcError):
             raise OperatorError("invalid_vercel_response") from None
@@ -141,45 +144,6 @@ class VercelDeployment:
             "OSHEPHERD_GATEWAY_PROFILE": "vercel",
             "OSHEPHERD_RESPONSE_BYTES": "4000000",
         }
-
-    async def cli(self, arguments, *, input=None, timeout=60):
-        # The CLI uses exactly the token used for API preflight, never a token
-        # argument or ambient VERCEL_* binding. This directory is outside uploads.
-        with tempfile.TemporaryDirectory(
-            prefix="vercel-auth-",
-            dir=private_directory(self.directory / "provider-auth"),
-        ) as folder:
-            write_private_json(
-                Path(folder) / "auth.json",
-                {"token": self.target.access_token.get_secret_value()},
-            )
-            env = {
-                name: value
-                for name, value in os.environ.items()
-                if name in ("PATH", "HOME", "TMPDIR", "LANG", "LC_ALL", "SYSTEMROOT")
-            }
-            env.update(
-                NODE_OPTIONS="--no-experimental-webstorage",
-                VERCEL_ORG_ID=self.target.team_id,
-                VERCEL_PROJECT_ID=self.target.project_id,
-            )
-            try:
-                result = await asyncio.to_thread(
-                    self.runner,
-                    ["vercel", *arguments, "--global-config", folder],
-                    input=input,
-                    text=True,
-                    capture_output=True,
-                    timeout=timeout,
-                    env=env,
-                )
-            except FileNotFoundError:
-                raise OperatorError("vercel_cli_unavailable") from None
-            except (OSError, subprocess.TimeoutExpired):
-                raise OperatorError("vercel_cli_outcome_ambiguous") from None
-            if result.returncode:
-                raise OperatorError("vercel_cli_failed_reconcile_before_retry")
-            return result.stdout.strip()
 
     async def health(self, state):
         try:
@@ -231,15 +195,19 @@ class VercelDeployment:
                     break
             except (KeyError, TypeError, AttributeError):
                 raise OperatorError("invalid_vercel_response") from None
-        if len(set(found)) != 1:
+        if until is not None or len(set(found)) != 1:
             raise OperatorError("vercel_deployment_ambiguous_reconcile_operation")
         return found[0]
 
-    async def deploy(self, wheel, *, adopt_existing=False):
+    async def deploy(self, wheel=None, *, adopt_existing=False):
         with installation_lock(self.directory):
             state = Installation.load(self.directory, self.config)
             if state.stage != "configured":
                 raise OperatorError("installation_not_configured")
+            if wheel is None:
+                wheel = await asyncio.to_thread(
+                    materialize_current_wheel, self.directory / "runtime-wheel"
+                )
             scope, project = await self.preflight()
             values = self.values(state)
             environments = await self.request(
@@ -321,14 +289,6 @@ class VercelDeployment:
                 # uploaded. Verification of wheel/assets happens before writes.
                 bundle = self.directory / "vercel-bundles" / str(uuid4())
                 await asyncio.to_thread(export_vercel, bundle, wheel)
-                write_private_json(
-                    bundle / ".vercel/project.json",
-                    {
-                        "orgId": self.target.team_id,
-                        "projectId": self.target.project_id,
-                        "projectName": project["name"],
-                    },
-                )
                 receipt = (
                     receipt
                     if same
@@ -345,63 +305,97 @@ class VercelDeployment:
                     }
                 )
                 write_private_json(self.receipt_file, receipt)
-                for key, value in values.items():
-                    await self.cli(
-                        [
-                            "env",
-                            "add",
-                            key,
-                            "production",
-                            "--force",
-                            "--cwd",
-                            str(bundle),
-                            "--scope",
-                            scope,
-                        ],
-                        input=value,
+                await self.request(
+                    "/v10/projects/" + self.target.project_id + "/env",
+                    method="POST",
+                    upsert="true",
+                    body=[
+                        {
+                            "key": key,
+                            "value": value,
+                            "type": "encrypted",
+                            "target": ["production"],
+                        }
+                        for key, value in values.items()
+                    ],
+                )
+                confirmed = await self.request(
+                    "/v9/projects/" + self.target.project_id + "/env"
+                )
+                records = confirmed.get("envs")
+                if not isinstance(records, list) or any(
+                    not isinstance(item, dict) for item in records
+                ):
+                    raise OperatorError("invalid_vercel_response")
+                owned = [item for item in records if item.get("key") in values]
+                if (
+                    len(owned) != len(values)
+                    or {item.get("key") for item in owned} != set(values)
+                    or any(
+                        item.get("target") != ["production"]
+                        or item.get("type") != "encrypted"
+                        or item.get("gitBranch")
+                        or item.get("customEnvironmentIds")
+                        for item in owned
                     )
-                # Saving before spawning makes timeout/process death recoverable.
+                ):
+                    raise OperatorError("vercel_environment_not_verified")
+                # Only exact verified export files, never a recursive user/state
+                # upload. The manifest wheel contains no operator credentials.
+                names = {
+                    "app.py",
+                    "vercel.json",
+                    "runtime-requirements.txt",
+                    ".python-version",
+                    ".vercelignore",
+                    "pyproject.toml",
+                    "requirements.txt",
+                    "uv.lock",
+                    "oshepherd-manifest.json",
+                    "vendor/" + Path(wheel).name,
+                }
+                file_records = []
+                total = 0
+                for name in sorted(names):
+                    file = bundle / name
+                    if file.is_symlink() or not file.is_file():
+                        raise OperatorError("invalid_vercel_bundle")
+                    data = file.read_bytes()
+                    total += len(data)
+                    if total > 8 * 1024 * 1024:
+                        raise OperatorError("vercel_bundle_too_large")
+                    file_records.append(
+                        {
+                            "file": name,
+                            "encoding": "base64",
+                            "data": base64.b64encode(data).decode(),
+                        }
+                    )
+                # Journal before POST. Lost response is reconciled by operation
+                # metadata; this non-idempotent request is never retried blindly.
                 receipt["creating"] = True
                 write_private_json(self.receipt_file, receipt)
-                try:
-                    output = await self.cli(
-                        [
-                            "deploy",
-                            "--prod",
-                            "--yes",
-                            "--cwd",
-                            str(bundle),
-                            "--scope",
-                            scope,
-                            "--meta",
-                            "oshepherd_cluster=" + str(state.cluster_id),
-                            "--meta",
-                            "oshepherd_operation=" + receipt["operation_id"],
-                        ],
-                        timeout=300,
-                    )
-                except OperatorError as error:
-                    if str(error) == "vercel_cli_unavailable":
-                        receipt["creating"] = False
-                        write_private_json(self.receipt_file, receipt)
-                    raise
-                url = urlsplit(output)
-                if (
-                    url.scheme != "https"
-                    or not url.hostname
-                    or not url.hostname.endswith(".vercel.app")
-                    or url.username
-                    or url.password
-                    or url.query
-                    or url.fragment
-                    or url.path
+                created = await self.request(
+                    "/v13/deployments",
+                    method="POST",
+                    body={
+                        "name": project["name"],
+                        "project": self.target.project_id,
+                        "target": "production",
+                        "files": file_records,
+                        "projectSettings": {"framework": "fastapi"},
+                        "meta": {
+                            "oshepherd_cluster": str(state.cluster_id),
+                            "oshepherd_operation": receipt["operation_id"],
+                        },
+                    },
+                )
+                identifier = created.get("id")
+                if not isinstance(identifier, str) or not re.fullmatch(
+                    r"dpl_[A-Za-z0-9]+", identifier
                 ):
-                    raise OperatorError("invalid_vercel_cli_acknowledgement")
-                receipt["deployment_id"] = (
-                    await self.request(
-                        "/v13/deployments/" + quote(url.hostname, safe="")
-                    )
-                )["id"]
+                    raise OperatorError("invalid_vercel_deployment_id")
+                receipt["deployment_id"] = identifier
                 receipt["creating"] = False
                 write_private_json(self.receipt_file, receipt)
             identifier = receipt["deployment_id"]
@@ -409,15 +403,23 @@ class VercelDeployment:
                 r"dpl_[A-Za-z0-9]+", identifier
             ):
                 raise OperatorError("invalid_vercel_deployment_id")
-            deployment = await self.request("/v13/deployments/" + identifier)
-            if (
-                deployment.get("projectId") != self.target.project_id
-                or deployment.get("target") != "production"
-                or deployment.get("meta", {}).get("oshepherd_operation")
-                != receipt["operation_id"]
-                or deployment.get("readyState") != "READY"
-            ):
-                raise OperatorError("vercel_deployment_not_ready")
+            deadline = asyncio.get_running_loop().time() + 300
+            while True:
+                deployment = await self.request("/v13/deployments/" + identifier)
+                if (
+                    deployment.get("projectId") != self.target.project_id
+                    or deployment.get("target") != "production"
+                    or deployment.get("meta", {}).get("oshepherd_operation")
+                    != receipt["operation_id"]
+                ):
+                    raise OperatorError("vercel_receipt_deployment_mismatch")
+                if deployment.get("readyState") == "READY":
+                    break
+                if deployment.get("readyState") in ("ERROR", "CANCELED"):
+                    raise OperatorError("vercel_deployment_failed")
+                if asyncio.get_running_loop().time() >= deadline:
+                    raise OperatorError("vercel_deployment_not_ready")
+                await asyncio.sleep(2)
             # The stable project domain is independent of a READY build record.
             await self.preflight()
             if not await self.health(state):

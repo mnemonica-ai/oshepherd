@@ -1,0 +1,92 @@
+name: experimental candidate package
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Publish the verified prerelease to PyPI after protected-environment approval'
+        type: boolean
+        required: true
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: '0.9.18'
+      - run: uv sync --locked --extra supabase --extra installer
+      - name: Run offline contracts
+        run: uv run --locked pytest -q tests/contracts tests/test_systemone.py
+      - name: Build sdist and wheel; verify installed commands and exact source hashes
+        env:
+          PUBLISH_REQUESTED: ${{ inputs.publish }}
+        run: |
+          if [ "$PUBLISH_REQUESTED" = 'true' ]; then
+            uv run --locked python -m scripts.verify_candidate --build --dist dist --report candidate-verification.json --require-prerelease
+          else
+            uv run --locked python -m scripts.verify_candidate --build --dist dist --report candidate-verification.json
+          fi
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: verified-candidate-${{ github.sha }}
+          path: |
+            dist/*.whl
+            dist/*.tar.gz
+            candidate-verification.json
+          if-no-files-found: error
+          retention-days: 14
+
+  reverify:
+    if: ${{ inputs.publish }}
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: '0.9.18'
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: verified-candidate-${{ github.sha }}
+          path: candidate-download
+      - name: Reverify exactly the artifacts that passed the build job
+        run: |
+          uv sync --locked --extra supabase --extra installer
+          uv run --locked python -m scripts.verify_candidate --dist candidate-download/dist --expected-report candidate-download/candidate-verification.json --require-prerelease
+
+  # Holds the publishing token, so it runs no project or dependency code.
+  publish:
+    if: ${{ inputs.publish }}
+    needs: reverify
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/oshepherd
+    permissions:
+      id-token: write
+    steps:
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: '0.9.18'
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: verified-candidate-${{ github.sha }}
+          path: candidate-download
+      - name: Confirm these are the bytes that passed reverification
+        working-directory: candidate-download
+        run: jq -r '.files | to_entries[] | "\(.value)  dist/\(.key)"' candidate-verification.json | sha256sum --check --strict
+      - name: Publish only the verified prerelease using trusted publishing
+        run: uv publish --trusted-publishing always candidate-download/dist/*.whl candidate-download/dist/*.tar.gz

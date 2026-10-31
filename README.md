@@ -24,11 +24,13 @@ uv tool install --python 3.12 oshepherd
 Install [uv](https://docs.astral.sh/uv/getting-started/installation/) first.
 For a source checkout, use the development setup below.
 
-The source candidate also provides experimental `share`, `invite` and `join`
-commands for sharing local Ollama through Supabase, with optional Vercel hosting.
-See the [sharing guide](docs/share-ollama.md) for the current existing-project flow
-and its prerequisites. These commands are not yet in the published release;
-automatic cloud project creation remains in progress.
+The unpublished `0.0.25a1` candidate adds experimental `share`, `invite`, `join`
+and optional background services. Guided setup creates or selects Supabase Free
+and optional Vercel Hobby projects, without a provider CLI or database URL.
+See the [sharing guide](docs/share-ollama.md) for the verified-wheel entry point,
+private invitations and current limitations. Publication and full hosted
+qualification remain separate gates; the published `0.0.24` does not contain
+this onboarding workflow.
 
 ### Usage
 

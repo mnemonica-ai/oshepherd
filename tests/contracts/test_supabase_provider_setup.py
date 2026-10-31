@@ -53,7 +53,11 @@ class Provider:
         assert request.method == "GET"
         assert request.headers["Authorization"] == "Bearer private-token"
         if request.url.path == "/v1/organizations":
-            return httpx.Response(200, json=[{"id": ORG, "name": "My Free org"}])
+            return httpx.Response(
+                200, json=[{"id": ORG, "slug": ORG, "name": "My Free org"}]
+            )
+        if request.url.path == "/v1/organizations/" + ORG:
+            return httpx.Response(200, json={"id": ORG, "plan": "free"})
         if request.url.path == "/v1/projects":
             return httpx.Response(
                 200,
@@ -341,19 +345,24 @@ def wizard_command(tmp_path):
     return command
 
 
-def test_wizard_requires_psql_before_reading_credentials_or_cloud(
-    monkeypatch, tmp_path
-):
-    monkeypatch.setattr(provider_cli.shutil, "which", lambda _: None)
-    result = CliRunner().invoke(wizard_command(tmp_path))
-    assert isinstance(result.exception, OperatorError)
-    assert str(result.exception) == "psql_required_for_project_setup"
-    assert "access token" not in result.output
+def test_guided_existing_configuration_needs_no_database_url(tmp_path):
+    async def run():
+        transport = Provider()
+        async with httpx.AsyncClient(
+            transport=httpx.MockTransport(transport.handle)
+        ) as client:
+            provider = SupabaseManagement("private-token", client=client)
+            result = await prepare_existing_project(provider, tmp_path, REF, ORG)
+            assert result.database_url is None
+            assert (
+                OperatorConfig.load(tmp_path / "connection.json").database_url is None
+            )
+
+    asyncio.run(run())
 
 
 def test_wizard_decline_has_no_writes_or_echoed_secrets(monkeypatch, tmp_path):
     transport = Provider()
-    monkeypatch.setattr(provider_cli.shutil, "which", lambda _: "/usr/bin/psql")
 
     def factory(token):
         assert token == "private-token"
@@ -365,9 +374,7 @@ def test_wizard_decline_has_no_writes_or_echoed_secrets(monkeypatch, tmp_path):
         return provider
 
     monkeypatch.setattr(provider_cli, "SupabaseManagement", factory)
-    result = CliRunner().invoke(
-        wizard_command(tmp_path), input=f"private-token\n1\n{DATABASE}\nn\n"
-    )
+    result = CliRunner().invoke(wizard_command(tmp_path), input="private-token\n1\nn\n")
     assert result.exit_code == 1
     assert not list(tmp_path.iterdir())
     assert "private-token" not in result.output
@@ -414,9 +421,8 @@ def test_wizard_refreshes_revoked_pat_only_for_same_bound_configuration(
 
     monkeypatch.setattr(provider_cli, "SupabaseManagement", factory)
     monkeypatch.setattr(provider_cli, "ensure_owner", owner)
-    monkeypatch.setattr(provider_cli.shutil, "which", lambda _: "/usr/bin/psql")
     result = CliRunner().invoke(
-        wizard_command(tmp_path), input="fresh-private-token\ny\n"
+        wizard_command(tmp_path), input="fresh-private-token\ny\ny\n"
     )
     assert result.exit_code == 0, repr(result.exception)
     assert "fresh-private-token" not in result.output

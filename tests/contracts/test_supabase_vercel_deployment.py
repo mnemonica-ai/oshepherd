@@ -1,4 +1,4 @@
-"""Provider-scoped CLI configuration and lost deployment acknowledgement tests."""
+"""Provider-scoped REST configuration and lost deployment acknowledgement tests."""
 
 import asyncio
 import json
@@ -41,6 +41,8 @@ class Cloud:
         self.failed_ack = False
         self.disabled = False
         self.lose_remove_ack = False
+        self.malformed_ack = False
+        self.corrupt_environment = False
 
     def http(self, request):
         self.calls.append(request)
@@ -63,6 +65,58 @@ class Cloud:
                     "private deletion acknowledgement lost", request=request
                 )
             return httpx.Response(200, json={})
+        if request.method == "POST":
+            body = json.loads(request.content)
+            if path == "/v10/projects/" + PROJECT + "/env":
+                assert request.url.params["upsert"] == "true"
+                for item in body:
+                    assert item["type"] == "encrypted" and item["target"] == [
+                        "production"
+                    ]
+                    self.envs = [old for old in self.envs if old["key"] != item["key"]]
+                    self.envs.append(
+                        {key: value for key, value in item.items() if key != "value"}
+                    )
+                if self.fail_environment:
+                    self.fail_environment = False
+                    return httpx.Response(500, json={"private": "secret"})
+                if self.corrupt_environment:
+                    self.envs[-1]["target"] = ["preview"]
+                return httpx.Response(200, json={"created": []})
+            assert path == "/v13/deployments"
+            assert body["project"] == PROJECT and body["target"] == "production"
+            assert set(item["file"] for item in body["files"]) == {
+                "app.py",
+                "vercel.json",
+                "runtime-requirements.txt",
+                ".python-version",
+                ".vercelignore",
+                "pyproject.toml",
+                "requirements.txt",
+                "uv.lock",
+                "oshepherd-manifest.json",
+                "vendor/verified.whl",
+            }
+            assert all(item["encoding"] == "base64" for item in body["files"])
+            assert "provider-token" not in request.content.decode()
+            self.deploys += 1
+            self.deployment = {
+                "id": "dpl_Isolated01",
+                "projectId": PROJECT,
+                "meta": body["meta"],
+                "target": "production",
+                "readyState": "READY",
+            }
+            if self.lose_ack:
+                self.lose_ack = False
+                raise httpx.ReadTimeout("private deployment ack", request=request)
+            if self.failed_ack:
+                self.failed_ack = False
+                return httpx.Response(500, json={"private": "secret"})
+            if self.malformed_ack:
+                self.malformed_ack = False
+                return httpx.Response(201, json={"unexpected": "private-response"})
+            return httpx.Response(201, json={"id": "dpl_Isolated01"})
         if path.startswith("/v2/teams/"):
             return httpx.Response(
                 200,
@@ -103,74 +157,24 @@ class Cloud:
             return httpx.Response(200, json=self.deployment)
         raise AssertionError("Unexpected provider route")
 
-    def cli(self, command, **kwargs):
-        self.cli_calls.append(command)
-        auth_folder = Path(command[command.index("--global-config") + 1])
-        assert read_private_json(auth_folder / "auth.json") == {
-            "token": "provider-token"
-        }
-        assert "provider-token" not in " ".join(command)
-        assert kwargs["env"]["VERCEL_ORG_ID"] == TEAM
-        assert kwargs["env"]["VERCEL_PROJECT_ID"] == PROJECT
-        assert "VERCEL_TOKEN" not in kwargs["env"]
-        bundle = Path(command[command.index("--cwd") + 1])
-        assert auth_folder not in bundle.parents and bundle not in auth_folder.parents
-        assert not list(bundle.rglob("*.env"))
-        assert (
-            read_private_json(bundle / ".vercel/project.json")["projectId"] == PROJECT
-        )
-        if command[1:3] == ["env", "add"]:
-            key = command[3]
-            assert command[4] == "production" and "--force" in command
-            assert isinstance(kwargs["input"], str)
-            if key == "SUPABASE_SECRET_KEY":
-                assert kwargs["input"] not in command
-            self.envs = [item for item in self.envs if item["key"] != key]
-            self.envs.append(
-                {
-                    "id": "env-" + key,
-                    "key": key,
-                    "type": "encrypted",
-                    "target": ["production"],
-                }
-            )
-            if self.fail_environment:
-                self.fail_environment = False
-                return SimpleNamespace(
-                    returncode=1, stdout="private output", stderr="private value"
-                )
-            return SimpleNamespace(returncode=0, stdout="added", stderr="")
-        assert command[1] == "deploy" and "--prod" in command
-        self.deploys += 1
-        meta = dict(
-            command[index + 1].split("=", 1)
-            for index, value in enumerate(command)
-            if value == "--meta"
-        )
-        self.deployment = {
-            "id": "dpl_Isolated01",
-            "projectId": PROJECT,
-            "meta": meta,
-            "target": "production",
-            "readyState": "READY",
-        }
-        if self.lose_ack:
-            self.lose_ack = False
-            raise subprocess.TimeoutExpired(command, kwargs["timeout"])
-        if self.failed_ack:
-            self.failed_ack = False
-            return SimpleNamespace(
-                returncode=1, stdout="private provider failure", stderr="private value"
-            )
-        return SimpleNamespace(
-            returncode=0, stdout="https://owned-operation.vercel.app", stderr=""
-        )
-
 
 def fixture(tmp_path, monkeypatch):
     def export(bundle, wheel):
         bundle.mkdir(parents=True)
-        (bundle / "app.py").write_text("verified fixture export")
+        for name in (
+            "app.py",
+            "vercel.json",
+            "runtime-requirements.txt",
+            ".python-version",
+            ".vercelignore",
+            "pyproject.toml",
+            "requirements.txt",
+            "uv.lock",
+            "oshepherd-manifest.json",
+        ):
+            (bundle / name).write_text("verified fixture export")
+        (bundle / "vendor").mkdir()
+        (bundle / "vendor" / wheel.name).write_bytes(wheel.read_bytes())
 
     monkeypatch.setattr(
         "oshepherd.backends.supabase.vercel_deployment.export_vercel", export
@@ -199,21 +203,21 @@ def fixture(tmp_path, monkeypatch):
     wheel.write_bytes(b"verified-wheel-fixture")
     cloud = Cloud()
     client = httpx.AsyncClient(transport=httpx.MockTransport(cloud.http))
-    deployment = VercelDeployment(
-        target, config, directory, client=client, runner=cloud.cli
-    )
+    deployment = VercelDeployment(target, config, directory, client=client)
     return cloud, client, deployment, wheel, state
 
 
 @pytest.mark.parametrize("fault", ["lose_ack", "failed_ack", "fail_environment"])
-def test_cli_failure_reconciles_scoped_encrypted_configuration_and_one_deployment(
+def test_rest_failure_reconciles_scoped_encrypted_configuration_and_one_deployment(
     tmp_path, monkeypatch, fault
 ):
     async def run():
         cloud, client, adapter, wheel, state = fixture(tmp_path, monkeypatch)
         setattr(cloud, fault, True)
         async with client:
-            with pytest.raises(OperatorError, match="vercel_cli_") as failure:
+            with pytest.raises(
+                OperatorError, match="vercel_(write_outcome_ambiguous|provider_failed)"
+            ) as failure:
                 await adapter.deploy(wheel)
             assert "private" not in str(failure.value)
             result = await adapter.deploy(wheel)
@@ -255,7 +259,7 @@ def test_plan_project_and_domain_are_verified_before_any_secret_write(
         async with client:
             with pytest.raises(OperatorError, match=error):
                 await adapter.deploy(wheel)
-            assert not cloud.cli_calls
+            assert not any(call.method == "POST" for call in cloud.calls)
             assert not adapter.receipt_file.exists()
 
     asyncio.run(run())
@@ -280,7 +284,7 @@ def test_preview_credentials_or_unowned_project_cannot_be_adopted(
             cloud.envs[-1]["target"] = ["production"]
             with pytest.raises(OperatorError, match="vercel_project_collision"):
                 await adapter.deploy(wheel)
-            assert not cloud.cli_calls
+            assert not any(call.method == "POST" for call in cloud.calls)
 
     asyncio.run(run())
 
@@ -297,6 +301,59 @@ def test_unknown_creation_outcome_never_creates_another_deployment(
             cloud.deployment = None  # Provider reconciliation cannot find it.
             with pytest.raises(OperatorError, match="vercel_deployment_ambiguous"):
                 await adapter.deploy(wheel)
+            assert cloud.deploys == 1
+
+    asyncio.run(run())
+
+
+def test_malformed_create_ack_stays_pending_then_reconciles_without_duplicate(
+    tmp_path, monkeypatch
+):
+    async def run():
+        cloud, client, adapter, wheel, _ = fixture(tmp_path, monkeypatch)
+        cloud.malformed_ack = True
+        async with client:
+            with pytest.raises(OperatorError, match="invalid_vercel_deployment_id"):
+                await adapter.deploy(wheel)
+            assert read_private_json(adapter.receipt_file)["creating"] is True
+            assert (await adapter.deploy(wheel))["gateway_verified"]
+            assert cloud.deploys == 1
+
+    asyncio.run(run())
+
+
+def test_environment_response_must_confirm_production_only_before_build(
+    tmp_path, monkeypatch
+):
+    async def run():
+        cloud, client, adapter, wheel, _ = fixture(tmp_path, monkeypatch)
+        cloud.corrupt_environment = True
+        async with client:
+            with pytest.raises(OperatorError, match="vercel_environment_not_verified"):
+                await adapter.deploy(wheel)
+            assert cloud.deploys == 0
+
+    asyncio.run(run())
+
+
+def test_no_manual_wheel_or_cli_required_for_verified_installed_distribution(
+    tmp_path, monkeypatch
+):
+    async def run():
+        cloud, client, adapter, wheel, _ = fixture(tmp_path, monkeypatch)
+        builds = []
+
+        def materialize(directory):
+            builds.append(directory)
+            return wheel
+
+        monkeypatch.setattr(
+            "oshepherd.backends.supabase.vercel_deployment.materialize_current_wheel",
+            materialize,
+        )
+        async with client:
+            assert (await adapter.deploy())["gateway_verified"]
+            assert builds == [adapter.directory / "runtime-wheel"]
             assert cloud.deploys == 1
 
     asyncio.run(run())

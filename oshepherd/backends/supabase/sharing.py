@@ -141,6 +141,9 @@ async def _supervise(operator, worker_config, *, model, check, stop, on_event):
         )
         if result.get("inference_verified") is not True:
             raise OperatorError("sharing_inference_not_verified")
+        from .service import record_readiness
+
+        record_readiness("share", operator.directory, model=model)
         on_event("inference_verified")
         result.update(
             gateway_url=gateway_url(operator.config),
@@ -178,8 +181,10 @@ async def run_share(
     worker_name="local",
     capacity=1,
     deploy=None,
+    database=None,
     check=False,
     renew_enrollment=False,
+    resume_only=False,
     on_event=lambda event: None,
     stop=None,
 ):
@@ -211,6 +216,8 @@ async def run_share(
             owner_subject = state.owner_subject
         if owner_subject is None:
             raise OperatorError("sharing_owner_required_for_initial_install")
+        if resume_only and (state is None or state.stage != "configured"):
+            raise OperatorError("sharing_service_requires_configured_installation")
         bind_sharing(
             operator,
             owner_subject=owner_subject,
@@ -219,7 +226,10 @@ async def run_share(
             ollama_url=ollama_url,
         )
         if state is None or state.stage != "configured":
-            await operator.install(owner_subject)
+            if database is None:
+                await operator.install(owner_subject)
+            else:
+                await operator.install(owner_subject, database=database)
         if deploy is not None:
             await deploy()
         readiness = await operator.doctor()
@@ -247,6 +257,8 @@ async def run_share(
             if session.user_id != enrollment.auth_subject:
                 raise OperatorError("sharing_worker_session_conflict")
         else:
+            if resume_only:
+                raise OperatorError("sharing_service_requires_saved_session")
             await operator.enroll(worker_name, capacity, renew=renew_enrollment)
         worker_config = SupabaseWorkerConfig(
             SUPABASE_URL=operator.config.supabase_url,
@@ -256,6 +268,8 @@ async def run_share(
             CONCURRENCY=capacity,
         )
         if not session_file.exists():
+            if resume_only:
+                raise OperatorError("sharing_service_requires_saved_session")
             token = read_enrollment(
                 operator.directory / (worker_name + ".enrollment.json"),
                 supabase_url=operator.config.supabase_url,

@@ -1,16 +1,9 @@
-name: bump & release
+name: manual legacy version bump
 
 on:
-  push:
-    branches:
-      - main
-    paths-ignore:
-      - README.md
-      - LICENSE
-      - assets/**
-      - examples/**
-      - tests/**
-      - .github/**
+  # Keep legacy version rewriting explicitly invoked. A push must not replace a
+  # reviewed PEP 440 prerelease with a stable patch version before publication.
+  workflow_dispatch:
 
 jobs:
   release-on-push:

@@ -205,6 +205,7 @@ for _name, _module, _help in (
         "Join an installation or restart its saved foreground worker.",
     ),
     ("invite", "share_cli", "Create a private invitation for another machine."),
+    ("service", "service_cli", "Manage optional per-user background sharing."),
 ):
     main.add_command(
         _OnboardingCommand(_name, "oshepherd.backends.supabase." + _module, _help)

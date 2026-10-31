@@ -1,6 +1,6 @@
 # Optional Supabase backend
 
-Updated October 14, 2026. Status: implemented experimental candidate. Both hosted
+Updated October 31, 2026. Status: implemented experimental candidate. Both hosted
 profiles passed genuine inference, route/stream/private-download checks, bounded
 load/Auth/recovery and size probes. Installed-wheel local CLI onboarding and actual
 provider adapter/removal acceptance pass. The approved test gateways are now
@@ -13,8 +13,12 @@ See the [next steps](next-steps.md) and [progress ledger](progress.md).
 uv to sharing local Ollama, with guided create/use-existing provider setup and a
 second-machine join flow. The operator engine is implemented; this complete user
 journey is not yet delivered. Hosted OAuth/buttons follow this milestone.
-The source candidate's [sharing guide](../../share-ollama.md) documents the first
-share/invite/join implementation and existing-project prerequisites.
+The unpublished `0.0.25a1` candidate's [sharing guide](../../share-ollama.md)
+documents create/select Supabase and optional Vercel onboarding without provider
+CLIs or database URL input, private second-machine invitations and optional user
+services. The [distribution workflow](experiments/distribution.md) verifies exact
+artifacts before any explicit publication; fresh/live and published-package
+acceptance remain separate evidence gates.
 
 The local lifecycle now includes experimental SQL, worker enrollment, Edge and
 optional FastAPI gateways, async results, cleanup and a uv-based demo workflow.

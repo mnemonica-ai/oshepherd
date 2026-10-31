@@ -1,6 +1,6 @@
 # Supabase implementation progress
 
-Updated October 14, 2026. The objective is to finish the implementation so
+Updated October 31, 2026. The objective is to finish the implementation so
 an Ollama client can send a request to an Edge Function and receive inference
 from a local Ollama model. This ledger records authoritative artifacts and
 verification; an implementation checkbox does not imply hosted validation.
@@ -24,6 +24,92 @@ gateway removals are complete and their clusters are disabled; retained data and
 shared provider configuration remain. Hosted inference needs a new explicitly
 selected installation; retired keys/sessions cannot be reused.
 
+## October 31 adoption extension: implementation and provisional evidence
+
+The unpublished candidate is `0.0.25a1`. Supabase setup can create/select an
+organization/project, discover regions, verify the optional organization plan
+field, reject non-Free plans, and record explicit attestation if the field is
+absent. Durable creation records precede POSTs; uncertain outcomes reconcile
+without duplicate creation. Management SQL shares the migration/schedule engine
+and preserves the existing private-database operator route. Vercel setup selects
+Hobby resources and deploys verified installed bytes through REST. User services
+support foreground-established share/join state with private receipts and optional
+owned durable uv runtimes.
+
+Provider/provisioning contract tests passed **38 cases**. Candidate archive gates
+passed **17 cases**, including the one-byte `.gitignore` marker produced by actual
+`uv build`. An actual `0.0.25a1` sdist/wheel pair passed source/manifest/hash checks
+and isolated uv installation outside the checkout. Installed `oshepherd`, `share`,
+`join`, `invite`, `service` and `supabase` help entry points passed with no cloud
+credentials. This verifies packaging/entry points, not fresh hosted inference.
+The [distribution report](experiments/distribution.md) explains the explicit
+publication gate and external prerequisites.
+
+CI compatibility was checked with the actual pinned **uv 0.9.18**: it reads the
+current lockfile revision 5 with `--locked --offline`, and its full/runtime exports
+match the checked-in exports (ignoring the full export's generated command header).
+No uv pin change was required. The supported **Deno 1.41.0** passed type checking
+and **48 Edge contracts**; system Deno 2.9.8 type errors are not evidence for the
+pinned runtime. No Edge source changes were required.
+
+Fresh Vercel Hobby project creation, provider ownership/domain selection and REST
+readiness have creation evidence only. The project has no deployment or environment
+entries, and a hosted Vercel function cannot reach a local Supabase stack.
+
+### Local-first validation of candidate r3
+
+The user deferred hosted Supabase and directed all testing to local Supabase
+containers first. Nothing below touched a hosted Supabase project or a hosted
+gateway. Commands and private evidence paths are in the
+[acceptance report](experiments/cli-onboarding.md#october-31-local-first-acceptance).
+
+| Check | Result |
+| --- | --- |
+| Offline contracts and SystemOne | **564 passed** in 14.70 seconds |
+| Pinned Deno 1.41.0 | Type check and **48 Edge contracts** passed |
+| Local Supabase integration, full selection | **69 passed, 1 failed, 2 deselected**, three consecutive runs; the failure is the known strict Edge disconnect gate |
+| r3 wheel, real macOS LaunchAgents | Passed, including foreground share/invite/join, both services' JSON and NDJSON, restart generations and preserved worker state |
+| r3 wheel, real Linux user systemd 252 | The same harness passed in a Debian 12 container, with the injected uninstall faults below |
+| Management SQL, fresh disposable stack | Passed as non-superuser `postgres`, with limits below |
+
+Real systemd and independent review found defects that mocks had hidden:
+
+- **Every Linux service failed to load.** `WorkingDirectory=` was quoted, and
+  systemd rejects a quoted value as not absolute, so each install rolled back.
+- Linux uninstall could not recover after a failed `daemon-reload`, because retry
+  ran `disable` on the removed unit. systemd exits 1 for that. With the reload
+  failure injected on real systemd, retry now recovers and preserves the worker
+  session.
+- An install interrupted between its receipt and unit stranded the service name.
+- A partial owned runtime directory blocked reinstallation; `uv venv` now clears it.
+- The publish job's OIDC token was exposed to dependency code during reverification;
+  reverification moved to a job without that permission. This workflow change has
+  not run on GitHub.
+
+Limits of this evidence:
+
+- Management SQL replaced api.supabase.com with real `postgres-meta`. It proves
+  transactions, lost-acknowledgement recovery, repeat reconciliation and schedules
+  on real Postgres, then a real PostgREST/Auth bootstrap. It does not prove hosted
+  endpoint response or error shapes, which remain unobserved.
+- Local `postgres` lacks the Storage grant option that earlier hosted installs had,
+  so the run first proved the privilege gate rejects before mutation, then granted
+  that option to approximate the hosted role. A newly created hosted project's role
+  is unverified, and this check would not reveal a difference there.
+- The Linux run is a container on Docker Desktop with lingering enabled, reaching
+  the host's stack and Ollama through loopback forwards. It is not a physical Linux
+  login session.
+- Fresh project creation, live provider APIs, hosted inference and Vercel deployment
+  are not covered by local containers.
+
+With the privileged systemd container running, all four full integration runs had
+one extra Edge failure, a 503 or a dropped connection. All three full runs with it
+stopped were clean. Edge-only runs mostly passed with it up, and the failing test
+varied, so this is a small-sample correlation with no established mechanism. Do
+not run the two together.
+
+Historical October 14 totals below do not count this work.
+
 ## Completed
 
 - [x] Reprioritize the roadmap around share/join and create-or-select provider setup;
@@ -31,9 +117,14 @@ selected installation; retired keys/sessions cannot be reused.
 - [x] Implement source `share`, `invite` and `join`, guided existing Supabase Edge
   setup, restricted portable worker invitations and foreground worker/cleanup
   supervision. Verification and limitations are recorded below.
-- [ ] Complete A1–A5 acceptance: fresh project creation, guided Vercel setup,
-  removal of database URL/psql prerequisites, optional services, published-package
-  distribution and fresh hosted user acceptance remain unfinished.
+- [x] Implement October 31 provider creation/selection, optional Vercel REST setup,
+  Management SQL without database URL/psql input, optional macOS/Linux user services,
+  and a gated experimental candidate build/publication workflow. Implementation
+  is distinct from the integrated/live acceptance recorded below.
+- [ ] Complete A1–A5 acceptance: finish fresh hosted validation, publish an
+  explicitly approved candidate after external release setup, and validate its
+  pinned package on clean user machines. Local service-manager acceptance passed
+  on macOS and containerized Linux systemd.
 
 - [x] Add bounded hosted request/JSON/NDJSON envelope checks and validate both
   profiles. Fix Edge upload-tail rejection and source-relative Management adapter

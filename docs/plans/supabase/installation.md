@@ -1,6 +1,6 @@
 # Supabase installation and hosting
 
-Updated October 14, 2026. Companion to the [implementation plan](implementation.md)
+Updated October 31, 2026. Companion to the [implementation plan](implementation.md)
 and [verification matrix](compatibility.md). Versioned SQL, the operator CLI and
 the self-contained Vercel template are implemented candidates with evidence in
 the [operator runbook](experiments/operator-lifecycle.md). Both isolated hosted
@@ -11,10 +11,11 @@ Edge/Vercel adapter adoption/deployment/repeat reconciliation and approved hoste
 removal acceptance pass. The test gateways are removed and clusters disabled;
 see [current acceptance](experiments/independent-acceptance.md). Hosted OAuth/button
 onboarding remains unrun.
-Automatic provider project creation is outside the delivered installer and is now
-in scope for the priority [CLI onboarding milestone](cli-onboarding.md). The
-[next steps](next-steps.md) distinguish the working operator engine from the
-unfinished user journey.
+The October 31 CLI candidate implements provider organization/project creation
+and selection with durable reconciliation. The separate hosted OAuth installer
+remains local-first; it is not the CLI prerequisite. The
+[CLI onboarding milestone](cli-onboarding.md) and [next steps](next-steps.md)
+distinguish implemented source from fresh hosted and published-package acceptance.
 
 ## Installation promise
 
@@ -25,10 +26,14 @@ uses a private one-time invitation and never needs provider administrator keys.
 The finished flow needs no checkout, handwritten configuration or hosted installer
 service. See the [implementation slices and acceptance](cli-onboarding.md).
 
-The source candidate now implements share/invite/join and a guided existing Edge
-project path; it still needs a private PAT/database URL and `psql`. See the
-[candidate sharing guide](../../share-ollama.md). Automatic project creation,
-guided Vercel setup, background services and the published release remain pending.
+The source candidate implements share/invite/join, guided create/select Supabase
+and optional Vercel setup, and background user services. It uses hidden provider
+tokens, Management SQL and REST deployment without requiring `psql`, database URL
+entry or provider CLIs. Supabase's optional plan field establishes Free when
+present; absent fields require explicit dashboard attestation, and non-Free plans
+are rejected. Vercel must verify Hobby. See the [candidate sharing guide](../../share-ollama.md).
+`0.0.25a1` is unpublished; live/fresh-user acceptance and the external protected
+publication setup remain separate gates.
 
 Supabase with Edge is the default sharing path. Optional Vercel hosting still uses
 Supabase; Vercel alone is not a supported backend. Later **Install on Supabase** and
@@ -129,7 +134,7 @@ the implemented control service, encrypted records, queued shared-engine setup,
 private worker downloads and owned provider adapters. Hosted OAuth/button
 acceptance remains unrun under the user's local-first decision.
 
-The operator CLI uses protected connection files and transactional psql migrations, recording the official Supabase migration history. Deployment remains a separate provider step; ownership-bound adapters now supplement the manual path. `functions deploy --use-api` bundles remotely without Docker; local Supabase development still has its own requirements. See the [operator runbook](experiments/operator-lifecycle.md) for prerequisites and recovery. [Supabase CLI](https://supabase.com/docs/reference/cli)
+Guided CLI setup uses a target-bound Management SQL transport and the shared transactional migration engine, recording official Supabase migration history. The advanced operator CLI also retains protected database connection files and `psql`. Guided deployment composes ownership-bound provider adapters; the separate operator commands remain available. `functions deploy --use-api` bundles remotely without Docker; local Supabase development still has its own requirements. See the [operator runbook](experiments/operator-lifecycle.md) for prerequisites and recovery. [Supabase CLI](https://supabase.com/docs/reference/cli)
 
 Available CLI, after preparing protected connection configuration and an explicit existing Auth owner:
 

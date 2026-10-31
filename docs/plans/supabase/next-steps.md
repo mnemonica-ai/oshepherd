@@ -1,6 +1,6 @@
 # Supabase next steps
 
-Updated October 14, 2026.
+Updated October 31, 2026.
 
 **Priority: deliver the adoption-first CLI experience.** The user's primary journey
 is one uv entry to provision/connect cloud resources and share local Ollama, plus a
@@ -16,10 +16,25 @@ with worker/cleanup supervision and guided existing Supabase Edge project setup.
 See the [user guide](../../share-ollama.md) and current evidence in the ledger.
 The user authorized an orchestrator with implementation subagents.
 
-Next implement fresh provider project creation with durable reconciliation and
-verified free-plan constraints, guided optional Vercel setup, removal of the
-database URL/psql prerequisite, optional service management, and published-package
-fresh-user acceptance. Hosted OAuth remains a later distribution path.
+The October 31 source candidate implements fresh Supabase organization/project
+creation and selection, Free verification/explicit fallback attestation, Management
+SQL without a database URL or `psql`, optional Vercel Hobby setup via REST, and
+macOS/Linux user services. The publication workflow defaults to building and
+verifying an experimental candidate.
+
+The user deferred hosted Supabase and directed testing to local containers first.
+That local validation of candidate r3 is
+[recorded in the ledger](progress.md#local-first-validation-of-candidate-r3): real
+macOS and containerized Linux services and fresh-stack Management SQL pass. Local
+containers cannot complete A3/A4.
+
+When the user chooses to resume hosted work, run fresh Supabase creation, observe
+the live Management SQL response/error shapes and the new project's `postgres`
+role, then deploy Vercel and run hosted inference. Before any explicit publication,
+configure the protected PyPI/Trusted Publisher prerequisites. Then test the actual
+published pinned package on clean machines. See
+[distribution](experiments/distribution.md). Hosted OAuth remains a later
+distribution path.
 
 The finished acceptance is one uv entry from outside the checkout to authenticated
 real inference, and another machine joining with no administrative credentials.
@@ -36,7 +51,7 @@ bounded hosted load/Auth/recovery/request/output probes. The
 found during acceptance: source paths for strict Edge adoption, and finite upload
 tail draining for prompt oversized-request rejection.
 
-The adoption slice's latest offline suite has **454 passes**; focused local
+The October 14 adoption slice's offline suite had **454 passes**; focused local
 operator/maintenance/worker integration has **24 passes** and installed-wheel
 share/invite/join with real Ollama passes. See [CLI acceptance](experiments/cli-onboarding.md).
 Deno's unchanged prior evidence has **48 passes**. The previous full combined
@@ -145,8 +160,11 @@ measurements explicitly identified.
 Run relevant Python/Deno suites, strict hosted probes, real-model smoke checks,
 clean builds and installed-wheel/source hash checks for the chosen fresh targets.
 Update the matrix/runbooks/manifest only from actual results. Keep unresolved
-profiles experimental. Review the release workflow before merging to `main`,
-since documentation changes can also trigger publishing.
+profiles experimental. Candidate publication is now an explicit manual workflow;
+its default is build/verify, and the legacy automatic version rewrite is also
+manual-only. Protected PyPI environment settings and Trusted Publisher registration
+remain external prerequisites. Review the exact candidate commit/artifact evidence
+before authorizing publication; see [distribution](experiments/distribution.md).
 
 Acceptance: every advertised profile satisfies its declared contract and
 installation requirements; there is no hidden cancellation exception, unrun

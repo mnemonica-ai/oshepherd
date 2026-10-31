@@ -99,6 +99,43 @@ mutate cloud resources or reuse retired qualification gateways. It tests the
 existing-installation path; initial local setup in the harness is not represented
 as automatic cloud provisioning.
 
+## October 31 local-first acceptance
+
+The [ledger](../progress.md#local-first-validation-of-candidate-r3) holds results
+and limits. All of it used local containers and the r3 wheel from
+`.oshepherd/local/candidate-20261031-r3/`.
+
+**macOS services.** Add `--service-check` to the command above. Report:
+`.oshepherd/local/adoption-service-20261031-r3-report.json`, `passed: true`,
+`service_platform: Darwin`.
+
+**Linux services.** A disposable `debian:12-slim` image with `systemd`, `systemd-sysv`,
+`dbus-user-session`, `libpam-systemd`, `socat`, `postgresql-client`, uv 0.9.18 and a
+`worker` user with `/var/lib/systemd/linger/worker`. Run it with `--privileged
+--cgroupns=host -v /sys/fs/cgroup:/sys/fs/cgroup:rw --tmpfs /run --tmpfs /run/lock`.
+Inside it, `socat` forwards loopback 55321, 55322 and 11434 to
+`host.docker.internal`, so the harness's isolated-origin checks still apply. Run
+the same harness as `worker` with `XDG_RUNTIME_DIR=/run/user/1000`. Reports:
+`.oshepherd/local/adoption-linux-systemd-20261031-r3-report.json` (`passed: true`,
+`service_platform: Linux`) and `-faults.json`, which records the injected
+`daemon-reload` failure and interrupted-install recovery. Do not run Edge tests
+while this container is up; see the ledger.
+
+**Management SQL.** Start a second Supabase stack from a copy of `supabase/config.toml`
+with its own `project_id` and ports and no Edge functions. Run `postgres-meta` on
+that stack's Docker network, bound to loopback and connected as `postgres`, then:
+
+```sh
+uv run --locked python -m scripts.supabase_management_local_check \
+  --status-file /private/stack-status.json --meta-url http://127.0.0.1:56380
+```
+
+`stack-status.json` is `supabase status -o json` output. The first run proves the
+privilege gate rejects before mutation. After `grant usage on schema storage to
+postgres with grant option` as `supabase_admin`, a rerun migrates the fresh schema.
+Stop the stack with `supabase stop --no-backup` for that workdir. The check refuses
+the 55321 development stack.
+
 ## Remaining product and release work
 
 New Supabase/Vercel project creation with reconciled durable intent and safe billing

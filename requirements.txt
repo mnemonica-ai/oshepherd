@@ -27,7 +27,7 @@ build==1.5.0
     # via oshepherd
 celery==5.6.3
     # via oshepherd
-certifi==2026.7.22
+certifi==2026.10.19
     # via
     #   httpcore
     #   httpx

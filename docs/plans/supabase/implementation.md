@@ -1,6 +1,6 @@
 # Optional Supabase backend: implementation plan
 
-Updated October 14, 2026. Status: implemented experimental candidate with local
+Updated October 31, 2026. Status: implemented experimental candidate with local
 and bounded hosted evidence in the [progress ledger](progress.md). The strict
 Edge/Vercel reader-disconnect gates still fail; full release qualification and
 hosted OAuth/button onboarding remain incomplete. The user-approved test gateway
@@ -350,13 +350,15 @@ Async submission returns immediately; the external worker continues without an E
 
 ## 11. Delivery sequence
 
-October 14 priority update: the [CLI onboarding milestone](cli-onboarding.md)
+October 31 priority update: the [CLI onboarding milestone](cli-onboarding.md)
 now drives implementation over the existing backend and operator engine. Deliver
 share/join, provider create-or-select setup, ongoing operation and installed-package
 user acceptance before hosted OAuth/buttons or expanded benchmarks. The delivery
 sequence below describes underlying backend dependencies; completing those pieces
-does not establish the finished one-command user journey. Existing contracts and
-qualification gates still apply.
+does not establish the finished one-command user journey. Provider creation,
+Management SQL, optional Vercel REST deployment, user services and candidate
+publication tooling now exist in source; integrated/fresh/published acceptance is
+tracked separately. Existing contracts and qualification gates still apply.
 
 Each step is reviewable and leaves Redis operational. Migrations are additive; runtime support follows tested protocol versions.
 
