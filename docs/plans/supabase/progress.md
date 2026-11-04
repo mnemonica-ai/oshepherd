@@ -612,7 +612,7 @@ open and both manifest profiles stay `qualified: false`.
 - Added source `share`, `invite` and `join`, a guided existing Supabase Edge project
   path, private generated connection/owner state, portable restricted invitations,
   restart without provider Management access after completed setup, and supervised
-  worker/Storage cleanup. See the [user guide](../../share-ollama.md) and
+  worker/Storage cleanup. See the [user guide](../../setup-supabase.md) and
   [acceptance report](experiments/cli-onboarding.md).
 - Review fixed worker-subject binding, uncertain one-time exchange replay,
   overlapping signal ownership, early worker exits, actionable discovery errors,

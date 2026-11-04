@@ -24,7 +24,7 @@ create/select Supabase Free projects, optional Vercel Hobby REST setup and user
 services. Guided SQL bootstrap uses the Management API; it no longer requires
 `psql` or a private database URL. The installed runtime supplies Vercel/service
 artifacts without a repository or manually assembled wheel. Follow the
-[candidate user guide](../../share-ollama.md), [distribution instructions](experiments/distribution.md)
+[candidate user guide](../../setup-supabase.md), [distribution instructions](experiments/distribution.md)
 and ledger. Local service-manager and Management SQL acceptance passed on local
 containers. Fresh hosted acceptance and published-package user acceptance remain
 evidence gates; no package has been published as part of this work.

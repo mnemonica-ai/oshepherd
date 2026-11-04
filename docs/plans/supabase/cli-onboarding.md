@@ -22,7 +22,7 @@ uvx --from 'oshepherd[supabase]' oshepherd join
 ```
 
 These are target distribution commands, not instructions to run against the currently published
-package. Use the [candidate sharing guide](../../share-ollama.md) for implemented
+package. Use the [candidate sharing guide](../../setup-supabase.md) for implemented
 commands and remaining prerequisites. Publish a tested version before advertising
 the uvx commands as available. uv manages
 Python/dependencies; resolve or clearly report any remaining external tooling.

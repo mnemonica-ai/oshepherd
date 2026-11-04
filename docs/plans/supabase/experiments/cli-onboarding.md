@@ -3,7 +3,7 @@
 October 14, 2026. The user prioritized terminal-first adoption and explicitly
 authorized implementation subagents. The orchestrator committed that roadmap in
 `3ae5a70`, then integrated and reviewed independent join, share and provider-setup
-work. The [user guide](../../../share-ollama.md) describes the delivered surface;
+work. The [user guide](../../../setup-supabase.md) describes the delivered surface;
 the [A1–A5 plan](../cli-onboarding.md) defines the complete promise.
 
 ## Implemented scope

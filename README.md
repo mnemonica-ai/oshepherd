@@ -15,129 +15,85 @@
 
 A centralized [FastAPI](https://fastapi.tiangolo.com/) service that uses [Celery](https://docs.celeryq.dev) and [Redis](https://redis.com) to orchestrate multiple [Ollama](https://ollama.com) servers as workers.
 
-### Install
+### Install and choose a setup
+
+oshepherd is one global command, installed with [uv](https://docs.astral.sh/uv/):
 
 ```sh
 uv tool install --python 3.12 oshepherd
 ```
 
-Install [uv](https://docs.astral.sh/uv/getting-started/installation/) first.
-For a source checkout, use the development setup below.
+[Install](docs/install.md) also covers a one-line install, pip, installing through
+a coding agent, and the `0.0.25a1` candidate. Then pick a setup:
 
-The unpublished `0.0.25a1` candidate adds experimental `share`, `invite`, `join`
-and optional background services. Guided setup creates or selects Supabase Free
-and optional Vercel Hobby projects, without a provider CLI or database URL.
-See the [sharing guide](docs/share-ollama.md) for the verified-wheel entry point,
-private invitations and current limitations. Publication and full hosted
-qualification remain separate gates; the published `0.0.24` does not contain
-this onboarding workflow.
+| Setup | Best for | Guide |
+| --- | --- | --- |
+| **Redis** | Self-hosting everything on your own network | [Redis](docs/setup-redis.md) |
+| **Supabase** (experimental) | Sharing Ollama over the internet with no server or open port | [Supabase](docs/setup-supabase.md) |
+| **Supabase + Vercel** (experimental) | The Supabase setup with the API on Vercel and larger responses | [Supabase + Vercel](docs/setup-supabase-vercel.md) |
 
-### Usage
+The Supabase setups need the `0.0.25a1` candidate, which is not on PyPI yet.
+PyPI's `0.0.24` contains only the Redis setup.
 
-1. Set up Redis:
+### Call oshepherd
 
-    [Celery](https://docs.celeryq.dev) uses [Redis](https://docs.celeryq.dev/en/stable/getting-started/backends-and-brokers/index.html#redis) as a message broker and backend. You'll need a Redis instance, which you can provision for free at [redislabs.com](https://app.redislabs.com).
+Point your Ollama client at your `oshepherd` endpoint by setting the `host`. For
+Redis that is your API server, such as `http://127.0.0.1:5001`. For Supabase setups,
+use the `gateway_url` from `client.json` and send its application key as an
+`Authorization: Bearer` header; see [Send a request](docs/setup-supabase.md#2-send-a-request).
+The completions come back from one of the workers:
 
-2. Set up the FastAPI server:
+* [ollama-python](https://github.com/ollama/ollama-python) client:
 
-    ```sh
-    # define configuration env file
-    # use credentials for redis as broker and backend
-    cp .api.env.template .api.env
+```python
+import ollama
 
-    # start api
-    oshepherd start-api --env-file .api.env
-    ```
+client = ollama.Client(host="http://127.0.0.1:5001")
 
-3. Set up the Celery/Ollama workers:
+# Standard request
+response = client.generate(model="mistral", prompt="Why is the sky blue?")
 
-    ```sh
-    # install ollama https://ollama.com/download
-    # optionally pull the model
-    ollama pull mistral
-
-    # define configuration env file
-    # use credentials for redis as broker and backend
-    cp .worker.env.template .worker.env
-
-    # start worker
-    oshepherd start-worker --env-file .worker.env
-    ```
-
-#### Logging
-
-Oshepherd uses Python's standard logging library for both the API server and
-Celery worker.
-
-Set `LOGLEVEL` in either `.api.env` or `.worker.env` to control verbosity:
-
-```env
-LOGLEVEL="info"
+# Streaming request
+for chunk in client.generate(model="mistral", prompt="Why is the sky blue?", stream=True):
+    print(chunk['response'], end='', flush=True)
 ```
 
-Valid values include `debug`, `info`, `warning`, `error`, and `critical`.
-API access logs from Uvicorn are disabled by default; enable them with:
+For a complete Python example with streaming support, see [examples/pretty_streaming.py](examples/pretty_streaming.py).
 
-```env
-UVICORN_ACCESS_LOG=true
+* [ollama-js](https://github.com/ollama/ollama-js) client:
+
+```javascript
+import { Ollama } from "ollama/browser";
+
+const ollama = new Ollama({ host: "http://127.0.0.1:5001" });
+
+// Standard request
+const response = await ollama.generate({
+    model: "mistral",
+    prompt: "Why is the sky blue?",
+});
+
+// Streaming request
+const streamResponse = await ollama.generate({
+    model: "mistral",
+    prompt: "Why is the sky blue?",
+    stream: true
+});
+
+for await (const chunk of streamResponse) {
+    process.stdout.write(chunk.response);
+}
 ```
 
-Request and response payload bodies are only logged at `debug` level because
-they may contain prompts, model output, or other sensitive data.
+For a complete TypeScript/JavaScript example with streaming support, see [examples/ts-scripts/README.md](examples/ts-scripts/README.md).
 
-4. Now you're ready to execute Ollama completions remotely. Point your Ollama client at your `oshepherd` API server by setting the `host`. The server will return the requested completions from one of the workers:
+* Raw HTTP request:
 
-    * [ollama-python](https://github.com/ollama/ollama-python) client:
-
-    ```python
-    import ollama
-
-    client = ollama.Client(host="http://127.0.0.1:5001")
-
-    # Standard request
-    response = client.generate(model="mistral", prompt="Why is the sky blue?")
-
-    # Streaming request
-    for chunk in client.generate(model="mistral", prompt="Why is the sky blue?", stream=True):
-        print(chunk['response'], end='', flush=True)
-    ```
-
-    For a complete Python example with streaming support, see [examples/pretty_streaming.py](examples/pretty_streaming.py).
-
-    * [ollama-js](https://github.com/ollama/ollama-js) client:
-
-    ```javascript
-    import { Ollama } from "ollama/browser";
-
-    const ollama = new Ollama({ host: "http://127.0.0.1:5001" });
-
-    // Standard request
-    const response = await ollama.generate({
-        model: "mistral",
-        prompt: "Why is the sky blue?",
-    });
-
-    // Streaming request
-    const streamResponse = await ollama.generate({
-        model: "mistral",
-        prompt: "Why is the sky blue?",
-        stream: true
-    });
-
-    for await (const chunk of streamResponse) {
-        process.stdout.write(chunk.response);
-    }
-    ```
-
-    For a complete TypeScript/JavaScript example with streaming support, see [examples/ts-scripts/README.md](examples/ts-scripts/README.md).
-
-    * Raw HTTP request:
-
-    ```sh
-    curl -X POST -H "Content-Type: application/json" -L http://127.0.0.1:5001/api/generate/ \
-    -d '{"model":"mistral","prompt":"Why is the sky blue?","stream":true}' \
-    --no-buffer
-    ```
+```sh
+curl -X POST -H "Content-Type: application/json" -L http://127.0.0.1:5001/api/generate/ \
+-d '{"model":"mistral","prompt":"Why is the sky blue?","stream":true}' \
+--no-buffer
+```
 
 ### Decision models (System One)
 
@@ -315,7 +271,7 @@ ollama pull tev1:4b         # used by System One tests; requires Ollama 0.35+
 ollama pull nimble:latest   # used by System One tests; requires Ollama 0.35+
 ```
 
-Then follow the usage instructions to start the API server and Celery worker, and run:
+Then start the API server and Celery worker as in the [Redis guide](docs/setup-redis.md), and run:
 
 ```sh
 uv run --locked pytest -s tests/test_e2e_api.py tests/test_e2e_streaming.py

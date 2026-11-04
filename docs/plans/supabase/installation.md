@@ -31,7 +31,7 @@ and optional Vercel setup, and background user services. It uses hidden provider
 tokens, Management SQL and REST deployment without requiring `psql`, database URL
 entry or provider CLIs. Supabase's optional plan field establishes Free when
 present; absent fields require explicit dashboard attestation, and non-Free plans
-are rejected. Vercel must verify Hobby. See the [candidate sharing guide](../../share-ollama.md).
+are rejected. Vercel must verify Hobby. See the [candidate sharing guide](../../setup-supabase.md).
 `0.0.25a1` is unpublished; live/fresh-user acceptance and the external protected
 publication setup remain separate gates.
 

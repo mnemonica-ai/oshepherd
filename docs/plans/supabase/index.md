@@ -13,7 +13,7 @@ See the [next steps](next-steps.md) and [progress ledger](progress.md).
 uv to sharing local Ollama, with guided create/use-existing provider setup and a
 second-machine join flow. The operator engine is implemented; this complete user
 journey is not yet delivered. Hosted OAuth/buttons follow this milestone.
-The unpublished `0.0.25a1` candidate's [sharing guide](../../share-ollama.md)
+The unpublished `0.0.25a1` candidate's [sharing guide](../../setup-supabase.md)
 documents create/select Supabase and optional Vercel onboarding without provider
 CLIs or database URL input, private second-machine invitations and optional user
 services. The [distribution workflow](experiments/distribution.md) verifies exact

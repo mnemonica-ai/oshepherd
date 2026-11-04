@@ -13,7 +13,7 @@ operator workflow is the engine for this work, not the finished user experience.
 Continue the ordered A1–A5 slices in the [CLI onboarding plan](cli-onboarding.md).
 The source candidate now includes portable worker invitation/join, resumable share
 with worker/cleanup supervision and guided existing Supabase Edge project setup.
-See the [user guide](../../share-ollama.md) and current evidence in the ledger.
+See the [user guide](../../setup-supabase.md) and current evidence in the ledger.
 The user authorized an orchestrator with implementation subagents.
 
 The October 31 source candidate implements fresh Supabase organization/project
