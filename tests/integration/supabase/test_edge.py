@@ -8,6 +8,7 @@ import time
 
 from jsonschema import Draft202012Validator
 import pytest
+import ollama
 
 from tests.support.fake_ollama import Scenario
 from .edge_harness import edge_lifecycle
@@ -15,6 +16,52 @@ from .test_worker import upstream
 
 ROOT = Path(__file__).resolve().parents[3]
 FIXTURES = ROOT / "protocol/v1/fixtures"
+
+
+def test_real_edge_python_sdk_existing_routes(local_connection, production_schema):
+    """SDK -> real Edge/Auth/SQL/worker, deterministic upstream for all nine routes."""
+
+    async def run():
+        async with edge_lifecycle(
+            local_connection, app=upstream(), systemone=True, rpc_schema="oshepherd_api"
+        ) as (h, url, _, task):
+            async with ollama.AsyncClient(
+                host=url, headers={"Authorization": "Bearer " + h.keys[0]}, timeout=15
+            ) as client:
+                assert (await client._request_raw("GET", "/health")).json()[
+                    "status"
+                ] == 200
+                assert (await client._request_raw("GET", "/api/version")).json()[
+                    "version"
+                ]
+                assert (await client.list()).models
+                assert isinstance((await client.ps()).models, list)
+                assert (await client.show("fixture:latest")).modelinfo
+                for operation, payload in (
+                    ("generate", {"prompt": "Hello"}),
+                    ("chat", {"messages": [{"role": "user", "content": "Hello"}]}),
+                ):
+                    response = await getattr(client, operation)(
+                        model="fixture:latest", **payload
+                    )
+                    assert response.done
+                    records = [
+                        record
+                        async for record in await getattr(client, operation)(
+                            model="fixture:latest", stream=True, **payload
+                        )
+                    ]
+                    assert records and records[-1].done
+                assert (
+                    await client.embeddings(model="fixture:latest", prompt="Hello")
+                ).embedding
+                result = await client.systemone(
+                    model="fixture:latest", state="Example", questions={}
+                )
+                assert result.answers
+                assert not task.done()
+
+    asyncio.run(run())
 
 
 @pytest.mark.parametrize("rpc_schema", ["oshepherd_spike_api", "oshepherd_api"])

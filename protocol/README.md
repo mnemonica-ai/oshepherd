@@ -6,6 +6,12 @@ The checked-in JSON and NDJSON are independent of the Python and TypeScript
 clients. Tests must consume these files, rather than manufacture expected values
 using the code under test. No sampled model output is used.
 
+November 15, 2026 compatibility amendment: `embeddings-prompt-only` now records
+successful legacy SDK requests. Both Redis and Supabase accept `prompt` as an
+alias for `input`, with existing `input` taking precedence. The normalized queue
+schema and worker payload remain unchanged. The former HTTP 500 is a fixed
+compatibility defect, not an expected failure.
+
 This slice does not freeze the Supabase RPC, enrollment or async wire protocol.
 Those schemas and identity/limits/authorization decisions remain prerequisites
 for production migrations. `v1` identifies the fixture format, not a claim of a

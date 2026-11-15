@@ -32,6 +32,9 @@ a coding agent, and the `0.0.25a1` candidate. Then pick a setup:
 | **Supabase** (experimental) | Sharing Ollama over the internet with no server or open port | [Supabase](docs/setup-supabase.md) |
 | **Supabase + Vercel** (experimental) | The Supabase setup with the API on Vercel and larger responses | [Supabase + Vercel](docs/setup-supabase-vercel.md) |
 
+To test from the checkout with fresh Docker containers and two local Ollama
+servers, use the [local Supabase workflow](docs/setup-supabase-local.md).
+
 The Supabase setups need the `0.0.25a1` candidate, which is not on PyPI yet.
 PyPI's `0.0.24` contains only the Redis setup.
 

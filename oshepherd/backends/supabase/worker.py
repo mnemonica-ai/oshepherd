@@ -113,7 +113,7 @@ class SupabaseWorker:
                 operations.extend(["generate", "chat"])
             if "embedding" in capabilities:
                 operations.append("embeddings")
-            if self.systemone:
+            if self.systemone or "decision" in capabilities:
                 operations.append("systemone")
             models.append(
                 {

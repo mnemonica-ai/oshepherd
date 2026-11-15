@@ -57,7 +57,10 @@ Compatibility concerns in the current baseline must be explicit:
 - Generate/chat omitted-stream behavior differs from upstream Ollama's HTTP streaming default. Preserve Oshepherd behavior during backend introduction; publish any later change.
 - System One has tested error conventions: invalid top-level input is 422 before queueing; publish/result/upstream failures map to 500 with `error: "Internal Server Error"` and a message. Preserve these for existing failure categories. New platform/admission/auth errors have their own documented statuses.
 - Chat/generate/embeddings validation occurs inside request handlers and their error behavior is not comprehensively tested. Capture it in characterization fixtures; do not assume all invalid requests currently yield 422. Fix inconsistent validation deliberately in the shared contract rather than recreate an accidental unhandled exception in Deno.
-- Legacy embeddings accepts Oshepherd's `input`; it does not currently accept only upstream `prompt`. Add aliases only as a documented compatible enhancement. `/api/embed` is new functionality, not already-existing parity.
+- Legacy embeddings accepts Oshepherd's `input` and, since the November 15 local
+  acceptance slice, the Python SDK's `prompt` alias on both backends and Edge.
+  `input` wins when both are supplied; queue payloads remain canonical `input`.
+  `/api/embed` remains new functionality outside the current endpoint scope.
 - Trailing-slash requests are used in existing e2e tests. Preserve successful client behavior with a method/body-preserving redirect or direct path normalization, including behind the Edge prefix.
 - Current FastAPI app does not configure CORS or application-key auth. Browser CORS and Supabase API keys are additions, not claims about existing protection. Restrict configured browser origins; never publish an operator key in a public frontend.
 

@@ -1,6 +1,6 @@
 # Supabase implementation progress
 
-Updated October 31, 2026. The objective is to finish the implementation so
+Updated November 15, 2026. The objective is to finish the implementation so
 an Ollama client can send a request to an Edge Function and receive inference
 from a local Ollama model. This ledger records authoritative artifacts and
 verification; an implementation checkbox does not imply hosted validation.
@@ -23,6 +23,86 @@ October 14 independent acceptance is recorded in the
 gateway removals are complete and their clusters are disabled; retained data and
 shared provider configuration remain. Hosted inference needs a new explicitly
 selected installation; retired keys/sessions cannot be reused.
+
+## November 15 fresh local CLI and Python SDK acceptance
+
+The user narrowed this milestone to the current Redis endpoint set, a clean local
+Docker Supabase installation, CLI share/invite/join and official Ollama Python
+requests. PyPI publication and hosted provisioning are out of scope. See the
+[local runbook](../../setup-supabase-local.md).
+
+Implemented:
+
+- Explicit loopback API/database ports imported from a private Supabase status
+  file; existing development defaults and remote target checks remain intact.
+- `supabase install --create-owner` reuses journaled owner creation, removing
+  manual Auth UUID setup. Local Edge exports use container-injected internal
+  connectivity while keeping the public loopback URL for clients.
+- Legacy embedding `prompt` alias across Redis/FastAPI/Supabase Edge, preserving
+  canonical `input` and its precedence. No `/api/embed` or expanded chat schema.
+- Automatic System One advertisement for a model's `decision` capability,
+  retaining the existing explicit capability override.
+- `scripts/supabase_local_acceptance.py`: unique empty Docker project, CLI
+  configure/install/repeat/share, real Edge and SDK inference, invite/join of a
+  separate Ollama server, first-worker shutdown, SQL job ownership check, joined
+  session restart and private credential checks. Cleanup removes only its stack.
+- `examples/supabase_client.py`: synchronous/asynchronous official SDK smoke
+  requests, generation/chat JSON and streaming, metadata and legacy embeddings;
+  optional System One for an installed compatible decision model.
+
+Evidence:
+
+| Check | Result |
+| --- | --- |
+| Python contracts and SystemOne | **573 passed** in 14.87 seconds; existing upstream TestClient warning |
+| Pinned Deno 1.41.0 gateway tests | **50 passed**, including SDK embedding alias/precedence and fixtures |
+| Real local Edge all-route and new SDK integration | **3 passed, 5 deselected** in 22.10 seconds; actual SQL/Auth/worker with deterministic upstream, including System One |
+| Fresh local acceptance run c | **Passed**, 12 SDK checks each on the original server, joined server and restarted joined worker; cleanup passed |
+| Interactive `--serve` acceptance | Repeated the same SDK checks, resumed share with cleanup, and passed the documented manual Python chat request before graceful shutdown |
+
+Run c report: `.oshepherd/local/acceptance-20261115-c/report.json`. It used fresh
+ports 56321/56322 and a unique `oshepherd-acceptance-*` project; the pre-existing
+55321 development stack was preserved. `llama3.2:3b` and `embeddinggemma:latest`
+returned genuine inference. A second actual `ollama serve` on 11435 reused the
+installed model files; its worker completed jobs with the first worker stopped.
+No administrative/database/application key was found in joined state. The test
+used the editable checkout environment with CLI children outside the checkout;
+it is not wheel/publication or second-physical-machine acceptance.
+The interactive run's private report is
+`.oshepherd/local/acceptance-20261115-manual/report.json`.
+
+Failed runs are retained: run a reached real share inference, then found an
+incorrect smoke assertion (`ShowResponse.modelinfo`, not `.model_info`). Run b
+passed basic inference/embeddings then failed real System One. Direct local
+requests to both `tev1:4b` and `nimble:latest` returned HTTP 400: their downloaded
+model format is no longer supported by the installed Ollama. Those runs did not
+download or replace a model; the authorized refresh and real acceptance below
+subsequently closed the `tev1:4b` model gate. Earlier Deno type checking found
+and fixed alias-normalization narrowing before the final 50-test pass.
+
+The initial Python fixture run expected the old embedding failure; that fixture
+now explicitly records the compatible alias behavior on both backends. Applied
+SQL migrations were not modified. Strict reader-disconnect cancellation was not
+waived or claimed by this slice; hosted profiles remain experimental.
+
+### Authorized System One model refresh and real acceptance
+
+The user explicitly authorized refreshing `tev1:4b`. `ollama pull tev1:4b`
+completed successfully (approximately 4.4 GB). A direct official Python SDK
+System One request then passed in **7.31 seconds**, with the `decision` capability,
+a typed `noul` answer and 115 input tokens. Private summary:
+`.oshepherd/local/systemone-refresh-direct-20261115.json`.
+
+The fresh-stack acceptance was rerun with `--decision-model tev1:4b`. All
+**13 SDK checks passed in each of three stages**: the original Ollama server,
+the joined second server with the first worker stopped, and the joined worker
+after restarting from its saved session. Each stage includes real System One
+inference through the Supabase Edge gateway. Private report:
+`.oshepherd/local/acceptance-20261115-systemone/report.json`, with `passed: true`
+and `cleanup_passed: true`. No runtime changes were needed for this follow-up.
+The refreshed model remains installed; `nimble:latest` was not refreshed.
+This closes the real local System One inference gap for `tev1:4b`, not hosted
+qualification, reader-disconnect cancellation or physical second-machine testing.
 
 ## October 31 adoption extension: implementation and provisional evidence
 

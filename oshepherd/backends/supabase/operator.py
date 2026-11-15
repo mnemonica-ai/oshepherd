@@ -48,6 +48,8 @@ class OperatorConfig(BaseModel):
     profile: Literal["edge_free", "vercel_hobby"] = "edge_free"
     gateway_url: str | None = None
     exposed_schemas: list[str] | None = None
+    local_api_port: int = Field(default=55321, ge=1024, le=65535)
+    local_database_port: int = Field(default=55322, ge=1024, le=65535)
 
     @field_validator("exposed_schemas")
     @classmethod
@@ -81,9 +83,9 @@ class OperatorConfig(BaseModel):
     @model_validator(mode="after")
     def target(self):
         if self.project_ref == "local":
-            if self.supabase_url != "http://127.0.0.1:55321":
+            if self.supabase_url != f"http://127.0.0.1:{self.local_api_port}":
                 raise ValueError(
-                    "Local installation requires the isolated development stack"
+                    "Local installation must match its explicitly configured loopback port"
                 )
         elif (
             not re.fullmatch(r"[a-z]{20}", self.project_ref)
@@ -302,10 +304,15 @@ class Operator:
         edge = {
             "OSHEPHERD_CLUSTER_ID": str(state.cluster_id),
             "OSHEPHERD_SCHEMA": "oshepherd_api",
-            "OSHEPHERD_SUPABASE_URL": config.supabase_url,
-            "OSHEPHERD_GATEWAY_KEY": config.secret_key.get_secret_value(),
             "OSHEPHERD_PUBLIC_URL": config.supabase_url,
         }
+        if config.project_ref != "local":
+            edge.update(
+                OSHEPHERD_SUPABASE_URL=config.supabase_url,
+                OSHEPHERD_GATEWAY_KEY=config.secret_key.get_secret_value(),
+            )
+        # Local Edge containers use Supabase's injected Docker-network URL/key;
+        # the operator's loopback origin is reachable only from the host.
         write_private(
             self.directory / "edge.env",
             "".join(f"{name}={json.dumps(value)}\n" for name, value in edge.items()),

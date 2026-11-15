@@ -1,6 +1,16 @@
 # Supabase next steps
 
-Updated October 31, 2026.
+Updated November 15, 2026.
+
+**Current scope: local CLI and existing Ollama endpoint acceptance.** Start with
+a fresh disposable Docker Supabase database, bootstrap through Oshepherd commands,
+send real Python SDK inference through Edge to local Ollama, then invite/join a
+second Ollama server and verify its restart. Follow the
+[local runbook](../../setup-supabase-local.md). Preserve the Redis endpoint scope;
+modern `/api/embed` and broader Ollama API expansion are not required here.
+PyPI publication, hosted provisioning and OAuth/buttons are deferred from this
+milestone. Older distribution gates below remain future work, not prerequisites
+for local testing.
 
 **Priority: deliver the adoption-first CLI experience.** The user's primary journey
 is one uv entry to provision/connect cloud resources and share local Ollama, plus a

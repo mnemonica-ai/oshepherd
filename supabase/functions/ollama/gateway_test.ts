@@ -16,6 +16,13 @@ const cluster = "00000000-0000-4000-8000-000000000001";
 const jobId = "00000000-0000-4000-8000-000000000002";
 const key = "osk_" + "a".repeat(43);
 
+Deno.test("legacy SDK embedding prompt alias preserves canonical input and precedence", () => {
+  equal(normalize("embeddings", { model: "fixture", prompt: "hello" }),
+    normalize("embeddings", { model: "fixture", input: "hello" }), "SDK alias");
+  equal(normalize("embeddings", { model: "fixture", input: "hello", prompt: "ignored" }),
+    normalize("embeddings", { model: "fixture", input: "hello" }), "legacy input wins");
+});
+
 function assert(value: unknown, label = "assertion failed"): asserts value {
   if (!value) throw new Error(label);
 }

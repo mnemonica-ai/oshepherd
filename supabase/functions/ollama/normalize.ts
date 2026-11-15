@@ -105,12 +105,16 @@ const required: Record<string, string[]> = {
 
 export function normalize(
   operation: string,
-  input: unknown,
+  raw: unknown,
   asynchronous = false,
 ): JsonObject {
-  if (!object(input) || !required[operation]) {
+  if (!object(raw) || !required[operation]) {
     throw new GatewayError("invalid_request", 422);
   }
+  // The Python SDK's legacy embeddings method sends prompt; retain input too.
+  const input = operation === "embeddings" && !("input" in raw) && "prompt" in raw
+    ? { ...raw, input: raw.prompt }
+    : raw;
   const payload: JsonObject = {};
   for (const field of required[operation]) {
     if (!(field in input)) throw new GatewayError("invalid_request", 422);

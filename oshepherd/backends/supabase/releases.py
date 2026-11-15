@@ -65,7 +65,7 @@ def release_assets():
     return root, manifest
 
 
-def database_environment(database_url, project_ref):
+def database_environment(database_url, project_ref, *, local_port=55322):
     parsed = urlsplit(database_url)
     query = parse_qs(parsed.query, strict_parsing=True)
     if (
@@ -82,7 +82,8 @@ def database_environment(database_url, project_ref):
     if project_ref == "local":
         if (
             parsed.hostname != "127.0.0.1"
-            or parsed.port != 55322
+            or not 1024 <= local_port <= 65535
+            or parsed.port != local_port
             or username not in ("postgres", "supabase_admin")
             or parsed.path != "/postgres"
         ):
@@ -119,7 +120,9 @@ class Database:
         if config.database_url is None:
             raise OperatorError("database_connection_required")
         self.env = database_environment(
-            config.database_url.get_secret_value(), config.project_ref
+            config.database_url.get_secret_value(),
+            config.project_ref,
+            local_port=getattr(config, "local_database_port", 55322),
         )
         self.runner = runner
         self.local_role_upgrade = (

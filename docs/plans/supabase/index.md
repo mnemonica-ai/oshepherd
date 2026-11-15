@@ -1,5 +1,11 @@
 # Optional Supabase backend
 
+**November 15 local milestone:** fresh Docker Supabase, CLI install/share/invite/join
+and official Python SDK checks against the existing Redis endpoint set. See the
+[local runbook](../../setup-supabase-local.md) and
+[current evidence](progress.md#november-15-fresh-local-cli-and-python-sdk-acceptance).
+PyPI publication and hosted provisioning are outside this milestone.
+
 Updated October 31, 2026. Status: implemented experimental candidate. Both hosted
 profiles passed genuine inference, route/stream/private-download checks, bounded
 load/Auth/recovery and size probes. Installed-wheel local CLI onboarding and actual

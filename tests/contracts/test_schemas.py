@@ -56,7 +56,6 @@ def test_normalized_payload_matches_language_neutral_schema(case):
             "generate-format-object",
             "chat-tool-role",
             "chat-format-object",
-            "embeddings-prompt-only",
             "show-missing-model",
             "systemone-missing",
             "systemone-invalid-questions",

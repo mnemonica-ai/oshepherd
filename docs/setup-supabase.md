@@ -1,5 +1,8 @@
 # Set up oshepherd with Supabase
 
+For checkout-based testing without a hosted project or PyPI release, use
+[the fresh local Docker workflow](setup-supabase-local.md).
+
 > **Experimental.** This needs the `0.0.25a1` candidate, which is not on PyPI yet.
 > Closing a streaming client does not yet reliably cancel the inference behind it,
 > so a cancelled request can keep a worker busy until it finishes.

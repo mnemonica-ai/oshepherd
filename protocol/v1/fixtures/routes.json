@@ -1822,9 +1822,33 @@
         }
       },
       "response": {
-        "status": 500,
-        "content_type": "text/plain; charset=utf-8",
-        "body": "Internal Server Error"
+        "status": 200,
+        "content_type": "application/json",
+        "json": {
+          "embedding": [
+            0.125,
+            -0.5,
+            0.0,
+            1.25
+          ]
+        }
+      },
+      "worker_result": {
+        "embedding": [
+          0.125,
+          -0.5,
+          0.0,
+          1.25
+        ]
+      },
+      "normalized": {
+        "type": "embeddings",
+        "payload": {
+          "model": "fixture:latest",
+          "input": "x",
+          "options": null,
+          "keep_alive": "5m"
+        }
       }
     },
     {

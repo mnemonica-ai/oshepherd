@@ -1,10 +1,16 @@
 # Adoption-first CLI onboarding
 
-Updated October 31, 2026. This is the current implementation priority, ahead of
+Updated November 15, 2026. This is the current implementation priority, ahead of
 hosted OAuth/buttons and additional benchmark work. Existing inference contracts,
 ownership checks and experimental status remain in force. This document describes
 the target experience; the source candidate now includes `share`, `invite`, `join`, provider creation/selection
 and optional services. The full A1–A5 acceptance and publication promise remains incomplete.
+
+The November 15 milestone is specifically local: fresh Docker Supabase,
+CLI bootstrap/share, existing Redis-compatible endpoints through the official
+Python SDK, and invite/join of another local Ollama server. Use the
+[local runbook](../../setup-supabase-local.md). PyPI publication and new endpoint
+expansion are out of scope; A5 publication is deferred, not a local acceptance gate.
 
 ## Product promise
 

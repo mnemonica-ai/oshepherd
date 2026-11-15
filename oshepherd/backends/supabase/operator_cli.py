@@ -3,6 +3,7 @@
 import asyncio
 import json
 from pathlib import Path
+from urllib.parse import urlsplit, urlunsplit
 
 import click
 
@@ -22,12 +23,13 @@ def supabase():
 @click.option(
     "--local-from",
     type=click.Path(exists=True, path_type=Path),
-    help="Import the isolated local helper's owned 0600 connection file.",
+    help="Import an owned 0600 Supabase status JSON file for a loopback stack.",
 )
 def configure(output, local_from):
     """Create private connection JSON using hidden prompts; refuse overwrites."""
     from .operator import OperatorConfig
     from .private_files import read_private_json, write_private_json
+    from .releases import OperatorError
 
     if output.exists():
         raise click.ClickException(
@@ -36,12 +38,37 @@ def configure(output, local_from):
     try:
         if local_from:
             local = read_private_json(local_from)
+            api = urlsplit(local["API_URL"])
+            if "DB_URL" not in local and api.port != 55321:
+                raise ValueError("local_database_url_required")
+            database = urlsplit(
+                local.get(
+                    "DB_URL", "postgresql://postgres:postgres@127.0.0.1:55322/postgres"
+                )
+            )
+            if api.hostname != "127.0.0.1" or database.hostname != "127.0.0.1":
+                raise ValueError("loopback_required")
+            from .releases import database_environment
+
+            database_environment(database.geturl(), "local", local_port=database.port)
+            # Local Supabase reserves schema grant ownership for supabase_admin.
+            # Use the selected stack's password/port, never another stack's defaults.
+            admin_url = urlunsplit(
+                database._replace(
+                    netloc="supabase_admin:"
+                    + database.password
+                    + "@127.0.0.1:"
+                    + str(database.port)
+                )
+            )
             values = {
                 "project_ref": "local",
                 "supabase_url": local["API_URL"],
                 "publishable_key": local["PUBLISHABLE_KEY"],
                 "secret_key": local["SECRET_KEY"],
-                "database_url": "postgresql://supabase_admin:postgres@127.0.0.1:55322/postgres",
+                "database_url": admin_url,
+                "local_api_port": api.port,
+                "local_database_port": database.port,
                 "profile": "edge_free",
             }
         else:
@@ -81,7 +108,7 @@ def configure(output, local_from):
             if getattr(config, name) is not None:
                 data[name] = getattr(config, name).get_secret_value()
         write_private_json(output, data)
-    except (OSError, ValueError, KeyError, TypeError):
+    except (OSError, ValueError, KeyError, TypeError, OperatorError):
         raise click.ClickException(
             "Invalid connection configuration; no credentials were printed"
         ) from None
@@ -131,15 +158,32 @@ def run(connection_file, state_dir, action):
 @click.option(
     "--owner-subject",
     type=click.UUID,
-    required=True,
     help="Explicit existing Supabase Auth identity to bind as owner.",
 )
-def install(connection_file, state_dir, owner_subject):
+@click.option(
+    "--create-owner",
+    is_flag=True,
+    help="Create or resume a private non-login installation owner.",
+)
+def install(connection_file, state_dir, owner_subject, create_owner):
     """Apply migrations, schedule cleanup, bind ownership and export private config.
 
     Gateway deployment and worker enrollment are separate observable steps.
     """
-    run(connection_file, state_dir, lambda operator: operator.install(owner_subject))
+    if (owner_subject is None) == (not create_owner):
+        raise click.UsageError(
+            "Choose exactly one of --owner-subject or --create-owner"
+        )
+
+    async def action(operator):
+        from .provider_setup import ensure_owner
+
+        subject = owner_subject
+        if create_owner:
+            subject = await ensure_owner(operator.config, state_dir)
+        return await operator.install(subject)
+
+    run(connection_file, state_dir, action)
 
 
 @supabase.command()
