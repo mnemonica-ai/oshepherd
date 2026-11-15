@@ -55,11 +55,6 @@ def refresh():
         "gateway": "ollama",
         "profiles": {
             "edge_free": {"sync_seconds": 135, "qualified": False},
-            "vercel_hobby": {
-                "sync_seconds": 135,
-                "response_bytes": 4000000,
-                "qualified": False,
-            },
         },
         "migrations": entries,
         # Fresh installs use the compatible consolidated baseline. Previously
@@ -94,14 +89,6 @@ def refresh():
             for name, (interval, command) in SCHEDULES.items()
         ],
     }
-    for source in sorted((ROOT / "templates/vercel").iterdir()):
-        if not source.is_file():
-            continue
-        name = "templates/vercel/" + source.name
-        target = ASSETS / name
-        target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(source, target)
-        manifest["artifacts"][name] = hashlib.sha256(source.read_bytes()).hexdigest()
     (ASSETS / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
 
 

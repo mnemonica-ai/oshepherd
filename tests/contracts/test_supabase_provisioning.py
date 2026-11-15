@@ -369,12 +369,12 @@ def wire_wizard(
     return command
 
 
-@pytest.mark.parametrize("profile", ["edge_free", "vercel_hobby"])
+@pytest.mark.parametrize("profile", ["edge_free"])
 def test_new_organization_project_wizard_needs_no_psql_or_database_input(
     monkeypatch, tmp_path, profile
 ):
     cloud = Cloud(tmp_path)
-    gateway = "https://selected.vercel.app" if profile == "vercel_hobby" else None
+    gateway = None
     command = wire_wizard(
         monkeypatch, cloud, tmp_path, profile=profile, gateway_url=gateway
     )
@@ -390,11 +390,6 @@ def test_new_organization_project_wizard_needs_no_psql_or_database_input(
     assert "private-token" not in result.output
     assert "Postgres connection" not in result.output
     assert cloud.posts[1][1]["db_pass"] not in result.output
-    if profile == "vercel_hobby":
-        assert not any(
-            request.url.path.endswith(("/functions", "/secrets"))
-            for request in cloud.requests
-        )
     assert not (tmp_path / "supabase-setup-token.json").exists()
 
 

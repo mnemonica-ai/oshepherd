@@ -141,8 +141,6 @@ async def run(args):
     config = OperatorConfig.load(args.connection_file)
     if config.project_ref == "local":
         raise ValueError("hosted_connection_required")
-    if config.profile == "vercel_hobby" and not config.gateway_url:
-        raise ValueError("vercel_gateway_url_required")
     state = Installation.load(args.state_dir, config)
     if state.stage != "configured":
         raise ValueError("qualification_requires_configured_installation")
@@ -314,7 +312,7 @@ async def run(args):
                 )
             ).status_code == 200
             results["show"] = True
-            output_size = 4200000 if config.profile == "vercel_hobby" else 1200000
+            output_size = 1200000
             large = {
                 "model": "fixture:latest",
                 "response": "x" * output_size,

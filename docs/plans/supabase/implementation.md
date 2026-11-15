@@ -1,8 +1,8 @@
-# Optional Supabase backend: implementation plan
+# Supabase broker: implementation plan
 
-Updated October 31, 2026. Status: implemented experimental candidate with local
+Updated November 15, 2026. Status: implemented experimental candidate with local
 and bounded hosted evidence in the [progress ledger](progress.md). The strict
-Edge/Vercel reader-disconnect gates still fail; full release qualification and
+Edge reader-disconnect gate still fails; full release qualification and
 hosted OAuth/button onboarding remain incomplete. The user-approved test gateway
 removals are complete, so those hosted installations are retired. The
 [compatibility matrix](compatibility.md) and [installation plan](installation.md)
@@ -10,21 +10,20 @@ remain the acceptance specification. Start at the [Supabase index](index.md).
 
 ## 1. Decision
 
-**Keep the existing FastAPI + Celery + Redis deployment supported and unchanged by default. For the new Supabase backend, make Edge Functions the default gateway, accepting hosted limits. Offer FastAPI + Supabase as an optional gateway on Vercel or a persistent server, with limits appropriate to its host.**
+**Keep the existing FastAPI + Celery + Redis deployment supported and unchanged by default. For the new Supabase backend, make Edge Functions the default gateway, accepting hosted limits. Keep FastAPI + Supabase available for a persistent server within the implemented limits.**
 
-This follows the chosen product priority: a Supabase deployment should work without operating an API server. Preserve ordinary Ollama clients, streaming, every existing route including `/v1/systemone`, workers behind NAT, concurrent workers, retries, and cluster metadata within a documented Edge envelope. Long synchronous requests remain available through persistent FastAPI hosting; Vercel provides a convenient but bounded FastAPI deployment; durable asynchronous jobs are available from the default Edge gateway. The hosted limits are an accepted compatibility difference, not a reason to defer Edge Functions.
+This follows the chosen product priority: a Supabase deployment should work without operating an API server. Preserve ordinary Ollama clients, streaming, every existing route including `/v1/systemone`, workers behind NAT, concurrent workers, retries, and cluster metadata within a documented Edge envelope. Durable asynchronous jobs are available from the default Edge gateway. Longer persistent FastAPI budgets remain a future qualification target; the current candidate enforces 135 seconds. The hosted limits are an accepted compatibility difference, not a reason to defer Edge Functions.
 
 Backend and HTTP gateway are separate choices:
 
 | Deployment | Queue/results/state | HTTP entry point | Purpose |
 | --- | --- | --- | --- |
-| Existing default | Celery + Redis | Existing FastAPI | Continue supporting all existing installations |
-| Default Supabase mode | Supabase Postgres; Auth for workers; Storage for large results | Supabase Edge Function | No operated API server; bounded synchronous requests and durable async jobs |
-| Optional Vercel gateway | Same Supabase backend | FastAPI as a Vercel Python Function | Button-assisted deployment with its own duration/payload limits |
-| Optional persistent gateway | Same Supabase backend | FastAPI on a container/VM/server | Longer synchronous requests, subject to configured client/proxy/server limits |
+| Legacy Redis | Celery + Redis | Existing FastAPI | Continue supporting all existing installations |
+| Primary Supabase mode | Supabase Postgres; Auth for workers; Storage for large results | Supabase Edge Function | No operated API server; bounded synchronous requests and durable async jobs |
+| Optional persistent gateway | Same Supabase backend | FastAPI on a container/VM/server | Persistent Python gateway; current SQL budget still applies |
 | Async extension | Same Supabase backend | FastAPI or Edge Function | Durable jobs whose clients do not keep a request open |
 
-Edge Functions are the default Supabase entry point, but the database/worker protocol does not depend on them. Externally running workers and the optional FastAPI gateway are not subject to the Edge runtime clock. They remain subject to their own configured deadlines, reverse proxies, clients, and resource limits. Document gateway selection as `edge` (default Supabase deployment) or `fastapi`; this is separate from preserving `redis` as the existing CLI backend default. Record a hosting profile of `edge`, `vercel`, or `persistent` as well: selecting Python/FastAPI does not imply an unlimited request lifetime. The installation plan defines those profiles and the two button-assisted setup paths.
+Edge Functions are the default Supabase entry point, but the database/worker protocol does not depend on them. Externally running workers and the optional FastAPI gateway are not subject to the Edge runtime clock. They remain subject to their own configured deadlines, reverse proxies, clients, and resource limits. Document gateway selection as `edge` (default Supabase deployment) or `fastapi`; this is separate from preserving `redis` as the existing CLI backend default. The installer records `edge_free`; the Python gateway uses `persistent`. Neither implies an unlimited request lifetime. The installation plan separates the delivered CLI from future browser onboarding.
 
 Keep Redis and Supabase queues independent; never silently resubmit a failed request to another backend. A worker process serves one backend/cluster. Both Supabase gateways may use the same queue, credentials, and worker pool because they share one job protocol. Do not allocate the same GPU to independent worker pools without a shared capacity policy.
 
@@ -91,7 +90,7 @@ PGMQ's visibility window does not establish exactly-once inference after worker 
 
 Supabase explicitly does not guarantee every Realtime message arrives. Broadcast acknowledgement confirms server receipt; database-originated replay is not a durable replay mechanism for arbitrary REST broadcasts. [Realtime delivery](https://github.com/supabase/realtime/blob/main/README.md), [Broadcast](https://supabase.com/docs/guides/realtime/broadcast)
 
-Start with HTTPS RPCs everywhere. Each Edge request uses its own authorized cursor reader and bounded buffer; do not depend on cross-invocation memory or a surviving isolate. Use private Realtime hints for job availability, first output and terminal state, with adaptive polling for output and fallback. Coalesce repetitive hints. Notifications initially contain opaque IDs/cursors, never prompts or tokens. Persistent FastAPI can multiplex reads through a shared collector per API process. Vercel uses request-scoped readers initially; process reuse is an optimization, never required for progress or cleanup. A missed hint only increases latency until the next poll.
+Start with HTTPS RPCs everywhere. Each Edge request uses its own authorized cursor reader and bounded buffer; do not depend on cross-invocation memory or a surviving isolate. Use private Realtime hints for job availability, first output and terminal state, with adaptive polling for output and fallback. Coalesce repetitive hints. Notifications initially contain opaque IDs/cursors, never prompts or tokens. Persistent FastAPI can multiplex reads through a shared collector per API process. Process reuse is an optimization, never required for progress or cleanup. A missed hint only increases latency until the next poll.
 
 Measure an optional inline fast path during the Edge spike: broadcast already-durable batches to subscribed gateways so the healthy path can avoid one read RPC per batch, while gaps fall back to chunk reads. Do not commit to this optimization until its database/Realtime write amplification, authorization, message quota, and retention costs beat cursor reads. Database-originated Broadcast can retain its own copy of output beyond our chunk TTL, so enabling inline output requires an explicit retention policy; default hints avoid that copy.
 
@@ -111,7 +110,6 @@ supabase/
   functions/ollama/
   tests/                      # SQL/policy and Edge tests
   install/                    # release manifest, bootstrap engine, hosted installer
-  templates/vercel/           # self-contained FastAPI deployment template
   examples/                   # gateway/worker configuration without secrets
 oshepherd/backends/
   base.py                     # shared backend contract
@@ -143,7 +141,7 @@ close() -> None
 A result envelope contains body/result reference, error kind and upstream status, attempt, and timing information. The HTTP layer maps it to existing endpoint conventions. Stream envelopes remain internal; clients receive their existing NDJSON, not the transport wrapper. Registry/capability methods belong to the worker-facing adapter, not the public HTTP API.
 
 - `CeleryRedisBackend` wraps current queue/result/PubSub/metadata behavior. Keep blocking Redis/Celery calls off the event loop. System One's Celery submit and result wait must remain in the **same worker thread**, as the existing test requires; do not move `AsyncResult` between arbitrary thread-pool calls.
-- `SupabaseBackend` uses a reusable asynchronous HTTP client and a reader strategy selected by hosting profile: one collector per persistent API process or an independent reader per Vercel request. Page reads by bytes and per-job limits so a large stream cannot starve another. Metadata/status use the same connection pool.
+- `SupabaseBackend` uses a reusable asynchronous HTTP client and a reader strategy selected by hosting profile: one collector per persistent API process. Page reads by bytes and per-job limits so a large stream cannot starve another. Metadata/status use the same connection pool.
 - `OllamaExecutor` owns local inference and serialization, separate from Celery decorators, queue leases, and network publishing. Keep Celery's task name and envelope stable. It exposes result/stream/cancel operations usable by both worker loops.
 - Select configuration before importing/constructing backend resources. Importing the CLI or starting Supabase must not initialize Celery, Redis, or `WorkerData` with Redis credentials. Construct clients in application lifespan and close them on shutdown.
 - Use an explicit Ollama client with resolved host and connect/read policy. Precedence: explicitly supplied `OLLAMA_BASE_URL`, then `OLLAMA_HOST`, then localhost. Preserve legacy behavior in the Redis adapter until any host-resolution change is separately tested. Long model loading must not hit an incidental five-second HTTP read default; control deadlines/cancellation independently.
@@ -265,7 +263,7 @@ Each request reader acknowledges its cursor in its next scheduled read instead o
 
 The Edge limits page does not specify a request/response body cap. That is not evidence of unlimited sizes. Measure gateway, PostgREST, serialization, memory and client behavior. Embeddings are especially important: 32 × 768 float32 values occupy 96 KiB raw, but at an assumed 12 JSON bytes/value they occupy 288 KiB before envelopes.
 
-Initial configurable Supabase test values: 1 MiB request, 256 KiB inline result, 64 KiB chunk, 256 KiB read-page data, 1 MiB gateway output buffer, and 32 MiB total output/result. These bound resources; tune against representative fixtures before publishing support. The Vercel profile overrides the synchronous total-response limit to a conservative candidate 4,000,000 bytes, pending hosted JSON/NDJSON boundary tests; its documented function payload limit is 4.5 MB. Storage does not bypass a response that still travels through the gateway. Async explicit downloads can use a separate, larger stored-result budget. See [hosting limits](installation.md#hosting-profiles). Do not impose these new limits silently on legacy Redis deployments. Reject known oversized requests before queueing; enforce unknown output growth during inference and report explicit failure.
+Initial configurable Supabase test values: 1 MiB request, 256 KiB inline result, 64 KiB chunk, 256 KiB read-page data, 1 MiB gateway output buffer, and 32 MiB total output/result. These bound resources; tune against representative fixtures before publishing support. The current Edge synchronous response limit is 1 MiB. Storage does not bypass a response that still travels through the gateway. Async explicit downloads can use a separate, larger stored-result budget. See [hosting limits](installation.md#hosting-profiles). Do not impose these new limits silently on legacy Redis deployments. Reject known oversized requests before queueing; enforce unknown output growth during inference and report explicit failure.
 
 RPC responses are bounded to 2 MiB. Claim admission accounts for the full encoded
 envelope, assignment metadata and stop entries before changing job state; jobs
@@ -282,7 +280,7 @@ Retain stream data through active consumption; after terminal delivery acknowled
 
 Start with private, operator-enrolled clusters. Workers necessarily see prompts and can fabricate answers; an open public worker marketplace is not solved by RLS.
 
-- Existing Redis API authentication behavior remains unchanged. Supabase gateways default to high-entropy `osk_...` application keys stored as hashes, scoped to a cluster/caller, with revocation and quotas. A trusted-network FastAPI installation may explicitly opt into anonymous access to one configured cluster; Edge and Vercel deployments require keys; reject anonymous mode on public hosted profiles. Authentication configuration is an intentional difference, not an invisible API change.
+- Existing Redis API authentication behavior remains unchanged. Supabase gateways default to high-entropy `osk_...` application keys stored as hashes, scoped to a cluster/caller, with revocation and quotas. A trusted-network FastAPI installation may explicitly opt into anonymous access to one configured cluster; Edge deployments require keys; reject anonymous mode on public hosted profiles. Authentication configuration is an intentional difference, not an invisible API change.
 - The API process/Edge gateway holds the project secret in server-side configuration, invokes narrow gateway RPCs, and validates caller keys there. Never return or log project credentials. A privileged gateway is a trust boundary; keep worker-facing requests on publishable-key + user-JWT clients, never a privileged client reused with mutable auth state.
 - Provision a separate Supabase Auth identity per worker installation; the operator grants cluster membership and capacity. Add a worker-login/enrollment command that obtains and securely stores its refresh session. No recurring password login per job. Refresh in one control task, persist rotated refresh tokens atomically with restrictive permissions, and fail clearly when re-enrollment is required. [Auth sessions](https://supabase.com/docs/guides/auth/sessions)
 - `register_worker` derives identity from the JWT and enrollment. The client cannot choose another owner's worker ID, role, cluster, or capacity. Every RPC checks enrollment/revocation and current session generation; auth subject alone is insufficient.
@@ -319,7 +317,7 @@ available generation time = relay lifetime - setup/queue/load/prefill - transfer
 approximate token budget = max(0, available generation time) × measured tokens/second
 ```
 
-For illustration, 20 s setup/load/prefill and 15 s reserve leave 115/365 s: at 5 tokens/s, about 575/1,825 generated tokens; at 20 tokens/s, 2,300/7,300. These are arithmetic, not capacity promises. Reasoning and long prompts can exhaust time before useful output. Slow models remain usable when their whole request fits a gateway budget, or through async jobs. Persistent FastAPI accommodates longer synchronous work; Vercel has separate finite budgets.
+For illustration, 20 s setup/load/prefill and 15 s reserve leave 115/365 s: at 5 tokens/s, about 575/1,825 generated tokens; at 20 tokens/s, 2,300/7,300. These are arithmetic, not capacity promises. Reasoning and long prompts can exhaust time before useful output. Slow models remain usable when their whole request fits a gateway budget, or through async jobs. Longer persistent FastAPI budgets remain planned; the current SQL candidate keeps its 135-second maximum.
 
 The default Edge function is a thin adapter to the same RPCs, cursors, error/result contract and protocol fixtures. Set `verify_jwt = false` for custom application keys and authenticate protected routes in the handler; implement path prefixes and CORS explicitly. [Function authentication](https://supabase.com/docs/guides/functions/auth-headers)
 
@@ -327,7 +325,7 @@ Initial non-streamed Edge support must complete below the idle boundary with a m
 
 The self-hosted runtime configuration is visible in the [official function supervisor](https://github.com/supabase/supabase/blob/master/docker/volumes/functions/main/index.ts); proxy timeouts and resource limits still need deployment-specific validation.
 
-The FastAPI gateway has its own configurable request/queue/read-stall deadlines and must not inherit the Edge cap. Its Vercel profile must fit the deployed function duration and payload limits; its persistent profile uses operator-defined limits. See the [hosting profiles](installation.md#hosting-profiles). Apply gateway policy at submission, persist the resulting absolute deadline, and let workers enforce it without needing to know which gateway submitted the job. API keys may be shared across the two gateways; quotas are enforced against their shared cluster state.
+The FastAPI gateway has its own configurable request/queue/read-stall deadlines and must not inherit the Edge cap. Its persistent profile must fit the implemented SQL maximum; increasing that maximum requires separate qualification. See the [hosting profiles](installation.md#hosting-profiles). Apply gateway policy at submission, persist the resulting absolute deadline, and let workers enforce it without needing to know which gateway submitted the job. API keys may be shared across the two gateways; quotas are enforced against their shared cluster state.
 
 A local HTTP mock verified that `ollama==0.6.3` retains the function path and sends `OLLAMA_API_KEY`. A second mock verified that its streaming iterator can finish **without error when a valid NDJSON body ends without `done: true`**. Therefore a forced platform close is not guaranteed to be reported by stock client code. Hosted Edge cannot promise transparent recovery; document the completion-check requirement and test abrupt as well as graceful closes.
 
@@ -356,7 +354,7 @@ share/join, provider create-or-select setup, ongoing operation and installed-pac
 user acceptance before hosted OAuth/buttons or expanded benchmarks. The delivery
 sequence below describes underlying backend dependencies; completing those pieces
 does not establish the finished one-command user journey. Provider creation,
-Management SQL, optional Vercel REST deployment, user services and candidate
+Management SQL, user services and candidate
 publication tooling now exist in source; integrated/fresh/published acceptance is
 tracked separately. Existing contracts and qualification gates still apply.
 
@@ -364,13 +362,13 @@ Each step is reviewable and leaves Redis operational. Migrations are additive; r
 
 | Step | Concrete changes | Exit evidence |
 | --- | --- | --- |
-| 0. Characterize and spike | Shared route fixtures; fake Ollama; hosted Edge claim/relay; minimal Vercel ASGI app; installer API/CLI capability probe | Edge Free/paid limits and CPU/I/O evidence; Vercel duration/body/stream evidence; verify OAuth project access, migration path and Marketplace interoperability before promising buttons |
+| 0. Characterize and spike | Shared route fixtures; fake Ollama; hosted Edge claim/relay; installer API/CLI capability probe | Edge limits and CPU/I/O evidence; verify OAuth project access and migration path before promising browser installation |
 | 1. Extract shared contracts/executor | Protocol schemas and fixtures; shared executor under `worker/`; backend-specific config/imports; Redis stays operational | Existing Redis tests/defaults pass; no Celery initialization when selecting Supabase; Deno validation matches fixtures |
 | 2. Implement database protocol | Versioned migrations, exposed RPC schema, enrollment, policies, quotas, state machine, cleanup | Concurrent claim/capacity/idempotency, role-denial and stale-attempt tests; fresh installation and upgrade tests |
 | 3. Complete Edge non-streamed slice | `supabase/functions/ollama`, worker loop, login/session handling; System One, legacy embeddings and metadata included | Same deterministic results/errors as existing routes within Edge deadlines; real local Ollama smoke runs |
 | 4. Add streaming and async | Durable chunks/cursor replay, bounded buffers, finish/cancel reconciliation, Storage path, async submission/status/result/cancel | Exact stream bytes, lost acknowledgements, slow readers, large records; async job exceeds 400 s and result survives reconnect |
-| 5. Add FastAPI + Supabase option | Backend interface, Redis wrapper and Supabase adapter; route/lifespan injection; persistent collector; Vercel request reader and ASGI template | Both FastAPI backends pass route matrix; System One thread affinity; persistent synchronous request exceeds 400 s; Vercel profile limits enforced independently |
-| 6. Deliver installation flows | Shared resumable bootstrap engine and CLI fallback; Supabase OAuth installer; Vercel Deploy template; owner/key/worker onboarding | Fresh install, existing project, interrupted/resumed upgrade, preview isolation, no secrets leaked; all installation gates V16–V21 pass |
+| 5. Add FastAPI + Supabase option | Backend interface, Redis wrapper and Supabase adapter; route/lifespan injection; persistent collector | Both FastAPI backends pass route matrix; System One thread affinity; longer synchronous budgets remain a future target |
+| 6. Deliver installation flows | Shared resumable bootstrap engine and CLI fallback; Supabase OAuth installer; owner/key/worker onboarding | Fresh install, existing project, interrupted/resumed upgrade, preview isolation, no secrets leaked; all installation gates V16–V21 pass |
 | 7. Release and operate | Deployment/env examples, startup probes, metrics, dependencies, drain/upgrade/rollback; hosted soak/load/security tests | Edge documented as Supabase default; FastAPI option tested; declared workload limits/costs; Redis regressions pass |
 | 8. Broaden API/optimize | Modern embed, tools/structured fields, coordinated upstream-parity fixes; measured hints/inline relay/LISTEN/cache improvements | Shared fixtures pass across gateways/backends; limits explicit; optimizations justified by profiles |
 
@@ -387,7 +385,7 @@ The [verification matrix](compatibility.md) gives correctness cases and exact ex
 - Proposed initial performance targets at 1 and 5 active streams: p95 additional first-token latency <=750 ms versus Redis and p95 batch relay lag <=500 ms, with no sustained backlog. These are targets to validate, not measurements. Test 10 and 25 streams on the intended paid project and publish the measured sustainable point, not a guessed concurrency promise.
 - Memory remains bounded by configured per-request limits and the admitted request count; a slow consumer cannot grow gateway memory without bound. Explain database cost per 1,000 one-minute streams and per idle worker-day, including retention and egress.
 - Real models: warm/cold loads, short/long context, constrained output, legacy embeddings, System One, worker contention; record p50/p95/p99, versions, region, plan and hardware.
-- Installation: both hosted setup paths plus CLI recovery pass [V16–V21](compatibility.md); published buttons target tested release artifacts, and readiness distinguishes infrastructure from available inference.
+- Installation: hosted CLI, future browser setup and recovery pass [V16–V21](compatibility.md); published buttons target tested release artifacts, and readiness distinguishes infrastructure from available inference.
 - Default hosted Edge: delayed first byte, ~200 s non-streamed response on paid, steady output/idle gaps/reused workers, runtime/CPU/memory cutoffs and exact final-marker behavior. Body-size matrix: 64 KiB, 256 KiB, 1 MiB, 5 MiB and configured maxima. A successful long FastAPI request does not prove that Edge supports the same duration; gate each gateway separately.
 
 If transport durability is correct but database cost/latency misses the target, measure coalescing, reads, indexes and notification tuning first; evaluate the direct relay only with evidence. If Edge cannot safely support the advertised envelope, keep the Supabase default experimental and report the failed gate; the FastAPI option remains useful but does not by itself complete the default Edge release. Do not reduce the mandatory existing-route scope to make the release pass. Accepted limits must be explicit and produce useful errors or the documented async alternative.

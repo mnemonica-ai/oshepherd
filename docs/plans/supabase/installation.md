@@ -1,176 +1,114 @@
 # Supabase installation and hosting
 
-Updated October 31, 2026. Companion to the [implementation plan](implementation.md)
-and [verification matrix](compatibility.md). Versioned SQL, the operator CLI and
-the self-contained Vercel template are implemented candidates with evidence in
-the [operator runbook](experiments/operator-lifecycle.md). Both isolated hosted
-gateways returned genuine inference; their disconnect checks fail, so full
-qualification remains pending. The separate OAuth control service and owned
-deployment/removal adapters are implemented and locally fault-tested; actual
-Edge/Vercel adapter adoption/deployment/repeat reconciliation and approved hosted
-removal acceptance pass. The test gateways are removed and clusters disabled;
-see [current acceptance](experiments/independent-acceptance.md). Hosted OAuth/button
-onboarding remains unrun.
-The October 31 CLI candidate implements provider organization/project creation
-and selection with durable reconciliation. The separate hosted OAuth installer
-remains local-first; it is not the CLI prerequisite. The
-[CLI onboarding milestone](cli-onboarding.md) and [next steps](next-steps.md)
-distinguish implemented source from fresh hosted and published-package acceptance.
+Updated November 15, 2026. The guided CLI and operator engine are implemented;
+fresh local Docker acceptance passes. The latest full wizard against a newly
+created hosted project and reliable Edge disconnect cancellation remain open.
+See the [walkthrough](../../supabase-walkthrough.md),
+[hosted guide](../../setup-supabase.md) and [progress ledger](progress.md).
 
-## Installation promise
+## Product path
 
-Prioritize one uv entry into a guided `share` flow, and a `join` flow for another
-machine. Share creates or selects provider projects, bootstraps and deploys through
-the shared engine, enrolls the local worker and verifies actual inference. Join
-uses a private one-time invitation and never needs provider administrator keys.
-The finished flow needs no checkout, handwritten configuration or hosted installer
-service. See the [implementation slices and acceptance](cli-onboarding.md).
+Supabase is the primary broker. Edge hosts the Ollama-compatible gateway;
+external workers connect outward and execute models in Ollama. Redis remains a
+legacy option with its existing CLI defaults. No Redis service is required for
+the Supabase workflow.
 
-The source candidate implements share/invite/join, guided create/select Supabase
-and optional Vercel setup, and background user services. It uses hidden provider
-tokens, Management SQL and REST deployment without requiring `psql`, database URL
-entry or provider CLIs. Supabase's optional plan field establishes Free when
-present; absent fields require explicit dashboard attestation, and non-Free plans
-are rejected. Vercel must verify Hobby. See the [candidate sharing guide](../../setup-supabase.md).
-`0.0.25a1` is unpublished; live/fresh-user acceptance and the external protected
-publication setup remain separate gates.
+`oshepherd share` creates or selects an organization/project, obtains private
+provider credentials, checks the selected Free plan, installs the schema through
+the Management API, deploys Edge, enrolls a worker and verifies real inference.
+Cloud readiness, worker readiness and successful inference are separate events.
+Setup does not download models. A durable private journal reconciles ambiguous
+creation results and prevents silent target changes.
 
-Supabase with Edge is the default sharing path. Optional Vercel hosting still uses
-Supabase; Vercel alone is not a supported backend. Later **Install on Supabase** and
-**Deploy with Vercel** browser entry points reuse the same schema, credentials,
-worker protocol and bootstrap manifest. They are not prerequisites for CLI adoption.
-
-“One click” means one entry point followed by account consent, project/region selection and provisioning. It cannot mean no accounts, billing choices or worker setup. Neither platform button installs Ollama, downloads models, grants hardware access or supplies a GPU. The success screen must distinguish **cloud ready**, **worker connected**, and **inference verified**. A deployment without a worker is a valid intermediate state, not a working inference service.
+For local Docker, configure from a private `supabase status -o json` export,
+run `install --create-owner`, serve the function locally, then pass the prepared
+connection to `share`. This uses local database administration rather than the
+hosted Management API. Each installation keeps its own private state directory.
 
 ## Hosting profiles
 
-Backend selection and hosting policy are different settings. Proposed `OSHEPHERD_GATEWAY_PROFILE=edge|vercel|persistent` determines admissible synchronous time and bytes. The installer configures the actual platform and matching application limits together; do not trust a client-supplied profile or silently assume the paid tier. Workers enforce the resulting absolute job deadline and byte budget.
+The operator manifest supports `edge_free`. The optional Python gateway uses
+`OSHEPHERD_GATEWAY_PROFILE=persistent`; it still connects to the Supabase broker.
+The current candidate's SQL maximum is 135 seconds, including waiting/loading.
+Longer synchronous persistent budgets are a future target, not implemented support.
 
-| Profile | Documented hosting boundary | Initial application policy |
-| --- | --- | --- |
-| Supabase Edge Free | 150 s worker lifetime; 150 s request idle timeout | Candidate 135 s synchronous budget, reduced by setup/elapsed time; validate reused isolates |
-| Supabase Edge paid | 400 s worker lifetime; same 150 s idle timeout | Candidate 135 s non-streamed / 385 s streamed; long silence still matters |
-| FastAPI on Vercel Hobby, Fluid compute | Python invocation maximum 300 s | Candidate template configures 150 s; SQL/application budget remains 135 s. A 285 s budget is a future experiment |
-| FastAPI on Vercel Pro/Enterprise, Fluid compute | Default 300 s; generally available maximum 800 s | Only use candidate 785 s application budget when deployment explicitly configures 800 s |
-| FastAPI on persistent host | No Supabase Edge invocation clock | Operator-defined deadline, validated through the actual ingress proxy and client |
+| Policy | Current candidate |
+| --- | --- |
+| Synchronous time | 135 seconds |
+| Input body | 1 MiB |
+| Edge synchronous response | 1 MiB, including streamed bytes |
+| Inline result threshold | 256 KiB |
+| Total async retained output | 32 MiB |
+| Async retrieval | Explicit `/jobs` status/result/download flow |
 
-Supabase also limits Edge memory to 256 MB and CPU to 2 s per request excluding asynchronous I/O. These constrain relay parsing/buffering even though Ollama runs elsewhere. Application budgets are test candidates, not guaranteed remaining worker lifetimes. The [Edge analysis](implementation.md#10-default-edge-gateway-and-asynchronous-jobs) defines cutoff behavior. [Supabase limits](https://supabase.com/docs/guides/functions/limits)
-
-Vercel duration includes response transmission and streaming. Current documentation also offers a **1,800 s beta** maximum for eligible Pro/Enterprise runtimes, including Python 3.12–3.14, with function-level configuration and exclusions for Secure Compute/Static IPs. Keep this an opt-in experiment; do not base the release promise on beta access. Network/client idle timeouts remain separate. These are Python Function limits, not Vercel Edge runtime limits. [Vercel duration](https://vercel.com/docs/functions/configuring-functions/duration)
-
-Vercel documents a **4.5 MB request or response payload limit**. Start with the shared 1 MiB input limit and a conservative 4,000,000-byte synchronous response cap, including NDJSON bytes. Test buffered JSON and Python streaming just below/above that boundary; do not assume a streaming exemption. A Storage-backed response still crosses the gateway. Large async results use explicitly requested private signed downloads; ordinary Ollama routes must not silently return URLs. [Vercel limits](https://vercel.com/docs/functions/limitations)
-
-Published limits must come from hosted tests of each profile and plan. Default application limits may be lower than platform maxima. Where output size is unknown at admission, enforce growth in the worker and fail explicitly. A provider rejecting before the handler or killing it mid-response may produce its own error or abrupt EOF; document that exception to application error mapping.
-
-## Later browser path: Install on Supabase
-
-The reviewed official sources support a custom OAuth integration with a Connect Supabase button. They do not establish a generic application-template button that installs Oshepherd SQL, policies, secrets and functions together. We must build and operate that flow, with a registered OAuth app and server-side callback. Use state validation, PKCE S256 and a fixed callback allowlist; keep the OAuth client secret and token exchange on the installer server. [Supabase integration guide](https://supabase.com/docs/guides/integrations/build-a-supabase-oauth-integration)
-
-Proposed journey:
-
-1. Open the installer, authenticate the operator, and connect Supabase. Explain access and show the release being installed.
-2. Select an authorized organization and project, or create a dedicated project where the API/account supports it. Display region, plan, expected resource changes and potential charges before provisioning. Never silently upgrade a plan.
-3. Check project health, permissions, existing installation, schema/function name collisions and supported versions. Recommend a dedicated project; do not overwrite unrelated resources in an existing one.
-4. Run the shared bootstrap stages below, reporting progress and recoverable errors. Configure the default Edge gateway with custom application authentication before exposing inference.
-5. Bind the initial Oshepherd operator to the authenticated installation session, create a cluster and application key, and present worker enrollment. Public signup or the first anonymous visitor cannot become owner.
-6. Show the gateway host, measured profile limits, client configuration, readiness and next worker step. Offer a bounded inference check only after a worker is online and the operator chooses a model.
-
-The hosted installer is a separate control service: it cannot depend on first installing itself into the customer's target project. It needs durable installation state, protected credentials, an operator support path and ongoing maintenance. Do not require it for normal inference after setup. Deleting its retained provider tokens must not stop an installed cluster.
-
-Request only the OAuth capabilities needed for selected project discovery, SQL migrations, function deployment, API configuration and secrets; project creation requires additional authority. Scopes are configured on the OAuth app. A consent grant can cover more resources than the selected target, so enforce the selected organization/project on every installer action. Management OAuth is separate from the Supabase Auth session used by an inference worker. [OAuth scopes](https://supabase.com/docs/guides/integrations/build-a-supabase-oauth-integration/oauth-scopes)
-
-Deploy the Edge artifact using the [Management function deployment API](https://supabase.com/docs/reference/api/v1-deploy-a-function). The [SQL query endpoint](https://supabase.com/docs/reference/api/v1-run-a-query) is explicitly experimental/Beta: isolate it behind a tested adapter and retain the CLI migration path. Do not describe browser-only SQL provisioning as a stable platform guarantee. The initial capability probe must verify all required operations, especially project configuration and access to Marketplace-owned projects; unresolved API access gets an explicit CLI/manual handoff, not a fake successful installation.
-
-## Optional path: Deploy with Vercel + Supabase
-
-Vercel's official Deploy button clones a public template and creates a project. It supports required environment variables, non-secret defaults, integration selection and a post-deployment redirect. Publish a real button only once its template, integration identifiers and return flow have been exercised. Never embed keys, enrollment secrets or management tokens in its URL. [Deploy Button](https://vercel.com/docs/deploy-button)
-
-Provide two database choices:
-
-| Choice | Setup | Constraint |
-| --- | --- | --- |
-| Existing Supabase project | Run/connect the shared installer, then deploy the Vercel template with server-only configuration | Verify the selected project and schema version; do not migrate during a Vercel build |
-| Supabase through Vercel Marketplace | Create/connect the resource through Vercel, then run the same Oshepherd bootstrap on it | Validate integration access before promising a seamless return flow; fall back to CLI setup |
-
-Supabase's Marketplace guide describes automatic environment synchronization and unified billing, but labels the integration **Public Alpha** and says project creation is through the Vercel dashboard. Do not assume the installer can create projects in those organizations through the ordinary Management API. Synced variables include `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` and `SUPABASE_SECRET_KEY`; unrelated database credentials must not be required by the HTTP/RPC gateway. [Marketplace guide](https://supabase.com/docs/guides/integrations/vercel-marketplace)
-
-The template must explicitly configure `OSHEPHERD_BACKEND=supabase`, the Vercel hosting profile, cluster, application-key auth and matching function/application deadlines. Verify the integration's actual variable names and scopes; support a documented manual server-variable path. Never map privileged secrets into `NEXT_PUBLIC_*` or client bundles. An installer redirect or a user-supplied deployment URL is not proof of ownership: verify any Vercel project binding through authenticated provider access before writing secrets. Without that integration, let the owner enter them in Vercel's protected configuration UI.
-
-Export an ASGI `app` from a minimal entrypoint using a backend-aware factory; do not launch the existing Uvicorn CLI, register process signal handlers, construct Celery, or require Redis at import. Vercel packages FastAPI as one Python Function and supports lifespan events. Its shutdown cleanup window is only 500 ms after SIGTERM, so cleanup cannot depend on a graceful long drain. Configure `maxDuration` against the resolved entrypoint filename. [FastAPI on Vercel](https://vercel.com/docs/frameworks/backend/fastapi)
-
-Use per-request cursor readers initially. Reuse HTTP clients within a live instance, but assume the process can disappear. No migration, permanent collector, lease reaper or essential background task may depend on its lifetime after a response. Database leases and scheduled cleanup remain authoritative. Keep Ollama and model files outside the function bundle; pin the released Python package and supported runtime.
-
-Production needs a stable gateway URL that ordinary Ollama clients can access using application auth. Include deployment-protection/interstitial behavior in hosted verification; a browser login page is not an API response. Apply private/no-store caching to inference, async status/results and authorized metadata. Preview deployments default to inference disabled and receive no production gateway secrets. Enabling a preview requires an isolated project/cluster, credentials and worker pool; a separate URL alone does not isolate a queue.
+Storage does not bypass a response that still crosses Edge. Ordinary Ollama
+routes return their normal response or an explicit limit error, not a silent
+redirect to a download URL. Provider termination can still cause abrupt EOF;
+application limits are deliberately conservative. The broader hosted resource
+and quota envelope remains unqualified.
 
 ## Shared bootstrap engine and recovery
 
-One versioned release manifest describes SQL hashes/order, protocol range, Edge artifact, Python version, required configuration, owned resource names and cleanup schedules. The web installer and CLI consume the same manifest. Do not maintain independent migrations in a Vercel template. Make published templates self-contained by depending on a released package and manifest, not on unpublished files outside the template root.
+The packaged manifest describes SQL hashes and permitted migration histories,
+Edge artifacts, Python sources, schema/protocol versions and owned schedules.
+CLI and local OAuth installer consume the same engine. Never edit an applied
+migration or blindly push every baseline and legacy migration together.
 
-| Stage | Durable completion evidence |
+| Stage | Durable evidence |
 | --- | --- |
-| Authorized | Operator session, selected provider/project IDs and granted capabilities verified |
-| Project ready | Project services reachable; preflight configuration and collisions checked |
-| Schema ready | Exact migration hashes recorded; RPC grants/RLS/protocol verified; API schema exposure merged safely |
-| Services ready | Private result bucket/policies, bounded Cron cleanup and namespaced configuration present |
-| Ownership ready | Explicit operator/cluster binding and application-key administration provisioned |
-| Gateway ready | Correct artifact/profile deployed; authenticated read-only readiness and denial checks pass |
-| Worker connected | Enrolled installation advertises a compatible model and independent heartbeat |
-| Inference verified | Operator-triggered bounded request/stream succeeds through selected gateway |
+| Select target | Private organization/project/profile binding |
+| Create resources | Journaled intent; reconcile uncertain responses before retry |
+| Bootstrap owner | Recorded Auth identity, repeatable recovery |
+| Apply schema | Transactional project lock, selected immutable history and drift checks |
+| Configure installation | Stable cluster/key identities and private client/gateway files |
+| Deploy Edge | Owned function receipt, artifact/secret checks and authenticated health |
+| Enroll worker | One-use challenge and restricted saved Auth session |
+| Verify inference | Actual request completed by connected Ollama |
 
-Persist stage state and provider resource IDs outside a single invocation. Resume by inspecting actual state, not merely replaying every creation call. Retry transient failures with backoff and respect provider rate limits; the Management API documents a general 120 requests/minute limit per user per project/organization, with endpoint-specific exceptions. [Management API](https://supabase.com/docs/reference/api/introduction)
+Existing schema exposure is merged, not replaced. Schema, bucket and function
+collisions must fail safely. Configuration and worker/session secrets remain in
+owned private files; no secrets belong in command arguments, URLs or logs.
 
-Serialize concurrent installs/upgrades per project. Run transactional migrations with a transaction-scoped lock and commit the migration record atomically; do not depend on a session lock surviving separate HTTP calls. Nontransactional steps need explicit reconciliation. Keep CLI migration history and installer hashes consistent; an API-applied migration must not be applied again by `db push`. Reject unexpected schema drift or a conflicting release instead of “repairing” history blindly. Merge exposed schema configuration without removing the project's other schemas.
+The [Management SQL endpoint](https://supabase.com/docs/reference/api/v1-run-a-query)
+is an experimental transport isolated behind an adapter. Retain the direct
+operator database path and verify live error/response shapes before claiming
+fresh hosted acceptance. The
+[function deployment API](https://supabase.com/docs/reference/api/v1-deploy-a-function)
+is used by the owned Edge adapter.
 
-Inject failures after every stage: browser closes, token expires, project creation response is lost, SQL commits but response is lost, secrets save but deploy fails. A retry must not create a second project, rotate a working application key unexpectedly, duplicate Cron jobs or grant an extra owner. If creation outcome is ambiguous, reconcile through recorded identifiers and operator-visible state before trying again.
-
-Encrypt temporary management tokens, redact logs, and expire them after the setup/resume window by default. Subsequent upgrades reauthorize; retained access is an explicit operator choice. The target gateway receives only its runtime project credential, and workers only their enrolled sessions. Do not send project admin credentials to a browser onboarding script or worker. Account for the blast radius of a project-secret compromise when recommending a dedicated project.
-
-Uninstall first disables admission, drains/cancels jobs, revokes Oshepherd credentials and removes its gateway/schedules. Preserve data by default. Destructive purge is a distinct operation listing exactly which resources it owns; never delete an existing Supabase project or uninstall the account-level Marketplace integration implicitly. Gateway rollback must respect schema compatibility and retained results.
-
-## CLI fallback and worker onboarding
-
-The [local installer/adapters runbook](experiments/local-installer.md) documents
-the implemented control service, encrypted records, queued shared-engine setup,
-private worker downloads and owned provider adapters. Hosted OAuth/button
-acceptance remains unrun under the user's local-first decision.
-
-Guided CLI setup uses a target-bound Management SQL transport and the shared transactional migration engine, recording official Supabase migration history. The advanced operator CLI also retains protected database connection files and `psql`. Guided deployment composes ownership-bound provider adapters; the separate operator commands remain available. `functions deploy --use-api` bundles remotely without Docker; local Supabase development still has its own requirements. See the [operator runbook](experiments/operator-lifecycle.md) for prerequisites and recovery. [Supabase CLI](https://supabase.com/docs/reference/cli)
-
-Available CLI, after preparing protected connection configuration and an explicit existing Auth owner:
+## CLI and operations
 
 ```sh
-# Hidden credential prompts; select edge_free or vercel_hobby.
-uv run --locked oshepherd supabase configure
-uv run --locked oshepherd supabase install --connection-file .oshepherd/operator/connection.json --owner-subject <existing-auth-uuid>
-uv run --locked oshepherd supabase doctor --connection-file .oshepherd/operator/connection.json
-uv run --locked oshepherd supabase enroll-worker --connection-file .oshepherd/operator/connection.json --name workstation
-
-# Transfer the generated worker-only files privately to the Ollama machine.
-# See the runbook for supabase-worker-login and start-worker arguments.
+oshepherd share
+oshepherd invite --name second-machine --output /private/second.invitation.json
+# On the joined machine, with Ollama running:
+oshepherd join --invitation-file /private/second.invitation.json
+# Later:
+oshepherd join
 ```
 
-The installer wraps or explains each administrative action, pins a tested CLI version and prints a redacted summary of changes. Do not ship an arbitrary `curl | sh` path. Package installation instructions should select the published Supabase extra and an explicit release, respecting the repository's Python requirement. Validate a clean machine with no Redis and no prior local Supabase stack.
+The invitation expires, is single-use and contains no operator credentials.
+`share` supervises a worker and stored-result cleanup; keep it or its user service
+running. For multiple workers/installations, use separate state directories.
+See the [operator runbook](experiments/operator-lifecycle.md) for manual
+configure/install/upgrade, diagnostics, rotation, revocation and recovery.
 
-Worker enrollment uses a short-lived, single-use operator-authorized challenge bound to the cluster and worker capacity. Prompt for any secret code securely; avoid command arguments, URLs, logs and shell history. Exchange it for the installation's own Auth session and store rotated refresh tokens atomically with restrictive permissions. Do not assume SMTP or public signup is configured: provision operator-approved worker identities through the administrative enrollment flow and test the exact Auth exchange. Browserless machines need the same flow via an operator on another device.
+`supabase uninstall` disables the cluster and revokes its credentials while
+preserving schema/data. Reviewed owned-function removal is a separate operation.
+Provider project deletion is not implicit in either command. Backups, region,
+prompt/result retention and quota monitoring remain the operator's responsibility.
+Upgrades must preserve identities and overlapping protocol compatibility.
 
-The worker doctor checks Python/dependencies, enrollment/protocol, local Ollama reachability, model availability, host configuration and outbound Supabase access. Report “no model installed,” “worker offline,” “schema mismatch” and “gateway unavailable” separately. A cloud health check does not prove GPU inference. Model download and the first real inference are explicit user steps, with restart/service-manager guidance for continued operation.
+## Later browser installation
 
-## Operations that installation must explain
+A local OAuth control service and fault tests are implemented. Hosted acceptance
+still needs a registered Supabase OAuth app, controlled HTTPS callback domain,
+durable private credential store and maintenance owner. Real consent, refresh,
+revocation, browser restart and queued-install recovery remain unverified. There
+is no public installation button. CLI and browser must eventually complete the
+same owned installation and prove actual inference independently of readiness.
 
-- **Cost and capacity:** select region near the database, set per-key/cluster admission limits and show quota monitoring. Vercel bills provisioned memory time as well as active CPU; waiting for a worker is not necessarily free. Auto-scaling gateways cannot create GPU capacity. [Vercel limits and usage](https://vercel.com/docs/functions/limitations)
-- **Availability:** Supabase Free projects may pause after low activity over seven days. Detect paused/unavailable projects and provide restoration instructions; do not hide this with artificial keepalive traffic. Choose backup/recovery policy before production. [Supabase production guidance](https://supabase.com/docs/guides/deployment/going-into-prod)
-- **Data handling:** prompts/results pass through hosted Postgres/Storage. Show region and retention choices, including backup/log retention, before cloud installation; worker operators also see prompts.
-- **Upgrade ownership:** ship additive schema changes first, support overlapping worker/gateway protocols and drain old workers. Vercel redeploy/preview builds never run production migrations. A cloned template does not automatically inherit upstream security fixes; provide a version check and an explicit upgrade command.
-- **Supportability:** export a credential-free diagnostic bundle with release/profile/schema IDs, readiness and recent categorized errors. Avoid prompts or output in diagnostics by default. Installer failure must leave a clear next action and the IDs of any resources already created.
-
-## Delivery and acceptance
-
-Build the adoption-first share/join flows over the delivered bootstrap manifest,
-operator CLI and deployment adapters. Complete A1–A5 before the optional Supabase
-OAuth UI and public buttons. A hosted installer service and registered provider
-integration are dependencies of that later browser release, not prerequisites for
-the CLI milestone. Do not claim button-assisted setup until its hosted flows pass.
-
-Required artifacts: CLI commands, release manifest, migrations/config/functions, secure installer service, Vercel template and generated button, example configuration, worker enrollment, doctor, upgrade/uninstall guidance and CI smoke/fault tests. Keep Supabase-specific implementation grouped as described in the [implementation layout](implementation.md#proposed-code-layout).
-
-Acceptance gates V16–V21 in the [matrix](compatibility.md) cover fresh installs, repeated/partial setup, ownership, previews, Vercel limits, upgrades and real onboarding. Measure time to cloud readiness and first successful inference separately. Local installer/fault tests, actual packaged CLI onboarding on the existing isolated local project, manual hosted setup and provider adapter/removal tests provide partial evidence. Fresh hosted projects and real browser/OAuth/button acceptance remain unrun. Follow the [remaining work](next-steps.md) before claiming either installation flow complete.
+Keep public distribution deferred and the candidate experimental. The remaining
+V16–V21 installation gates in the [matrix](compatibility.md) retain their IDs;
+the retired hosting-specific gate is marked out of scope. Follow
+[next steps](next-steps.md) before claiming complete hosted installation.

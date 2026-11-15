@@ -172,7 +172,7 @@ def test_gateway_rejects_worker_credentials_and_invalid_hosting_budgets():
     with pytest.raises(ValueError):
         config(SUPABASE_SECRET_KEY="sb_publishable_test")
     with pytest.raises(ValueError):
-        config(OSHEPHERD_GATEWAY_PROFILE="vercel", OSHEPHERD_RESPONSE_BYTES=4000001)
+        config(OSHEPHERD_RESPONSE_BYTES=33554433)
     with pytest.raises(ValueError):
         config(OSHEPHERD_SYNC_SECONDS=136)
 
@@ -216,32 +216,3 @@ def test_stream_socket_failure_cancels_sql_job_and_closes_request_client():
         assert [name for name, _ in rpc.calls].count("cancel_job") == 1
 
     asyncio.run(run())
-
-
-def test_vercel_import_requires_profile_and_disables_previews_by_default(monkeypatch):
-    from oshepherd.api.factory import create_vercel_app
-
-    monkeypatch.setenv("OSHEPHERD_BACKEND", "supabase")
-    monkeypatch.setenv("OSHEPHERD_GATEWAY_PROFILE", "vercel")
-    monkeypatch.setenv("VERCEL_ENV", "preview")
-    monkeypatch.delenv("OSHEPHERD_ALLOW_PREVIEW_INFERENCE", raising=False)
-    with pytest.raises(ValueError, match="Preview inference is disabled"):
-        create_vercel_app()
-    monkeypatch.setenv("VERCEL_ENV", "production")
-    monkeypatch.setenv("OSHEPHERD_GATEWAY_PROFILE", "persistent")
-    with pytest.raises(ValueError, match="vercel gateway profile"):
-        create_vercel_app()
-
-
-def test_vercel_invalid_environment_never_echoes_its_secret(monkeypatch):
-    from oshepherd.api.factory import create_vercel_app
-
-    monkeypatch.setenv("OSHEPHERD_BACKEND", "supabase")
-    monkeypatch.setenv("OSHEPHERD_GATEWAY_PROFILE", "vercel")
-    monkeypatch.setenv("VERCEL_ENV", "production")
-    monkeypatch.setenv("SUPABASE_SECRET_KEY", "sensitive-invalid-key")
-    monkeypatch.setenv("SUPABASE_URL", "https://project.test")
-    monkeypatch.setenv("OSHEPHERD_CLUSTER_ID", str(uuid4()))
-    with pytest.raises(ValueError) as error:
-        create_vercel_app()
-    assert "sensitive-invalid-key" not in str(error.value)

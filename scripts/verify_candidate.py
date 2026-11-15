@@ -60,7 +60,6 @@ def safe_name(name):
         in {
             "connection.json",
             "edge-provider.json",
-            "vercel-provider.json",
             "worker-session.json",
         }
     ):
@@ -241,11 +240,7 @@ print(json.dumps({"installed_version":importlib.metadata.version("oshepherd"),"i
                 "--with",
                 str(Path(wheel).resolve()) + "[supabase]",
                 "--with-requirements",
-                str(
-                    Path(source)
-                    .joinpath("templates/vercel/runtime-requirements.txt")
-                    .resolve()
-                ),
+                str(Path(source).joinpath("requirements/runtime.txt").resolve()),
                 "python",
                 "-I",
                 "-c",

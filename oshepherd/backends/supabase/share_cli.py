@@ -6,42 +6,32 @@ from pathlib import Path
 import click
 
 
-async def deploy_selected(operator, provider_file, *, wheel=None):
+async def deploy_selected(operator, provider_file):
     """Use the existing ownership adapters without implicit adoption."""
     from .private_files import read_private_json
     from .releases import OperatorError
 
-    if operator.config.profile == "edge_free":
-        from .edge_deployment import EdgeDeployment
-        from .management import SupabaseManagement
+    from .edge_deployment import EdgeDeployment
+    from .management import SupabaseManagement
 
-        values = read_private_json(provider_file)
-        if (
-            not isinstance(values, dict)
-            or set(values) != {"organization_id", "access_token"}
-            or not all(isinstance(value, str) and value for value in values.values())
-        ):
-            raise OperatorError("invalid_provider_configuration")
-        provider = SupabaseManagement(values["access_token"])
-        deployment = None
-        try:
-            deployment = EdgeDeployment(
-                provider, operator.config, operator.directory, values["organization_id"]
-            )
-            return await deployment.deploy()
-        finally:
-            if deployment is not None:
-                await deployment.close()
-            await provider.close()
-    from .vercel_deployment import VercelDeployment, VercelTarget
-
-    deployment = VercelDeployment(
-        VercelTarget.load(provider_file), operator.config, operator.directory
-    )
+    values = read_private_json(provider_file)
+    if (
+        not isinstance(values, dict)
+        or set(values) != {"organization_id", "access_token"}
+        or not all(isinstance(value, str) and value for value in values.values())
+    ):
+        raise OperatorError("invalid_provider_configuration")
+    provider = SupabaseManagement(values["access_token"])
+    deployment = None
     try:
-        return await deployment.deploy(wheel)
+        deployment = EdgeDeployment(
+            provider, operator.config, operator.directory, values["organization_id"]
+        )
+        return await deployment.deploy()
     finally:
-        await deployment.close()
+        if deployment is not None:
+            await deployment.close()
+        await provider.close()
 
 
 def report_error(error):
@@ -97,37 +87,10 @@ def configured_selection(directory):
         return None
     # Configured SQL precedes deployment. Resume interrupted deployment through
     # the selected provider; a completed receipt needs no Management access.
-    receipt_file = directory / (
-        "edge-deployment.json"
-        if config.profile == "edge_free"
-        else "vercel-deployment.json"
-    )
+    receipt_file = directory / "edge-deployment.json"
     if not receipt_file.exists():
         return None
     receipt = read_private_json(receipt_file)
-    if config.profile == "vercel_hobby":
-        selection = read_private_json(directory / "vercel-setup.json")
-        if not isinstance(selection, dict):
-            raise OperatorError("vercel_receipt_target_mismatch")
-        expected = {
-            "team_id": selection.get("team_id"),
-            "project_id": selection.get("project_id"),
-            "supabase_ref": config.project_ref,
-            "cluster_id": str(state.cluster_id),
-        }
-        if (
-            not isinstance(receipt, dict)
-            or receipt.get("binding") != expected
-            or selection.get("gateway_url") != config.gateway_url
-            or receipt.get("removed")
-            or receipt.get("removing")
-        ):
-            raise OperatorError("vercel_receipt_target_mismatch")
-        return (
-            config
-            if receipt.get("gateway_verified") and not receipt.get("creating")
-            else None
-        )
     if (
         not isinstance(receipt, dict)
         or receipt.get("project_ref") != config.project_ref
@@ -160,13 +123,8 @@ def configured_selection(directory):
     help="Private selected provider configuration for gateway deployment.",
 )
 @click.option(
-    "--wheel",
-    type=click.Path(exists=True, path_type=Path),
-    help="Verified candidate wheel for the optional Vercel deployment adapter.",
-)
-@click.option(
     "--gateway",
-    type=click.Choice(["edge", "vercel"]),
+    type=click.Choice(["edge"]),
     help="Gateway for guided setup; defaults to Edge and remembers the selected profile.",
 )
 @click.option(
@@ -195,7 +153,6 @@ def share(
     state_dir,
     owner_subject,
     provider_file,
-    wheel,
     gateway,
     database_provider_file,
     ollama_url,
@@ -208,13 +165,13 @@ def share(
     """Share local Ollama through an experimental Supabase installation.
 
     Keep this command running to serve requests and clean up retained Storage.
-    Create or select Free Supabase and optional Hobby Vercel projects. Credentials
+    Create or select a Free Supabase project. Credentials
     are requested privately; setup requires no database password or provider CLI.
     """
     from .client import RpcError
     from .onboarding import default_state_dir, discover_ollama
     from .operator import Installation, Operator, OperatorConfig
-    from .private_files import read_private_json, write_private_json
+    from .private_files import read_private_json
     from .releases import OperatorError
     from .sharing import gateway_url, run_share
 
@@ -239,7 +196,7 @@ def share(
                     if binding_path.exists()
                     else None
                 )
-                profile = {"edge": "edge_free", "vercel": "vercel_hobby"}.get(gateway)
+                profile = {"edge": "edge_free"}.get(gateway)
                 if saved_profile and profile and profile != saved_profile:
                     raise OperatorError("provider_setup_target_mismatch")
                 profile = saved_profile or profile or "edge_free"
@@ -250,32 +207,10 @@ def share(
                     raise OperatorError("installation_owner_mismatch")
                 selected_owner = generated_owner
                 sql_provider = sql_provider or generated_provider
-                if profile == "vercel_hobby":
-                    from .vercel_cli import guided_vercel_setup
-                    from .provider_setup import private_configuration
-
-                    url, vercel_provider = await guided_vercel_setup(state_dir)
-                    if config.gateway_url and config.gateway_url != url:
-                        raise OperatorError("sharing_configuration_mismatch")
-                    if config.gateway_url is None:
-                        if (state_dir / "installation.json").exists():
-                            raise OperatorError("sharing_configuration_mismatch")
-                        config = OperatorConfig.model_validate(
-                            {**private_configuration(config), "gateway_url": url}
-                        )
-                        write_private_json(
-                            state_dir / "connection.json", private_configuration(config)
-                        )
-                    selected_provider = selected_provider or vercel_provider
-                else:
-                    selected_provider = selected_provider or generated_provider
+                selected_provider = selected_provider or generated_provider
         else:
             config = OperatorConfig.load(connection_file)
-        if (
-            gateway
-            and config.profile
-            != {"edge": "edge_free", "vercel": "vercel_hobby"}[gateway]
-        ):
+        if gateway and config.profile != {"edge": "edge_free"}[gateway]:
             raise OperatorError("provider_setup_target_mismatch")
         operator = Operator(config, state_dir)
         database = None
@@ -328,7 +263,7 @@ def share(
                 renew_enrollment=renew_enrollment,
                 database=database,
                 deploy=(
-                    (lambda: deploy_selected(operator, selected_provider, wheel=wheel))
+                    (lambda: deploy_selected(operator, selected_provider))
                     if selected_provider
                     else None
                 ),

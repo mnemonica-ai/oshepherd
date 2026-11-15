@@ -1,7 +1,7 @@
 # Set up oshepherd with Supabase
 
-For checkout-based testing without a hosted project or PyPI release, use
-[the fresh local Docker workflow](setup-supabase-local.md).
+Start with the [Supabase walkthrough](supabase-walkthrough.md) for local-first
+testing without a hosted project or PyPI release. This page covers hosted setup.
 
 > **Experimental.** This needs the `0.0.25a1` candidate, which is not on PyPI yet.
 > Closing a streaming client does not yet reliably cancel the inference behind it,
@@ -17,10 +17,6 @@ Ollama client ──HTTPS──> Supabase Edge Function ──> Supabase databas
                                                           ↑ outbound
                                   oshepherd worker ───────┘ ──> local Ollama
 ```
-
-To host the API endpoint on Vercel instead of an Edge Function, follow
-[Supabase + Vercel](setup-supabase-vercel.md). It uses the same steps, with one
-extra flag.
 
 ## What you need
 

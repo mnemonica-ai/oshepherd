@@ -18,8 +18,8 @@ jobs:
       - run: uv sync --locked --extra supabase --extra installer
       - run: uv export --locked --all-extras --no-hashes --no-emit-project --output-file requirements.txt
       - run: git diff --exit-code -- requirements.txt
-      - run: uv export --locked --no-dev --extra supabase --no-hashes --no-emit-project --no-annotate --no-header --output-file templates/vercel/runtime-requirements.txt
-      - run: git diff --exit-code -- templates/vercel/runtime-requirements.txt
+      - run: uv export --locked --no-dev --extra supabase --no-hashes --no-emit-project --no-annotate --no-header --output-file requirements/runtime.txt
+      - run: git diff --exit-code -- requirements/runtime.txt
       - run: uv run --locked pytest -q tests/contracts tests/test_systemone.py
   edge-contracts:
     runs-on: ubuntu-latest

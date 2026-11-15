@@ -1,231 +1,102 @@
 # Supabase next steps
 
-Updated November 15, 2026.
+Updated November 15, 2026. Supabase is the primary broker on this branch; Redis
+remains a legacy option. PyPI publication is outside the current milestone.
 
-**Current scope: local CLI and existing Ollama endpoint acceptance.** Start with
-a fresh disposable Docker Supabase database, bootstrap through Oshepherd commands,
-send real Python SDK inference through Edge to local Ollama, then invite/join a
-second Ollama server and verify its restart. Follow the
-[local runbook](../../setup-supabase-local.md). Preserve the Redis endpoint scope;
-modern `/api/embed` and broader Ollama API expansion are not required here.
-PyPI publication, hosted provisioning and OAuth/buttons are deferred from this
-milestone. Older distribution gates below remain future work, not prerequisites
-for local testing.
+## Completed local milestone
 
-**Priority: deliver the adoption-first CLI experience.** The user's primary journey
-is one uv entry to provision/connect cloud resources and share local Ollama, plus a
-simple entry to join another machine. Follow the new [CLI onboarding plan](cli-onboarding.md)
-before hosted OAuth/button setup or further benchmark expansion. The candidate
-operator workflow is the engine for this work, not the finished user experience.
+A fresh Docker Supabase database is installed through the CLI, with no spike SQL
+preloaded. The Edge gateway routes official Ollama Python requests to real local
+Ollama. `invite` and `join` onboard a second server; the first worker is stopped
+to prove routing to the joined worker, and inference is repeated after restart.
+Generate/chat JSON and streaming, legacy embeddings, metadata and real System
+One (`tev1:4b`) passed. The two Ollama servers ran on the same machine.
 
-## 0. Deliver share and join
+See the [walkthrough](../../supabase-walkthrough.md) and
+[local acceptance details](../../setup-supabase-local.md). The foreground local
+path does not depend on package publication. Later branch-cleanup reruns exposed
+a repeatable Edge CPU limit at the joined-worker stage; the earlier successful
+runs remain historical evidence, not a passing result for this revision.
 
-Continue the ordered A1–A5 slices in the [CLI onboarding plan](cli-onboarding.md).
-The source candidate now includes portable worker invitation/join, resumable share
-with worker/cleanup supervision and guided existing Supabase Edge project setup.
-See the [user guide](../../setup-supabase.md) and current evidence in the ledger.
-The user authorized an orchestrator with implementation subagents.
+## 0. Diagnose the local Edge CPU limit
 
-The October 31 source candidate implements fresh Supabase organization/project
-creation and selection, Free verification/explicit fallback attestation, Management
-SQL without a database URL or `psql`, optional Vercel Hobby setup via REST, and
-macOS/Linux user services. The publication workflow defaults to building and
-verifying an experimental candidate.
+The latest two fresh-stack reruns passed first-worker inference, then hit Edge
+CPU soft/hard limits on the joined worker: System One returned 503, and a
+standard generate rerun returned 546 `WORKER_LIMIT`. Both cleaned up successfully.
+No gateway/SQL/inference-worker source changed during the branch split. Preserve
+the private failure reports in the [ledger](progress.md#branch-cleanup-follow-up).
 
-The user deferred hosted Supabase and directed testing to local containers first.
-That local validation of candidate r3 is
-[recorded in the ledger](progress.md#local-first-validation-of-candidate-r3): real
-macOS and containerized Linux services and fresh-stack Management SQL pass. Local
-containers cannot complete A3/A4.
+Measure isolate reuse, CPU consumption and polling under this sequence before
+choosing a fix. Keep the declared provider envelope; increasing client timeouts
+or hiding failures with retries does not establish acceptance. Re-run primary,
+joined and restarted stages after a justified fix, with real System One included.
 
-When the user chooses to resume hosted work, run fresh Supabase creation, observe
-the live Management SQL response/error shapes and the new project's `postgres`
-role, then deploy Vercel and run hosted inference. Before any explicit publication,
-configure the protected PyPI/Trusted Publisher prerequisites. Then test the actual
-published pinned package on clean machines. See
-[distribution](experiments/distribution.md). Hosted OAuth remains a later
-distribution path.
+## 1. Verify a physical second machine
 
-The finished acceptance is one uv entry from outside the checkout to authenticated
-real inference, and another machine joining with no administrative credentials.
-The existing-project wizard and prepared-configuration path do not meet that
-complete promise. Supabase is required; Vercel is optional.
-Retain experimental labeling and the open cancellation gate throughout.
+Use a reachable installation and a fresh private invitation. Install a locally
+built candidate wheel on a second machine, run Ollama there, join it and prove
+that it handles real inference when the first worker is unavailable. Restart it
+without the invitation and verify its saved restricted session. Confirm that
+no operator credentials were transferred.
 
-## Existing evidence and remaining qualification
+The current loopback Docker configuration cannot be reached from another host.
+A hosted HTTPS project is the implemented route for that test. General LAN or
+self-hosted-origin configuration is a separate design/acceptance task; don't
+rewrite invitation bindings as a workaround.
 
-Independent implementation and acceptance work is delivered: the local installer,
-owned deployment/removal adapters, installed-wheel local CLI lifecycle, and
-bounded hosted load/Auth/recovery/request/output probes. The
-[October 14 report](experiments/independent-acceptance.md) records the two fixes
-found during acceptance: source paths for strict Edge adoption, and finite upload
-tail draining for prompt oversized-request rejection.
+## 2. Complete fresh hosted setup acceptance
 
-The October 14 adoption slice's offline suite had **454 passes**; focused local
-operator/maintenance/worker integration has **24 passes** and installed-wheel
-share/invite/join with real Ollama passes. See [CLI acceptance](experiments/cli-onboarding.md).
-Deno's unchanged prior evidence has **48 passes**. The previous full combined
-deterministic/local selection has **429 passes, one known strict Edge
-disconnect failure and two model cases deselected**; it predates the CLI additions.
-Both final hosted strict probes still fail reader
-disconnect cancellation, so neither profile is qualified.
+The wizard implements organization/project creation and selection, Free-plan
+checks, durable reconciliation after uncertain creation, Management SQL setup,
+Edge deployment and owner/worker enrollment. It needs a full run on a newly
+selected disposable hosted project. Local container tests do not prove the live
+Management API's response/error shapes or the new hosted `postgres` privileges.
 
-**The user-approved removal tests are complete. Both hosted test clusters are
-disabled and their reviewed gateway resources removed.** Projects, retained
-data, shared schedules, Edge secrets and Vercel Production configuration remain.
-Old application keys/worker sessions are revoked. More hosted testing requires
-new explicitly selected disposable installations; do not reuse removed receipts
-or overwrite preserved project-wide secrets for a new cluster blindly.
+Verify fresh and existing-project paths, interrupted/resumed setup, repeat
+installation, real SDK inference, second-machine joining, key rotation,
+revocation and overlapping-version upgrades. Measure cloud readiness separately
+from worker readiness and inference. Keep the explicit ownership and collision
+checks. The earlier hosted qualification cluster was disabled and its reviewed
+function removed; old receipts, keys and sessions are not reusable test inputs.
 
-## Completed independent work
+## 3. Close the stream-disconnect cancellation gate
 
-- Both profiles: 1,000 exact jobs, actual Auth expiry/refresh with saved-session
-  acceptance, restart/generation fencing, retry exclusion after durable output,
-  incomplete EOF, explicit cancellation, expiry/maintenance and bounded slow reads.
-- Both profiles: near-limit requests, oversized rejection without admission,
-  exact JSON at response budgets and multi-page/chunk NDJSON with a paused reader.
-  The final Edge five-MiB rejection is 413 in 0.468 seconds; earlier timeout
-  reports remain separate.
-- Current installed wheel from a clean uv environment: configure, repeated
-  install/upgrade/enrollment, login, CLI API/worker startup, doctor, real JSON and
-  terminal NDJSON inference, restart/generation advance, rotation, revocation
-  and repeated disablement on a new cluster in the existing isolated local stack.
-- Actual Edge adapter adoption, Management API upgrade, health and repeat
-  reconciliation; actual Vercel adapter deployment/reconciliation; approved
-  removal and repeat recovery on both providers, including labelled simulated
-  acknowledgement loss after a real DELETE succeeded.
-- Local OAuth service/fault validation, encrypted expiring records, durable
-  shared-engine setup/recovery, private worker exports and explicit inference
-  checks. Hosted OAuth/button setup does not yet exist.
-
-These close the tested independent portions of delivery steps 6–7 in the
-[implementation plan](implementation.md#11-delivery-sequence). They do not close
-the full installation matrix or release qualification. Step 8 API expansion/
-optimization and alternative ingress/cancellation protocols remain outside this
-work.
-
-## 1. Defer optional hosted OAuth onboarding until CLI adoption is delivered
-
-The user reconfirmed local-first validation on October 14 and subsequently made
-CLI adoption the priority. These inputs do not block CLI implementation. External setup remains:
-a registered Supabase OAuth app, controlled HTTPS callback domain, a POSIX
-installer host/private durable credential store and maintenance owner, and
-verified Marketplace/button integration access. The
-[installer runbook](experiments/local-installer.md) gives the implemented service's
-commands; there is no placeholder public button.
-
-Once those inputs and explicit disposable targets are available, test real
-consent/refresh/revocation, HTTPS callbacks, ownership/denial/replay, browser
-restart, queued installation recovery and private worker onboarding. Browser and
-CLI must finish the same owned installation, then return genuine gateway/worker
-inference. Measure cloud readiness and first inference separately.
-
-Acceptance: hosted installation cases V16–V21 pass; a published pinned release/
-template/button uses tested artifacts and independently verifies database,
-gateway and worker readiness. The candidate wheel is not a public release.
-CLI authentication alone does not establish OAuth prerequisites.
-
-## 2. Complete fresh hosted/project and upgrade acceptance
-
-The full packaged CLI lifecycle passed locally on the existing isolated project.
-It does not prove a new empty hosted project, real browser onboarding, or every
-legacy/overlapping-version upgrade scenario.
-
-Use the shared engine and [operator runbook](experiments/operator-lifecycle.md)
-on newly selected disposable installations. Cover fresh project setup,
-interrupted/resumed upgrades, unchanged identities, drift rejection, ownership,
-preview isolation, credential rotation/revocation and rollback. Physical adapter
-removal is already accepted; `uninstall` still means cluster disablement, not
-provider project/data deletion.
-
-Acceptance: V16–V21 are mapped to actual evidence, including failures and unrun
-cases; no hidden development state, administrator credentials on workers, or
-production credentials in previews.
-
-## 3. Finish the broader performance/resource envelope
-
-The bounded size, load and slow-reader subset passes; sustained server
-backpressure, hosted gateway memory, Redis-relative relay latency, provider
-invocation ceilings and remaining account quota have not been established.
-Extend reproducible measurements only on explicitly selected new test resources.
-
-Preserve the four-active-job caller limit and enrolled worker capacity. Five
-overlapping HTTP readers do not prove five admitted jobs; the rejected Edge
-burst remains evidence. Compare with Redis before advertising latency targets,
-measure SQL/RPC and storage/egress cost, and record provider resource/quota
-observations where exposed. Database size is not quota headroom. The measured
-135-second application deadline does not independently establish Vercel's
-150-second invocation ceiling.
-
-Set finite time/concurrency/polling limits, retain failed reports and cleanup,
-and keep the existing Free/Hobby-only scope. Paid cases remain unrun. Use distinct
-fake-upstream ports or run hosted/local Edge probes sequentially.
-
-Acceptance: a conservative advertised time/size/concurrency/cost envelope is
-supported by the [compatibility gates](compatibility.md), with unknown resource
-measurements explicitly identified.
-
-## 4. Review release readiness after the required gates pass
-
-Run relevant Python/Deno suites, strict hosted probes, real-model smoke checks,
-clean builds and installed-wheel/source hash checks for the chosen fresh targets.
-Update the matrix/runbooks/manifest only from actual results. Keep unresolved
-profiles experimental. Candidate publication is now an explicit manual workflow;
-its default is build/verify, and the legacy automatic version rewrite is also
-manual-only. Protected PyPI environment settings and Trusted Publisher registration
-remain external prerequisites. Review the exact candidate commit/artifact evidence
-before authorizing publication; see [distribution](experiments/distribution.md).
-
-Acceptance: every advertised profile satisfies its declared contract and
-installation requirements; there is no hidden cancellation exception, unrun
-button claim or implicit paid-tier requirement.
-
-## Open release gate: reader-disconnect cancellation
-
-Both final strict hosted probes still observe SQL `succeeded` after the HTTP
-reader closes. The [signal investigation](experiments/disconnect-signals.md)
-records late delivery on both providers. The user preserved the current contract
-and experimental status; an alternative ingress/client protocol is not the next
-implementation direction.
-
-Retain the strict assertion and local regression:
+Both local Edge and earlier hosted probes can finish SQL work as `succeeded`
+after the HTTP reader closes. The [signal investigation](experiments/disconnect-signals.md)
+records a late abort after stream completion. Keep the strict assertion:
 
 ```sh
 uv run --locked pytest -q tests/integration/supabase/test_edge.py \
   -k first_record --tb=short
 ```
 
-Acceptance remains: an actual reader closes after a nonterminal record; SQL
-becomes `cancelled`, the worker stops its upstream read and reader/RPC resources
-are released within the tested bound. Normal completion is not cancelled;
-accepted async work survives submission disconnect. Do not weaken or substitute
-mocked evidence for this gate. Persistent FastAPI cancellation and completing
-independent work cannot qualify Edge or Vercel by themselves.
+Acceptance requires an actual reader closing after a nonterminal record, SQL
+becoming `cancelled`, the worker stopping its upstream read and resources being
+released within the tested bound. Normal completion must stay successful, and
+accepted async jobs must survive submission disconnect. Persistent FastAPI's
+socket cancellation does not qualify the Edge proxy. A change of client or
+transport contract is not part of the current implementation direction.
 
-## Optional manual smoke test now
+## 4. Finish operational qualification
 
-Manual smoke testing is available; it is not the next required release gate.
-The [local runbook](experiments/local-edge-lifecycle.md#persistent-manual-testing)
-contains setup and troubleshooting. With Docker, uv and the pinned Supabase CLI
-available, and Ollama running with `llama3.2:3b` already installed:
+The bounded hosted load, Auth refresh, worker recovery, size boundaries and
+paused-reader checks already have historical evidence. Remaining measurements
+include sustained server backpressure, gateway memory, Redis-relative latency,
+provider invocation/resource ceilings and account quota/cost headroom. Keep
+four-active-job caller limits and enrolled worker capacity while testing.
 
-```sh
-uv sync --locked --extra supabase
-uv run --locked python -m scripts.supabase_local start
-uv run --locked python -m scripts.supabase_local apply-spike
-uv run --locked python -m scripts.supabase_demo setup --model llama3.2:3b
-uv run --locked python -m scripts.supabase_demo serve
-```
+Repeat relevant Python/Deno and real-model checks after material changes. Verify
+clean wheel/source archives against the manifest and test installed commands
+outside the checkout. Publication remains deferred; local wheel testing is
+sufficient for this milestone.
 
-Wait for `Local gateway ready`. In a second terminal at the repository root:
+## Later: optional browser onboarding and distribution
 
-```sh
-uv run --locked python -m scripts.supabase_demo doctor
-uv run --locked python -m scripts.supabase_demo request
-uv run --locked python -m scripts.supabase_demo request --stream
-```
+The local OAuth installer exists, but hosted consent/refresh/revocation, a
+registered Supabase OAuth app, controlled callback domain, durable installer
+host and browser recovery still need acceptance. These are later work, not
+prerequisites for the local CLI workflow. No public install button is claimed.
 
-Expect ready checks, genuine JSON completion and NDJSON ending in `done: true`.
-Press Ctrl-C in the serve terminal to stop the owned demo processes and preserve
-the local stack/state. Stop the demo before Edge integration tests. This uses the
-isolated local spike; it does not replace hosted qualification.
+A public package release needs its own explicit scope, artifact review and
+publishing prerequisites after the chosen qualification gates pass. Keep the
+candidate experimental and `qualified: false` while cancellation is unresolved.

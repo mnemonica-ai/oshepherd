@@ -81,11 +81,7 @@ def configure(output, local_from):
                 "database_url": click.prompt(
                     "Postgres connection URL", hide_input=True
                 ),
-                "profile": click.prompt(
-                    "Free hosting profile",
-                    type=click.Choice(["edge_free", "vercel_hobby"]),
-                    default="edge_free",
-                ),
+                "profile": "edge_free",
                 "exposed_schemas": [
                     name.strip()
                     for name in click.prompt(
@@ -93,15 +89,6 @@ def configure(output, local_from):
                     ).split(",")
                 ],
             }
-            if values["profile"] == "vercel_hobby":
-                values["gateway_url"] = (
-                    click.prompt(
-                        "Deployed gateway HTTPS origin (blank until deployment)",
-                        default="",
-                        show_default=False,
-                    )
-                    or None
-                )
         config = OperatorConfig.model_validate(values)
         data = config.model_dump(mode="json")
         for name in ("publishable_key", "secret_key", "database_url"):
@@ -282,22 +269,6 @@ def export_bundle(output):
     )
 
 
-@supabase.command("export-vercel")
-@click.option("--output", type=click.Path(path_type=Path), required=True)
-@click.option("--wheel", type=click.Path(exists=True, path_type=Path), required=True)
-def export_vercel(output, wheel):
-    """Export a self-contained Vercel candidate with a verified current wheel."""
-    from .releases import export_vercel as export, OperatorError
-
-    try:
-        result = export(output, wheel)
-    except (OperatorError, OSError) as error:
-        raise click.ClickException(
-            str(error) if isinstance(error, OperatorError) else "Vercel export failed"
-        ) from None
-    click.echo(json.dumps(result, indent=2))
-
-
 @supabase.command("installer-init")
 @click.option(
     "--output",
@@ -472,48 +443,6 @@ def deploy_edge(connection_file, state_dir, provider_file, adopt_existing):
     except (ValueError, OSError, KeyError):
         raise click.ClickException(
             "Edge deployment state unavailable; no secrets printed"
-        ) from None
-
-
-@supabase.command("deploy-vercel")
-@options
-@click.option(
-    "--provider-file",
-    type=click.Path(exists=True, path_type=Path),
-    required=True,
-    help="Private JSON with team_id, project_id and Vercel access_token.",
-)
-@click.option("--wheel", type=click.Path(exists=True, path_type=Path), required=True)
-@click.option(
-    "--adopt-existing",
-    is_flag=True,
-    help="Adopt an existing bound gateway only after Production environment and application-auth checks.",
-)
-def deploy_vercel(connection_file, state_dir, provider_file, wheel, adopt_existing):
-    """Deploy a verified wheel with encrypted Production-only Hobby configuration."""
-    from .releases import OperatorError
-
-    async def deploy():
-        from .operator import OperatorConfig
-        from .vercel_deployment import VercelTarget, VercelDeployment
-
-        deployment = VercelDeployment(
-            VercelTarget.load(provider_file),
-            OperatorConfig.load(connection_file),
-            state_dir,
-        )
-        try:
-            return await deployment.deploy(wheel, adopt_existing=adopt_existing)
-        finally:
-            await deployment.close()
-
-    try:
-        click.echo(json.dumps(asyncio.run(deploy())))
-    except OperatorError as error:
-        raise click.ClickException(str(error)) from None
-    except (ValueError, OSError, KeyError):
-        raise click.ClickException(
-            "Vercel deployment state unavailable; no secrets printed"
         ) from None
 
 

@@ -1,8 +1,12 @@
 # Candidate distribution and explicit experimental publication
 
 Updated October 31, 2026. This is packaging infrastructure, not evidence that a
-published package or hosted profile is qualified. Both profiles remain
+published package or hosted profile is qualified. The Edge profile remains
 `qualified: false`; strict disconnect cancellation is still an open gate.
+
+Public publication is deferred from the current local-first milestone. The
+publication sections below describe existing infrastructure, not an instruction
+to publish. Local builds and installed-wheel verification remain in scope.
 
 ## Local artifact verification
 
@@ -21,7 +25,7 @@ the wheel from that sdist. Verification checks:
 
 - Exactly one wheel and one sdist, matching project/package versions and console
   entry point.
-- Packaged Python, SQL, Edge and Vercel assets match the current source manifest
+- Packaged Python, SQL and Edge assets match the current source manifest
   and source bytes; omitted or unexpected package files fail validation.
 - Archives contain no tests, `.oshepherd`, environment files, worker sessions,
   known provider/connection files, unsafe paths or archive links.
@@ -126,7 +130,7 @@ The current candidate is r3, which supersedes earlier evidence after service fix
 wheel SHA256 `f62659a957c4bc987867f630e780ed8b5f69770929df27e246fc273bd9ef45dc`,
 sdist SHA256 `0bdb12c14cf60c678bb875d1983224b6c6190fce5aad9623aacaa66d4939576d`,
 manifest SHA256 `5f61f66a0c7057f6cbdd1ef4c0729f7f22fb9ea22616c5ca375d0ec7a3161339`.
-Both profiles stay `qualified: false`. The artifacts are in
+The Edge profile stays `qualified: false`. The artifacts are in
 `.oshepherd/local/candidate-20261031-r3/`.
 
 The separated `reverify`/`publish` jobs parse as valid workflow YAML, but they have

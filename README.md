@@ -1,302 +1,188 @@
 # oshepherd
 
-> _The Oshepherd guiding the Ollama(s) inference orchestration._
-
 <p align="center">
-  <img src="https://raw.githubusercontent.com/mnemonica-ai/oshepherd/main/assets/oshepherd_logo.png" alt="oshepherd logo" width="200">
+  <img src="assets/oshepherd_logo.png" alt="oshepherd" width="180">
+  <a href="https://supabase.com">
+    <img src="https://supabase.com/brand-assets/supabase-icon-green-transparent.svg" alt="Supabase" width="80">
+  </a>
 </p>
 
-<p align="center">
-  <a href="https://pypi.org/project/oshepherd/"><img src="https://img.shields.io/pypi/v/oshepherd" alt="PyPI Version"></a>
-  <a href="https://deepwiki.com/mnemonica-ai/oshepherd"><img src="https://img.shields.io/badge/DeepWiki-mnemonica--ai%2Foshepherd-blue.svg?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACwAAAAyCAYAAAAnWDnqAAAAAXNSR0IArs4c6QAAA05JREFUaEPtmUtyEzEQhtWTQyQLHNak2AB7ZnyXZMEjXMGeK/AIi+QuHrMnbChYY7MIh8g01fJoopFb0uhhEqqcbWTp06/uv1saEDv4O3n3dV60RfP947Mm9/SQc0ICFQgzfc4CYZoTPAswgSJCCUJUnAAoRHOAUOcATwbmVLWdGoH//PB8mnKqScAhsD0kYP3j/Yt5LPQe2KvcXmGvRHcDnpxfL2zOYJ1mFwrryWTz0advv1Ut4CJgf5uhDuDj5eUcAUoahrdY/56ebRWeraTjMt/00Sh3UDtjgHtQNHwcRGOC98BJEAEymycmYcWwOprTgcB6VZ5JK5TAJ+fXGLBm3FDAmn6oPPjR4rKCAoJCal2eAiQp2x0vxTPB3ALO2CRkwmDy5WohzBDwSEFKRwPbknEggCPB/imwrycgxX2NzoMCHhPkDwqYMr9tRcP5qNrMZHkVnOjRMWwLCcr8ohBVb1OMjxLwGCvjTikrsBOiA6fNyCrm8V1rP93iVPpwaE+gO0SsWmPiXB+jikdf6SizrT5qKasx5j8ABbHpFTx+vFXp9EnYQmLx02h1QTTrl6eDqxLnGjporxl3NL3agEvXdT0WmEost648sQOYAeJS9Q7bfUVoMGnjo4AZdUMQku50McDcMWcBPvr0SzbTAFDfvJqwLzgxwATnCgnp4wDl6Aa+Ax283gghmj+vj7feE2KBBRMW3FzOpLOADl0Isb5587h/U4gGvkt5v60Z1VLG8BhYjbzRwyQZemwAd6cCR5/XFWLYZRIMpX39AR0tjaGGiGzLVyhse5C9RKC6ai42ppWPKiBagOvaYk8lO7DajerabOZP46Lby5wKjw1HCRx7p9sVMOWGzb/vA1hwiWc6jm3MvQDTogQkiqIhJV0nBQBTU+3okKCFDy9WwferkHjtxib7t3xIUQtHxnIwtx4mpg26/HfwVNVDb4oI9RHmx5WGelRVlrtiw43zboCLaxv46AZeB3IlTkwouebTr1y2NjSpHz68WNFjHvupy3q8TFn3Hos2IAk4Ju5dCo8B3wP7VPr/FGaKiG+T+v+TQqIrOqMTL1VdWV1DdmcbO8KXBz6esmYWYKPwDL5b5FA1a0hwapHiom0r/cKaoqr+27/XcrS5UwSMbQAAAABJRU5ErkJggg==" alt="DeepWiki"></a>
-  <a href="https://discord.gg/99xEZmZYt9"><img src="https://img.shields.io/discord/1156943457970040843?color=5865F2&logo=discord&logoColor=white" alt="Discord"></a>
-  <a href="https://github.com/mnemonica-ai/oshepherd/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT License"></a>
-</p>
+Distributed inference for your Ollama servers, using **Supabase as the primary
+broker**. Point the official Ollama Python client at one gateway and let
+oshepherd route requests to your connected workers. Models and inference stay on
+your machines; prompts, jobs and results pass through Supabase.
 
-A centralized [FastAPI](https://fastapi.tiangolo.com/) service that uses [Celery](https://docs.celeryq.dev) and [Redis](https://redis.com) to orchestrate multiple [Ollama](https://ollama.com) servers as workers.
+**Start with the [Supabase walkthrough](docs/supabase-walkthrough.md):** create a
+clean local Docker stack, connect local Ollama, send Python requests, and onboard
+another server. This branch is an experimental, unpublished candidate. PyPI
+publication is outside the current milestone. The latest full local reruns hit
+an Edge CPU limit on the joined worker (HTTP 503/546); see
+[validation status](docs/plans/supabase/progress.md#branch-cleanup-follow-up).
 
-### Install and choose a setup
+## Moving from Redis to Supabase
 
-oshepherd is one global command, installed with [uv](https://docs.astral.sh/uv/):
+The original architecture uses a FastAPI gateway, Celery and Redis. Supabase now
+provides the main development and onboarding path: Postgres coordinates durable
+jobs and worker leases, Auth gives each worker a restricted identity, Storage
+holds larger results, and an Edge Function exposes the inference API.
 
-```sh
-uv tool install --python 3.12 oshepherd
+```mermaid
+flowchart LR
+    C[Ollama Python client] -->|Application key| E[Supabase Edge gateway]
+    E <--> Q[Postgres jobs and output]
+    W[oshepherd worker] <-->|Outbound requests| Q
+    W --> O[Local Ollama]
+    W <--> S[Supabase Storage]
+    E <--> S
+    W --> A[Supabase Auth]
 ```
 
-[Install](docs/install.md) also covers a one-line install, pip, installing through
-a coding agent, and the `0.0.25a1` candidate. Then pick a setup:
+Workers make outbound connections to Supabase. A hosted installation does not
+need an inbound port or tunnel to Ollama. The same SQL, Auth, Storage and Edge
+path can be tested first with local Supabase containers.
 
-| Setup | Best for | Guide |
+| Area | Supabase primary workflow | Redis legacy workflow |
 | --- | --- | --- |
-| **Redis** | Self-hosting everything on your own network | [Redis](docs/setup-redis.md) |
-| **Supabase** (experimental) | Sharing Ollama over the internet with no server or open port | [Supabase](docs/setup-supabase.md) |
-| **Supabase + Vercel** (experimental) | The Supabase setup with the API on Vercel and larger responses | [Supabase + Vercel](docs/setup-supabase-vercel.md) |
+| Start serving | `oshepherd share` / prepared local connection | `start-api` and `start-worker` |
+| Add workers | `invite`, then `join` with a private one-use invitation | Configure the worker's Redis connection |
+| Python client | Gateway URL plus application bearer key | FastAPI URL |
+| Run infrastructure | Supabase; Ollama stays local | FastAPI, Celery and Redis |
+| Guide | [Supabase walkthrough](docs/supabase-walkthrough.md) | [Redis setup](docs/setup-redis.md) |
 
-To test from the checkout with fresh Docker containers and two local Ollama
-servers, use the [local Supabase workflow](docs/setup-supabase-local.md).
+Redis remains supported as a legacy option. Existing `start-api` and
+`start-worker` commands retain their Redis defaults; choosing Supabase does not
+migrate Redis jobs or switch an existing deployment automatically.
 
-The Supabase setups need the `0.0.25a1` candidate, which is not on PyPI yet.
-PyPI's `0.0.24` contains only the Redis setup.
+## Try it locally
 
-### Call oshepherd
-
-Point your Ollama client at your `oshepherd` endpoint by setting the `host`. For
-Redis that is your API server, such as `http://127.0.0.1:5001`. For Supabase setups,
-use the `gateway_url` from `client.json` and send its application key as an
-`Authorization: Bearer` header; see [Send a request](docs/setup-supabase.md#2-send-a-request).
-The completions come back from one of the workers:
-
-* [ollama-python](https://github.com/ollama/ollama-python) client:
-
-```python
-import ollama
-
-client = ollama.Client(host="http://127.0.0.1:5001")
-
-# Standard request
-response = client.generate(model="mistral", prompt="Why is the sky blue?")
-
-# Streaming request
-for chunk in client.generate(model="mistral", prompt="Why is the sky blue?", stream=True):
-    print(chunk['response'], end='', flush=True)
-```
-
-For a complete Python example with streaming support, see [examples/pretty_streaming.py](examples/pretty_streaming.py).
-
-* [ollama-js](https://github.com/ollama/ollama-js) client:
-
-```javascript
-import { Ollama } from "ollama/browser";
-
-const ollama = new Ollama({ host: "http://127.0.0.1:5001" });
-
-// Standard request
-const response = await ollama.generate({
-    model: "mistral",
-    prompt: "Why is the sky blue?",
-});
-
-// Streaming request
-const streamResponse = await ollama.generate({
-    model: "mistral",
-    prompt: "Why is the sky blue?",
-    stream: true
-});
-
-for await (const chunk of streamResponse) {
-    process.stdout.write(chunk.response);
-}
-```
-
-For a complete TypeScript/JavaScript example with streaming support, see [examples/ts-scripts/README.md](examples/ts-scripts/README.md).
-
-* Raw HTTP request:
+From this checkout, with Python 3.12, uv, Docker, Supabase CLI **2.116.0**, `psql`
+and Ollama available:
 
 ```sh
-curl -X POST -H "Content-Type: application/json" -L http://127.0.0.1:5001/api/generate/ \
--d '{"model":"mistral","prompt":"Why is the sky blue?","stream":true}' \
---no-buffer
-```
-
-### Decision models (System One)
-
-`POST /v1/systemone` queues decision requests to workers and returns a single JSON response. Workers serving decision models must run Ollama **0.35 or later** and have the requested model pulled. For example, pull a model with `ollama pull tev1:4b` or `ollama pull nimble:latest`.
-
-Use the official [Ollama Python client](https://github.com/ollama/ollama-python), which supports `client.systemone()` starting with version **0.6.3**:
-
-```sh
-uv add 'ollama>=0.6.3'
-```
-
-```python
-from ollama import Client
-
-state = {"ticket": "I was charged twice. Please refund the extra payment."}
-questions = {
-    "team": {
-        "type": "choice",
-        "instructions": "Which team should handle this ticket?",
-        "criteria": {
-            "billing": "Payments and refunds",
-            "technical": "Bugs and integrations",
-            "other": "None of the above",
-        },
-    },
-    "refund": {
-        "type": "noul",
-        "instructions": "Does the customer explicitly ask for a refund?",
-    },
-    "urgency": {
-        "type": "score",
-        "instructions": "How urgent is this ticket?",
-        "criteria": ["Routine", "Soon", "Urgent"],
-    },
-}
-
-with Client(host="http://127.0.0.1:5001", timeout=180) as client:
-    result = client.systemone(
-        model="tev1:4b",
-        state=state,
-        questions=questions,
-    )
-
-print(result.answers["team"].choice)
-print(result.answers["refund"].noul)
-print(result.answers["urgency"].score)
-```
-
-`state` can be text, a JSON object, or an array. Responses contain named `answers`
-and token `usage`. System One returns a single response and does not support
-streaming.
-
-The optional [TypeSafe Python SDK](https://pypi.org/project/typesafe-sdk/) also works. Install and configure it:
-
-```sh
-uv add typesafe-sdk
-export TYPESAFE_BASE_URL=http://127.0.0.1:5001
-export TYPESAFE_API_KEY=ollama
-export TYPESAFE_DEFAULT_MODEL=tev1:4b
-```
-
-Using the same `state` and `questions` from above:
-
-```python
-from typesafe_sdk import TypeSafeClient
-
-with TypeSafeClient(timeout=180) as client:
-    result = client.system_one(state=state, questions=questions)
-
-print(result.choices["team"].choice)
-```
-
-TypeSafe's `system_one()` call uses only `/v1/systemone`. Its separate
-`client.models.list()` call to `/v1/models` is not supported; use `/api/tags` to
-list the workers' models. The SDK requires an API key, but oshepherd does not
-authenticate it.
-
-### Example: PyCon Austria 2025
-
-For a practical example of how `oshepherd` can be used to orchestrate on-premise open-source LLMs, see the companion repository from the PyCon Austria 2025 talk ["Beyond the Cloud: On-Premise Orchestration for Open-Source LLMs"](https://2025.pycon.at/talks/beyond-the-cloud-on-premise-orchestration-for-open-source-llms/):
-
-- Repository: https://github.com/mnemonica-ai/on-premise-orchestration-os-llms
-- Deck: https://speakerdeck.com/p1nox/beyond-the-cloud-on-premise-orchestration-for-open-source-llms
-
-### Disclaimers 🚨
-
-> This package is in alpha, and its architecture and API might change in the near future. It is currently being tested by real users in a controlled environment, but it has not been audited or thoroughly tested. Use it at your own risk.
->
-> As this is an alpha version, **support and responses might be limited**. We'll do our best to address questions and issues as quickly as possible.
-
-### API server parity
-
-- [x] **Generate a completion:** `POST /api/generate`
-- [x] **Generate a chat completion:** `POST /api/chat`
-- [x] **Generate Embeddings:** `POST /api/embeddings`
-- [x] **Decision models:** `POST /v1/systemone`
-- [x] **List Local Models:** `GET /api/tags`
-- [x] **Version:** `GET /api/version`
-- [x] **Show Model Information:** `POST /api/show`
-- [x] **List Running Models:** `GET /api/ps`
-
-Oshepherd supports the endpoints listed above. Official clients such as [ollama-python](https://github.com/ollama/ollama-python) and
-[ollama-js](https://github.com/ollama/ollama-js) can call these routes by pointing their host at oshepherd. Support for individual request fields varies by route; this is not full Ollama API parity. For example, the Python client's `embed()` method calls `/api/embed`, which is not supported. See the [Ollama API documentation](https://github.com/ollama/ollama/blob/main/docs/api.md#api)
-for the upstream API.
-
-### Contribution guidelines
-
-We welcome contributions! If you find a bug or have suggestions for improvements, please open an [issue](https://github.com/mnemonica-ai/oshepherd/issues) or submit a [pull request](https://github.com/mnemonica-ai/oshepherd/pulls) targeting the `development` branch. Before creating a new issue or pull request, take a moment to search the existing issues and pull requests to avoid duplicates.
-
-##### Development with uv (default)
-
-Use [uv](https://docs.astral.sh/uv/getting-started/installation/) for setup,
-commands and builds. Python 3.12 is selected by `.python-version`; the package
-supports Python 3.12 and newer. `uv.lock` records the development dependency
-versions. No environment activation is needed.
-
-```sh
-# Install the project and development tools at their locked versions.
-uv sync --locked
-
-# Include the experimental Supabase backend when working on its lifecycle.
 uv sync --locked --extra supabase
 
-uv run --locked oshepherd start-api --env-file .api.env
-uv run --locked oshepherd start-worker --env-file .worker.env
+# Download these only if you do not already have compatible models installed.
+ollama pull llama3.2:3b
+ollama pull embeddinggemma:latest
+
+uv run --locked python -m scripts.supabase_local_acceptance \
+  --work-dir "$PWD/.oshepherd/local/first-run" --serve
+```
+
+Use a new work directory for each run. The runner installs into a fresh database,
+checks the first worker, invites a second local Ollama server, and verifies its
+saved-session restart. `--serve` leaves the test installation running for your
+own requests. Ctrl-C removes its disposable stack and database while preserving
+private logs and unrelated services.
+
+In a second terminal:
+
+```sh
+uv run --locked python examples/supabase_client.py \
+  --client-file .oshepherd/local/first-run/operator/client.json \
+  --model llama3.2:3b --embedding-model embeddinggemma:latest
+```
+
+The [walkthrough](docs/supabase-walkthrough.md) explains each CLI step, a persistent
+manual setup, invitations, troubleshooting and the hosted setup path.
+
+## Use the Ollama Python package
+
+`client.json` contains the gateway URL and your private application key. The URL
+includes `/functions/v1/ollama`; it is not the database REST endpoint.
+
+```python
+import json
+from pathlib import Path
+from ollama import Client
+
+settings = json.loads(Path(
+    ".oshepherd/local/first-run/operator/client.json"
+).read_text())
+client = Client(
+    host=settings["gateway_url"],
+    headers={"Authorization": "Bearer " + settings["application_key"]},
+    timeout=145,
+)
+
+for chunk in client.chat(
+    model="llama3.2:3b",
+    messages=[{"role": "user", "content": "Say hello in one sentence."}],
+    options={"num_predict": 32},
+    stream=True,
+):
+    print(chunk.message.content or "", end="", flush=True)
+```
+
+Both `Client` and `AsyncClient` are exercised in the local acceptance workflow.
+The supported routes match the existing Redis endpoint set:
+
+| Operation | Route | Python client |
+| --- | --- | --- |
+| Generate, JSON or streaming | `POST /api/generate` | `generate()` |
+| Chat, JSON or streaming | `POST /api/chat` | `chat()` |
+| Legacy embeddings | `POST /api/embeddings` | `embeddings()` |
+| System One decisions | `POST /v1/systemone` | `systemone()` |
+| Available models | `GET /api/tags` | `list()` |
+| Running models | `GET /api/ps` | `ps()` |
+| Model information | `POST /api/show` | `show()` |
+| Version | `GET /api/version` | Authenticated HTTP request |
+| Gateway health | `GET /health` | Authenticated HTTP request |
+
+This is the existing oshepherd API contract, not full upstream Ollama parity.
+`embed()` (`/api/embed`), model pull/create/delete and additional request fields
+are outside this milestone. The existing show response wraps upstream model
+information inside `model_info`. Legacy embeddings accepts the Python SDK's
+`prompt` as well as `input`.
+
+System One requires a compatible installed decision model. Real `tev1:4b`
+inference has passed through local Supabase, both local servers and worker
+restart. A later rerun hit an Edge CPU limit on the joined server
+(HTTP 503); resource qualification remains open. Add `--decision-model tev1:4b` to the acceptance command to include it;
+models advertising the `decision` capability are registered automatically.
+
+## Current limits and remaining work
+
+Fresh Docker setup, CLI installation, real generate/chat/embeddings/System One,
+second-server onboarding and restart have passed locally. The two Ollama servers
+in that test run on the same machine. The latest reruns failed at the joined-worker stage because Edge exhausted its
+CPU budget. Physical second-machine networking and the full fresh hosted-project
+wizard also still need acceptance.
+
+Synchronous requests have a 135-second budget, including queueing and model
+loading. Edge request/response bodies are capped at 1 MiB. The asynchronous
+`/jobs` API supports longer work and results up to 32 MiB, using a separate client
+flow. Closing a streaming client does **not yet reliably cancel** inference
+through the Edge proxy; this remains a release qualification gate.
+
+See the [remaining plan](docs/plans/supabase/next-steps.md),
+[compatibility matrix](docs/plans/supabase/compatibility.md) and
+[progress ledger](docs/plans/supabase/progress.md). Supabase is the primary
+workflow, but the candidate is not production-qualified.
+
+## Development
+
+```sh
+uv sync --locked --extra supabase
 uv run --locked pytest -q tests/contracts tests/test_systemone.py
+# After changing packaged Python or Edge sources:
+uv run --locked python -m scripts.build_supabase_release
 uv build
 ```
 
-Dependencies are declared in `pyproject.toml`. Use `uv add <package>` for a new
-runtime dependency or `uv add --dev <package>` for a development tool. Commit
-the updated manifest and lockfile. `requirements.txt` is a compatibility export;
-regenerate it after dependency changes rather than editing its pins:
+Keep SQL migrations immutable. Refresh the release manifest after source changes
+before running release-integrity tests. `uv.lock` records dependency versions;
+`requirements/runtime.txt` is the locked runtime export used for clean candidate
+verification. [Installation](docs/install.md) covers local wheel testing.
 
-```sh
-uv export --locked --all-extras --no-hashes --no-emit-project --output-file requirements.txt
-```
+The [local integration runbook](docs/plans/supabase/experiments/local-edge-lifecycle.md)
+covers the isolated development stack and its strict disconnect test. The
+[operator runbook](docs/plans/supabase/experiments/operator-lifecycle.md) covers
+upgrade, diagnostics, rotation, revocation and disablement. Redis tests and
+startup instructions remain in the [legacy guide](docs/setup-redis.md).
 
-The [local Supabase runbook](docs/plans/supabase/experiments/local-edge-lifecycle.md)
-uses `uv run --locked python -m scripts.supabase_demo` for setup, supervision and
-requests. It requires the isolated Supabase stack and an existing Ollama model.
+Contributions are welcome through [issues](https://github.com/mnemonica-ai/oshepherd/issues)
+and [pull requests](https://github.com/mnemonica-ai/oshepherd/pulls).
 
-The [Supabase operator runbook](docs/plans/supabase/experiments/operator-lifecycle.md)
-covers versioned migrations, enrollment, diagnostics, key rotation, recovery and
-the Vercel bundle. These are locally verified release candidates; hosted
-qualification and the Edge proxy disconnect gate remain open.
-
-##### Conda (optional)
-
-Conda can supply the Python interpreter while uv manages the project's separate
-environment and dependencies. It is not required for the default workflow:
-
-```sh
-conda create -n oshepherd-python python=3.12
-conda activate oshepherd-python
-uv sync --locked --python "$CONDA_PREFIX/bin/python" --extra supabase
-uv run --locked pytest -q tests/contracts tests/test_systemone.py
-```
-
-##### Tests
-
-The service-free contract and System One tests require no running services:
-
-```sh
-uv run --locked pytest -q tests/contracts tests/test_systemone.py
-```
-
-The Redis e2e tests require Redis, the API server, the Celery worker and these
-models on your local Ollama instance:
-
-```sh
-ollama pull mistral        # used by generate, chat, and show tests
-ollama pull embeddinggemma # used by embeddings tests
-ollama pull tev1:4b         # used by System One tests; requires Ollama 0.35+
-ollama pull nimble:latest   # used by System One tests; requires Ollama 0.35+
-```
-
-Then start the API server and Celery worker as in the [Redis guide](docs/setup-redis.md), and run:
-
-```sh
-uv run --locked pytest -s tests/test_e2e_api.py tests/test_e2e_streaming.py
-```
-
-The experimental Supabase integration suite requires the isolated local stack
-and its spike SQL, described in the [local lifecycle runbook](docs/plans/supabase/experiments/local-edge-lifecycle.md).
-It creates disposable identities and uses a fake upstream. Run the strict suite
-with the real-model smoke deselected:
-
-```sh
-uv run --locked pytest -q tests/integration/supabase -k 'not local_ollama_model' --tb=short
-```
-
-The real Edge proxy disconnect test is a known failing acceptance gate; the
-[progress ledger](docs/plans/supabase/progress.md) records its status. The runbook
-also gives the opt-in smoke command for an already installed Ollama model.
-
-### Author
-
-This is a project developed and maintained by <img src="https://prompt.mnemonica.ai/favicons/favicon-32x32-dark.png" alt="mnemonica.ai" width="16" height="16" style="vertical-align: middle;"> [mnemonica.ai](http://mnemonica.ai).
-
-### License
-
-[MIT](LICENSE)
+Developed by [mnemonica.ai](https://mnemonica.ai). [MIT license](LICENSE).
+Supabase's unmodified logo comes from its [official brand assets](https://supabase.com/brand).

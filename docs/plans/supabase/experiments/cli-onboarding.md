@@ -69,7 +69,7 @@ including foreground SIGINT; it uses the reviewed candidate from
 `.oshepherd/local/onboarding-reviewed-build/`. The [ledger](../progress.md)
 records the exact scope and retained private evidence.
 The unchanged strict Edge disconnect regression was not rerun for this Python
-onboarding slice; its previous failure remains open, as do both hosted failures.
+onboarding slice; its previous failure remains open, as does the hosted Edge failure.
 
 The standalone `scripts/supabase_onboarding_check.py` runs from outside the checkout
 under an isolated uv environment using the built wheel. It prepares a new cluster
@@ -86,7 +86,7 @@ Reproduce with an absolute script/wheel path from a clean directory:
 ```sh
 uv run --isolated --no-project --python 3.12 \
   --with '/absolute/candidate.whl[supabase]' \
-  --with-requirements /absolute/repo/templates/vercel/runtime-requirements.txt \
+  --with-requirements /absolute/repo/requirements/runtime.txt \
   python /absolute/repo/scripts/supabase_onboarding_check.py \
   --local-from /absolute/repo/.oshepherd/local/connection.json \
   --work-dir /absolute/private/fresh-check \
@@ -138,10 +138,10 @@ the 55321 development stack.
 
 ## Remaining product and release work
 
-New Supabase/Vercel project creation with reconciled durable intent and safe billing
-selection, a guided Vercel flow, removal of `psql`/database URL prerequisites,
-optional service management and published-package fresh-user acceptance remain
-unfinished. The candidate version is still unpublished. Provider admin credentials
+Subsequent source changes implement new Supabase project creation with durable
+reconciliation, Free-plan checks, Management SQL without database URL/`psql`
+input, and optional service management. Full fresh hosted wizard acceptance
+remains open; publication is deferred. See the current [ledger](../progress.md). Provider admin credentials
 remain in private operator files; renewed setup can reauthorize a saved expired PAT.
 All compatible models remain advertised rather than being restricted by the
 selected inference-check model. Storage cleanup needs the operator process running

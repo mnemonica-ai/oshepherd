@@ -1,20 +1,26 @@
 # Install oshepherd
 
-oshepherd is one command-line tool, `oshepherd`, that runs every setup. Install
-it as a global command with [uv](https://docs.astral.sh/uv/), the same way you
-would install other Python CLIs. Then follow the guide for your setup:
+For the primary Supabase workflow, test this branch from a checkout:
 
-| Setup | Guide | Package you need |
+```sh
+uv sync --locked --extra supabase
+uv run --locked oshepherd --help
+```
+
+Follow the [Supabase walkthrough](supabase-walkthrough.md). No publication is
+needed. For a global command or background services, build and verify the local
+wheel using [the candidate instructions](#install-the-0025a1-candidate).
+
+| Setup | Guide | Package |
 | --- | --- | --- |
-| Redis, the original self-hosted setup | [Redis](setup-redis.md) | `oshepherd`, any version from 0.0.24 |
-| Supabase only | [Supabase](setup-supabase.md) | `oshepherd[supabase]` 0.0.25a1 or later |
-| Supabase with a Vercel gateway | [Supabase + Vercel](setup-supabase-vercel.md) | `oshepherd[supabase]` 0.0.25a1 or later |
+| Supabase, primary experimental workflow | [Walkthrough](supabase-walkthrough.md) | This checkout or its verified `0.0.25a1` wheel with `[supabase]` |
+| Redis, legacy self-hosted setup | [Redis](setup-redis.md) | Existing published package or this checkout |
 
-> **Supabase setups are not on PyPI yet.** PyPI's latest release is `0.0.24`, which
-> only contains the Redis setup. Until `0.0.25a1` is published, install it from a
-> wheel file, as described in [Install the 0.0.25a1 candidate](#install-the-0025a1-candidate).
+The Supabase candidate is not published to PyPI. The unpinned package commands
+below describe the legacy published installation; do not use them to obtain this
+branch's Supabase changes. Public publication is outside the current milestone.
 
-## Install with uv (recommended)
+## Install the legacy published package with uv
 
 1. Install uv, if you don't have it:
 
@@ -87,13 +93,13 @@ oshepherd share --help
 
 If an older oshepherd is already installed, add `--force` to replace it.
 
-Install the wheel, not the checkout in editable mode. The Vercel deployment and
-background services both use the exact installed package, and they refuse an
-editable install.
+For background services, install the wheel: services require the exact installed
+package and refuse editable installs. Foreground local testing can use
+`uv sync --locked --extra supabase` from this checkout; start with the
+[Supabase walkthrough](supabase-walkthrough.md).
 
-Once `0.0.25a1` is on PyPI, install it with
-`uv tool install --python 3.12 'oshepherd[supabase]==0.0.25a1'`. Keep the exact
-version: uv installs a pre-release only when you name it.
+Publishing to PyPI is outside the current milestone. Use the checkout or a
+locally built and verified candidate wheel for Supabase testing.
 
 ## Install with pip
 

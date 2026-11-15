@@ -157,7 +157,7 @@ async def guided_existing_setup(directory, *, profile="edge_free", gateway_url=N
     SQL bootstrap uses the Management transport; existing private DB URLs remain
     supported on resume but are never requested by this wizard.
     """
-    if profile not in {"edge_free", "vercel_hobby"}:
+    if profile != "edge_free":
         raise OperatorError("invalid_provider_profile")
     directory = Path(directory).absolute()
     config_file = directory / "connection.json"

@@ -3,7 +3,7 @@ import base64
 import json
 from urllib.parse import urlsplit
 
-from pydantic import BaseModel, Field, SecretStr, field_validator, model_validator
+from pydantic import BaseModel, Field, SecretStr, field_validator
 from typing import Literal
 from uuid import UUID
 
@@ -75,7 +75,7 @@ def legacy_role(key):
 class SupabaseGatewayConfig(SupabaseProjectConfig):
     SUPABASE_SECRET_KEY: SecretStr
     OSHEPHERD_CLUSTER_ID: UUID
-    OSHEPHERD_GATEWAY_PROFILE: Literal["persistent", "vercel"] = "persistent"
+    OSHEPHERD_GATEWAY_PROFILE: Literal["persistent"] = "persistent"
     # Experimental SQL currently enforces this same conservative maximum.
     OSHEPHERD_SYNC_SECONDS: float = Field(default=135, gt=0, le=135)
     OSHEPHERD_RESPONSE_BYTES: int = Field(default=1048576, ge=262144, le=33554432)
@@ -101,15 +101,6 @@ class SupabaseGatewayConfig(SupabaseProjectConfig):
     @classmethod
     def public_url(cls, value):
         return cls.validate_url(value) if value is not None else None
-
-    @model_validator(mode="after")
-    def hosting_budget(self):
-        if (
-            self.OSHEPHERD_GATEWAY_PROFILE == "vercel"
-            and self.OSHEPHERD_RESPONSE_BYTES > 4000000
-        ):
-            raise ValueError("Vercel response budget must not exceed 4000000 bytes")
-        return self
 
 
 class SupabaseWorkerConfig(SupabaseConnectionConfig):

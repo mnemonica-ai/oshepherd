@@ -4,7 +4,10 @@ This workflow uses a new Docker Supabase project, the real Edge gateway,
 `oshepherd` CLI commands and the official Ollama Python package. No hosted project,
 PyPI publication or Redis server is needed. The existing development stack is
 preserved. This is a local functional test; hosted qualification and the known
-stream-disconnect cancellation failure remain separate.
+stream-disconnect cancellation failure remain separate. Earlier full runs passed,
+but the latest branch-cleanup reruns hit Edge CPU limits on the joined worker
+(HTTP 503/546), exited and cleaned up. See the
+[validation ledger](plans/supabase/progress.md#branch-cleanup-follow-up).
 
 ## Requirements
 
@@ -140,6 +143,11 @@ uv run --locked python -m scripts.supabase_local_acceptance \
   --work-dir "$PWD/.oshepherd/local/my-systemone-test" \
   --decision-model tev1:4b
 ```
+
+A later Supabase-focused branch rerun hit the Edge runtime CPU limit during
+System One on the joined server and returned 503; the first-worker check passed
+and cleanup succeeded. The earlier successful runs do not qualify the full
+resource envelope. See the [ledger](plans/supabase/progress.md#branch-cleanup-follow-up).
 
 Without that flag, the report's check list does not claim real System One
 inference. The separate SDK integration test exercises that route through real

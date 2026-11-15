@@ -1,7 +1,7 @@
 # Hosted disconnect signal investigation
 
-Recorded October 11, 2026 on the existing authorized isolated Free/Hobby targets.
-This investigation does not close the strict cancellation gate or qualify either
+Recorded October 11, 2026 on the authorized isolated Supabase Free target.
+This investigation does not close the strict cancellation gate or qualify the Edge
 profile. No production gateway or applied migration source was changed.
 
 ## Supabase Edge
@@ -38,57 +38,17 @@ hosted behavior independently shows continued response consumption after the
 reader closes and an abort delivered only after completion. Both private report
 objects and the temporary function were removed. The normal Edge gateway remains.
 
-## Vercel Python
-
-The installed CLI is 50.1.3 and its bundled `@vercel/python` is 6.1.5. Its local
-`vc_init.py` launches Uvicorn behind a provider proxy; that installed adapter is
-source evidence, not proof of the deployed builder version. Actual hosted ASGI
-scope reports version 3.0/spec 2.3. Starlette therefore runs its receive-based
-disconnect listener; the failure is not caused by selecting its spec-2.4
-send-error-only branch.
-
-A temporary event-only ASGI wrapper surrounded the unchanged gateway during the
-strict real SQL/Auth/worker probe. Provider log streaming captured normal
-requests but omitted the aborted request. Missing logs were not treated as proof
-that a signal was absent. A second run wrote bounded event-only reports to the
-same approved private Supabase project, using the already configured gateway
-credential. Its reporter accepted only that run's random marker and generate
-route. Three report objects were retrieved and deleted.
-
-The delayed streaming request's trace was:
-
-| Event | Seconds from ASGI entry |
-| --- | --- |
-| Receive request body | 0.201 |
-| Send response headers | 0.644 |
-| Send first nonterminal record, 395 bytes | 1.064 |
-| Send terminal record, 373 bytes | 4.970 |
-| Send final empty body | 4.970 |
-| Receive `http.disconnect` | 4.970 |
-
-The client received the first record and closed at 1.27 seconds from its request
-start. SQL ended `succeeded`. No send error or earlier disconnect appeared in the
-trace. The normal streaming fixture also received `http.disconnect` after its
-final body, so a disconnect event by itself does not imply an aborted response.
-
-Both diagnostic deployments were followed by successful restoration of the
-normal gateway; the temporary wrapper module was removed from the local bundle.
-Routes, exact NDJSON, auth and the 4,200,347-byte private download passed during
-the traced run. The strict disconnect assertion still exited unsuccessfully.
 
 ## Consequence and remaining decision
 
-The measured gateways receive their cleanup signal after the worker has committed
+The measured Edge gateway receives its cleanup signal after the worker has committed
 success. SQL correctly prevents a later cancellation from overwriting a winning
 terminal state. Shortening the lease or adding another listener does not establish
 prompt cancellation while the gateway continues reading/renewing it.
 
 Keep the original HTTP/NDJSON contract, strict tests and `qualified: false`.
 Closing the gate requires supported provider lifecycle behavior or an explicitly
-reviewed transport/deployment/client contract change. The documented
-[Vercel cancellation opt-in](https://vercel.com/docs/functions/functions-api-reference#cancel-requests)
-is Node.js-only; it is not a verified Python fix. Persistent FastAPI's local
-socket cancellation remains separate evidence. No Node ingress, client
+reviewed transport/deployment/client contract change. Persistent FastAPI's local socket cancellation remains separate evidence. No Node ingress, client
 acknowledgement protocol or mandatory new hosting dependency was introduced.
 
 The user explicitly chose to preserve the current contract and experimental

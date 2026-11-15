@@ -63,7 +63,7 @@ oshepherd = "oshepherd.cli:main"
 include = ["oshepherd", "oshepherd.*"]
 
 [tool.setuptools.package-data]
-"oshepherd.backends.supabase" = ["release/manifest.json", "release/migrations/*.sql", "release/functions/ollama/*.ts", "release/templates/vercel/*", "release/templates/vercel/.vercelignore", "release/templates/vercel/.python-version"]
+"oshepherd.backends.supabase" = ["release/manifest.json", "release/migrations/*.sql", "release/functions/ollama/*.ts"]
 
 [dependency-groups]
 dev = [

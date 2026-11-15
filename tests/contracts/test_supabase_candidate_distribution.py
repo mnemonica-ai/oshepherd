@@ -26,16 +26,15 @@ def candidate(tmp_path, version="0.0.25a1", *, wheel_extra=None, sdist_extra=Non
     (package / "cli.py").write_bytes(content)
     release = package / "backends/supabase/release"
     release.mkdir(parents=True)
-    template = b"# packaged Vercel app\n"
-    (release / "templates/vercel").mkdir(parents=True)
-    (release / "templates/vercel/app.py").write_bytes(template)
+    template = b"// packaged Edge function\n"
+    (release / "functions/ollama").mkdir(parents=True)
+    (release / "functions/ollama/index.ts").write_bytes(template)
     manifest = {
         "python_sources": {"cli.py": sha256(content)},
-        "artifacts": {"templates/vercel/app.py": sha256(template)},
+        "artifacts": {"functions/ollama/index.ts": sha256(template)},
         "migrations": [],
         "profiles": {
             "edge_free": {"qualified": False},
-            "vercel_hobby": {"qualified": False},
         },
     }
     manifest_bytes = json.dumps(manifest).encode()
@@ -47,7 +46,7 @@ def candidate(tmp_path, version="0.0.25a1", *, wheel_extra=None, sdist_extra=Non
     files = {
         "oshepherd/cli.py": content,
         "oshepherd/backends/supabase/release/manifest.json": manifest_bytes,
-        "oshepherd/backends/supabase/release/templates/vercel/app.py": template,
+        "oshepherd/backends/supabase/release/functions/ollama/index.ts": template,
     }
     wheel = dist / f"oshepherd-{version}-py3-none-any.whl"
     with zipfile.ZipFile(wheel, "w") as archive:
@@ -76,7 +75,7 @@ def test_experimental_versions_keep_unqualified_profiles_and_hashes(tmp_path, ve
     source, dist = candidate(tmp_path, version)
     report = verify_distributions(dist, source=source, require_prerelease=True)
     assert report["version"] == version
-    assert report["profiles"] == {"edge_free": False, "vercel_hobby": False}
+    assert report["profiles"] == {"edge_free": False}
     assert report["files"] == {
         path.name: sha256(path.read_bytes()) for path in dist.iterdir()
     }

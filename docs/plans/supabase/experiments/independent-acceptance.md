@@ -1,11 +1,10 @@
 # October 14 independent acceptance
 
-Updated October 14, 2026. The user retained the existing gateway contract and
-experimental status, reconfirmed local-first OAuth validation, and explicitly
-approved removal of both isolated qualification gateways after testing.
-**Both hosted test clusters are now disabled; the reviewed Edge function and
-Vercel deployment are removed.** Provider projects, data and shared configuration
-remain. Old worker sessions/application keys cannot be reused for inference.
+Recorded October 14, 2026; this page retains Supabase Edge evidence. The
+user preserved the gateway contract and experimental status and approved
+removal of the isolated qualification function. The cluster is disabled and the
+function removed; the project, data and shared configuration remain. Old worker
+sessions and application keys cannot be reused for inference.
 
 ## Hosted size and slow-reader evidence
 
@@ -15,16 +14,16 @@ installation, refuses retired states, keeps the existing limits, bounds its
 workload to 600 seconds and cancels only its own unfinished jobs during cleanup.
 Reports are private; client pauses are not claimed as observed server backpressure.
 
-| Workload | Edge Free | Vercel Hobby |
-| --- | --- | --- |
-| Request bodies: 65,536; 262,144; 1,047,552 bytes | Exact completion, 200 | Exact completion, 200 |
-| Request: 1,048,577 bytes | Application 413; no job admitted | Application 413; no job admitted |
-| Request: 5,242,880 bytes | Application 413 in 0.468 s after fix; no admission | Provider 413 in 0.364 s; no admission |
-| JSON output: 65,536 and 262,144 bytes | Exact bytes | Exact bytes |
-| JSON at response budget | Exact 1,048,576 bytes | Exact 4,000,000 bytes |
-| JSON one byte over response budget | 413 `result_too_large`; SQL succeeded, retained result | 500 `output_too_large`; SQL failed, one attempt |
-| Slow NDJSON reader, five-second pause | Exact 819,224 bytes in 10.242 s | Exact 3,178,592 bytes in 14.211 s |
-| Metadata during reader pause | 0.314 s | 0.958 s |
+| Workload | Edge Free |
+| --- | --- |
+| Request bodies: 65,536; 262,144; 1,047,552 bytes | Exact completion, 200 |
+| Request: 1,048,577 bytes | Application 413; no job admitted |
+| Request: 5,242,880 bytes | Application 413 in 0.468 s after fix; no admission |
+| JSON output: 65,536 and 262,144 bytes | Exact bytes |
+| JSON at response budget | Exact 1,048,576 bytes |
+| JSON one byte over response budget | 413 `result_too_large`; SQL succeeded, retained result |
+| Slow NDJSON reader, five-second pause | Exact 819,224 bytes in 10.242 s |
+| Metadata during reader pause | 0.314 s |
 
 Initial Edge five-MiB requests timed out at 60 seconds. Awaiting request-body
 cancellation could block rejection; returning before consuming the upload also
@@ -63,7 +62,7 @@ work directory; keep the existing isolated local stack and Ollama running:
 ```sh
 uv run --isolated --no-project --python 3.12 \
   --with '<absolute-current-wheel.whl>[supabase,installer]' \
-  --with-requirements <absolute-repo>/templates/vercel/runtime-requirements.txt \
+  --with-requirements <absolute-repo>/requirements/runtime.txt \
   python <absolute-repo>/scripts/supabase_packaged_check.py \
   --local-from <absolute-repo>/.oshepherd/local/connection.json \
   --work-dir <fresh-private-directory> --report-file <private-report.json> \
@@ -81,29 +80,23 @@ Management API upgrade to the final request-reader fix, independent health and
 repeat reconciliation pass on the same function ID.
 [Deployment API](https://supabase.com/docs/reference/api/v1-deploy-a-function)
 
-The user reviewed the exact ownership plans and approved deleting the two test
-gateway resources. `scripts.supabase_hosted_removal` defaults to read-only planning;
-execution requires the saved reviewed plan, current matching receipt and zero
-active jobs. It calls the adapters' SDK removal methods. After each real provider
-DELETE succeeded, the harness deliberately discarded that acknowledgement,
-observed the labelled simulated ambiguity, and recovered through actual provider
-reads. Removal and a further repeated call pass on both providers.
+The user reviewed the exact ownership plan and approved deleting the test Edge
+function. The removal harness requires the saved plan, matching receipt and zero
+active jobs. After a real provider DELETE, it deliberately discarded the
+acknowledgement and recovered through provider reads. Removal and a repeated
+call passed.
 
-Before/after retained job counts were **1,059 Edge / 1,031 Vercel**, with identical
-job-ID digests, schema fingerprints and shared Cron commands. Both clusters have
-zero active jobs and are disabled. A separate post-removal read verifies the Edge
-function is absent and its five owned secret digests remain; the Vercel project
-and eight encrypted Production-only variables remain. Other deployments and
-provider projects are outside the deletion scope. No database purge or paid
-upgrade occurred. Private plans/reports stay in ignored 0600 files. Temporary
-copies of the CLI Management credentials were removed after acceptance; native
-CLI authentication stores remain.
+The before/after retained job count was **1,059**, with identical job-ID digests,
+schema fingerprints and shared Cron commands. The cluster was disabled with zero
+active jobs. Independent reads confirmed the function absent and five owned
+secret digests preserved. No project deletion, database purge or paid upgrade
+occurred. Private plans/reports remain ignored and mode 0600.
 
 Read-only planning and reviewed execution use separate invocations:
 
 ```sh
 uv run --locked python -m scripts.supabase_hosted_removal \
-  --provider <edge-or-vercel> --connection-file <private-connection.json> \
+  --provider edge --connection-file <private-connection.json> \
   --state-dir <owned-operator-directory> --provider-file <private-provider.json> \
   --plan-file <private-reviewed-plan.json> --report-file <private-report.json>
 # Review that exact plan before adding --execute; --simulate-ack-loss is opt-in.
@@ -125,12 +118,12 @@ passes in 14.07 seconds**. Deno
 has **48 passes**, and the entrypoint type check passes. Clean source-archive/
 wheel builds and the current installed-wheel lifecycle pass.
 
-Both final strict hosted route/NDJSON/private-download probes pass their route
-checks and still fail disconnect cancellation: SQL becomes `succeeded`. Download
-fixtures were 1,200,347 / 4,200,347 bytes. Keep both profiles `qualified: false`.
+The final strict hosted Edge route/NDJSON/private-download probe passed its
+route checks and still failed disconnect cancellation: SQL became `succeeded`.
+The download fixture was 1,200,347 bytes. Keep `edge_free` at `qualified: false`.
 
 Hosted OAuth consent/refresh/revocation, a controlled HTTPS callback/installer
-host, Marketplace access, public pinned release/template/buttons, and complete
+host, public distribution and browser installation, and complete
 fresh hosted onboarding remain unrun. Wider performance/cost/quota and server
 resource evidence remains incomplete. The user explicitly chose local-first
 work while OAuth prerequisites are absent; there is no placeholder public button

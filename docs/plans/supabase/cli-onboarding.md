@@ -41,9 +41,8 @@ Existing provider projects still need bootstrap; an existing Oshepherd installat
 only needs worker enrollment. A worker makes outbound connections: do not expose
 Ollama's local port or configure inbound tunnels.
 
-Supabase is required for this backend. Edge is its default gateway; Vercel is an
-optional gateway using the same Supabase installation. There is no Vercel-only
-backend in this scope. Existing Redis commands retain their defaults.
+Supabase is the primary broker and Edge is its gateway. Existing Redis commands
+remain available as a legacy option and retain their defaults.
 
 ## Journey and readiness
 
@@ -54,7 +53,7 @@ backend in this scope. Existing Redis commands retain their defaults.
    Authenticate providers locally with hidden credentials or a verified supported
    login flow. A hosted OAuth application is not a CLI milestone prerequisite.
 3. Show the organization/team, project, region, profile and proposed changes. Require
-   deliberate selection before writes; honor Free/Hobby-only operation and never
+   deliberate selection before writes; honor Free-plan-only operation and never
    silently upgrade billing. Preserve unrelated resources and reject collisions.
 4. Provision project services, migrations, private Storage, cleanup, owner and gateway
    through the shared versioned engine. Persist operation identity before writes;
@@ -74,7 +73,7 @@ backend in this scope. Existing Redis commands retain their defaults.
 | --- | --- | --- |
 | A1: join and local discovery | Portable versioned invitation, hidden-code/private-file input, restricted session, Ollama discovery, resumable foreground worker | Second machine has no admin keys; rejects wrong-project/invalid invitations; restart reuses session; errors redact credentials |
 | A2: share orchestration | One resumable CLI entry over current install/deploy/enroll/verify engine; initially accepts existing protected operator configuration | Existing configured target reaches actual inference; partial failure resumes with stable identity; no claim of full provisioning yet |
-| A3: provider setup | Guided auth/discovery, create/select Supabase and optional Vercel projects, owner bootstrap and connection discovery | Fresh account/project and existing-project paths need no handwritten files/UUIDs; bounded readiness; ambiguous creation reconciled; free-plan checks and collisions enforced |
+| A3: provider setup | Guided auth/discovery, create/select Supabase projects, owner bootstrap and connection discovery | Fresh account/project and existing-project paths need no handwritten files/UUIDs; bounded readiness; ambiguous creation reconciled; free-plan checks and collisions enforced |
 | A4: ongoing operation | Integrated worker/maintenance supervision, restart/status, optional service management | Foreground shutdown is clean; cleanup stays active while sharing; reconnect/revocation work; joined workers receive no admin secret |
 | A5: distribution and user acceptance | Published pinned package, concise user guide, fresh-machine tests | One uv entry from outside checkout to genuine JSON/NDJSON; repeat on second machine and existing projects; interruptions/upgrades/removal tested |
 
@@ -102,7 +101,7 @@ explicitly selected disposable targets; preserved project-wide secrets must not 
 overwritten for a new cluster blindly. Existing authorization does not create a
 new target or justify paid upgrades.
 
-The known Edge/Vercel disconnect failure remains a release gate. CLI usability can
+The known Edge disconnect failure remains a release gate. CLI usability can
 be delivered and tested as experimental independently; it cannot establish hosting
 qualification. Hosted OAuth/buttons are a later optional distribution path.
 Broader resource/cost measurements and strict cancellation checks remain in
@@ -118,9 +117,7 @@ The October 31 candidate extends this with create-or-select Supabase organizatio
 and projects, documented optional plan verification with explicit fallback
 attestation, bounded readiness and durable uncertain-creation reconciliation.
 Management SQL reuses the transactional migration engine without a database URL
-or external `psql`. Guided optional Vercel uses Hobby selection, provider REST
-deployment and the verified installed runtime rather than a provider CLI or
-manually supplied wheel. Dedicated user services support foreground-verified
+or external `psql`. Dedicated user services support foreground-verified
 share and joined-worker state on macOS/Linux.
 
 The [distribution workflow](experiments/distribution.md) builds and verifies

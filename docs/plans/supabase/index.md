@@ -1,73 +1,58 @@
-# Optional Supabase backend
+# Supabase primary broker
 
-**November 15 local milestone:** fresh Docker Supabase, CLI install/share/invite/join
-and official Python SDK checks against the existing Redis endpoint set. See the
-[local runbook](../../setup-supabase-local.md) and
-[current evidence](progress.md#november-15-fresh-local-cli-and-python-sdk-acceptance).
-PyPI publication and hosted provisioning are outside this milestone.
+Updated November 15, 2026. Supabase is the primary development and onboarding
+path. Redis remains a legacy backend with its existing CLI defaults. The
+candidate is experimental and unpublished; publication is outside this milestone.
 
-Updated October 31, 2026. Status: implemented experimental candidate. Both hosted
-profiles passed genuine inference, route/stream/private-download checks, bounded
-load/Auth/recovery and size probes. Installed-wheel local CLI onboarding and actual
-provider adapter/removal acceptance pass. The approved test gateways are now
-removed and their clusters disabled. Both strict reader-disconnect checks still
-fail; broader performance/resource evidence and hosted OAuth/button flows remain
-incomplete. See [October 14 acceptance](experiments/independent-acceptance.md).
-See the [next steps](next-steps.md) and [progress ledger](progress.md).
+The fresh local Docker workflow passes CLI install/share/invite/join, official
+Ollama Python calls and real inference across primary, joined and restarted
+workers, including System One, in the earlier acceptance run. The latest reruns
+hit Edge CPU limits on the joined worker; see
+[the follow-up](progress.md#branch-cleanup-follow-up). Start with the
+[walkthrough](../../supabase-walkthrough.md) and
+[current evidence](progress.md#fresh-local-cli-and-python-sdk-acceptance).
 
-**Current product priority:** [one-command CLI onboarding](cli-onboarding.md), from
-uv to sharing local Ollama, with guided create/use-existing provider setup and a
-second-machine join flow. The operator engine is implemented; this complete user
-journey is not yet delivered. Hosted OAuth/buttons follow this milestone.
-The unpublished `0.0.25a1` candidate's [sharing guide](../../setup-supabase.md)
-documents create/select Supabase and optional Vercel onboarding without provider
-CLIs or database URL input, private second-machine invitations and optional user
-services. The [distribution workflow](experiments/distribution.md) verifies exact
-artifacts before any explicit publication; fresh/live and published-package
-acceptance remain separate evidence gates.
-
-The local lifecycle now includes experimental SQL, worker enrollment, Edge and
-optional FastAPI gateways, async results, cleanup and a uv-based demo workflow.
-The [progress ledger](progress.md) records current verification and open gates,
-including local Edge and both hosted proxy disconnect failures. The
-[initial characterization](experiments/step-0-local-characterization.md) retains
-the original fixture and test evidence.
+Hosted Edge has historical real inference, route/stream/private-download,
+bounded load/Auth/recovery and size evidence. Its reviewed test function was
+removed and its cluster disabled. Reader-disconnect cancellation still fails
+through Edge; full fresh hosted wizard acceptance, physical second-machine
+onboarding and the broader resource envelope remain open.
 
 ## Decisions
 
-- Retain FastAPI + Celery + Redis and its current CLI defaults.
-- Make Edge Functions the default gateway **when choosing Supabase**, accepting explicit runtime and resource limits.
-- Offer FastAPI with the same Supabase backend on Vercel or a persistent server. Vercel is convenient but also imposes function limits.
-- Keep inference on external Ollama workers. Supabase stores jobs, output and worker state; it does not run the models.
-- Include async jobs in the initial Supabase release. Slow models are possible; the limiting factor for synchronous use is total request time, including queueing and model loading.
-- Target all nine existing routes within each declared gateway envelope. Do not silently replay a request on another backend.
-- Prioritize guided CLI share/join with Supabase and optional Vercel; browser installation follows. Cloud deployment, worker readiness and real inference remain separately verified stages within the guided flow.
+- Use Supabase Postgres for the broker, Auth for worker identities, Storage for
+  larger results and Edge for the default gateway. Models run in external Ollama.
+- Preserve FastAPI/Celery/Redis as a legacy option; do not migrate jobs or change
+  existing low-level command defaults implicitly.
+- Keep the optional persistent FastAPI gateway on the same Supabase protocol.
+  The current candidate still has a 135-second SQL synchronous maximum.
+- Support all nine existing routes within declared limits, including System One.
+  Do not silently replay requests on another backend.
+- Provide async jobs for work outside synchronous limits, using an explicit
+  status/result/download flow.
+- Prioritize local CLI usability and private worker invitations. Keep cloud
+  readiness, connected-worker readiness and real inference separately verified.
+- Defer public publication, API expansion and hosted browser onboarding.
 
 ## Reading order
 
-| Document | What it answers |
+| Document | Purpose |
 | --- | --- |
-| [Next steps](next-steps.md) | Ordered remaining work, acceptance criteria, external dependencies and optional manual smoke test |
-| [CLI onboarding](cli-onboarding.md) | Adoption-first share/join journeys, provider provisioning gaps and implementation slices |
-| [Development handoff](development-handoff.md) | Current candidate status, checkout setup, protocol contracts, hosted prerequisites and evidence requirements |
-| [Implementation and feasibility](implementation.md) | Architecture, hosted Edge limits, durable streaming, failures, security, cost and delivery sequence |
-| [Installation and hosting](installation.md) | Supabase installer, Vercel Deploy button, hosting profiles, onboarding and upgrade/recovery |
-| [Compatibility and verification](compatibility.md) | Existing behavior, known gaps, local evidence and required implementation tests |
+| [Walkthrough](../../supabase-walkthrough.md) | Fresh Docker setup, Python inference and another Ollama server |
+| [Next steps](next-steps.md) | Remaining acceptance and qualification work |
+| [Progress ledger](progress.md) | Implemented behavior and dated evidence |
+| [CLI onboarding](cli-onboarding.md) | Share/join design and implementation slices |
+| [Development handoff](development-handoff.md) | Setup and contracts to preserve |
+| [Implementation](implementation.md) | Broker, streaming, failure, security and resource design |
+| [Installation](installation.md) | Hosting, shared bootstrap, recovery and later browser setup |
+| [Compatibility](compatibility.md) | Existing routes and verification gates |
+| [Experiments](experiments/README.md) | Detailed runbooks and historical measurements |
 
 ## What still prevents qualification?
 
-The architecture is plausible, but hosted measurements must establish a useful Edge workload envelope. The largest risks are forced termination without a client-visible error, the small Edge CPU budget, database write/read amplification for streams, unbounded admission relative to GPU capacity, and mistakes in authorization or lease recovery. Large responses must fit the selected gateway even when stored in Supabase Storage. [Runtime analysis](implementation.md#10-default-edge-gateway-and-asynchronous-jobs), [size policy](implementation.md#size-and-retention-policy).
-
-Installation adds a separate product to maintain: a privileged bootstrap service, versioned deployment artifacts and safe upgrades. An official generic Supabase button that installs this whole application was not established by the reviewed sources; the proposed web flow uses Supabase OAuth and Management APIs. Vercel supplies a Deploy button, but database migrations and worker onboarding remain our responsibility. [Installation evidence and design](installation.md).
-
-Versioned migrations, the CLI, local installer and owned provider adapters are
-implemented candidates. Remaining work includes strict disconnect qualification,
-fresh hosted/browser onboarding, OAuth/Marketplace/public button setup, and the
-broader performance/cost/resource envelope. Do not reuse the retired test
-sessions or assume the preserved provider projects are ready for inference. The
-[development handoff](development-handoff.md) defines the complete scope; the
-[progress ledger](progress.md) identifies the next unverified acceptance gates.
+The known Edge disconnect failure, incomplete fresh hosted/onboarding matrix
+and wider performance/resource/cost evidence remain blockers. See
+[next steps](next-steps.md) for concrete acceptance criteria. Local success and
+bounded historical hosted tests must not be presented as full qualification.
 
 [All plans](../index.md)
-
-[Implementation progress and verification ledger](progress.md)

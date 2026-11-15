@@ -54,15 +54,15 @@ values exercise response sizes independently of model hardware.
 The local ASGI tests inject a clock for 20/200-second scenarios and compare
 exact response events/bytes. HTTPX's in-process ASGI transport buffers its
 responses; these tests do **not** measure network first-byte latency, actual
-wall-clock silence, socket disconnects, Edge CPU or Vercel limits. Run the
+wall-clock silence, socket disconnects, Edge CPU limits. Run the
 service over real HTTP in the subsequent relay harness for those measurements.
 
 ## Outstanding step 0 experiments
 
 Local SQL/Auth/Edge/external-worker lifecycle, two-identity isolation, optional
 FastAPI and maintenance harnesses now exist; see their reports above. Still
-required: hosted Edge/Vercel limits, full load/adversarial matrices, release
-templates and installer API/CLI/Marketplace capability probes. Spike SQL stays
+required: hosted Edge limits, full load/adversarial matrices, release
+release artifacts and installer API/CLI capability probes. Spike SQL stays
 outside production migration history; local success does not qualify a release.
 
 Hosted experiments need explicitly selected isolated projects, plans/regions,

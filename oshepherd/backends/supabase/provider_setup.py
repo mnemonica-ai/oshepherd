@@ -57,7 +57,7 @@ async def prepare_existing_project(
     no cloud mutations. A durable binding prevents another target replacing files
     after a partial write, and existing unowned files are never overwritten.
     """
-    if profile not in ("edge_free", "vercel_hobby"):
+    if profile != "edge_free":
         raise OperatorError("invalid_provider_profile")
     if database_url is not None:
         try:

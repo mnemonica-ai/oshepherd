@@ -1,12 +1,13 @@
 # Versioned operator lifecycle candidate
 
 Updated October 14, 2026. This is an implemented CLI path with local and hosted
-Edge/Vercel evidence, not a production qualification claim. Redis remains the default.
+Edge evidence, not a production qualification claim. Supabase is the primary
+documented workflow; low-level Redis commands retain their defaults.
 The persistent local demo keeps using `oshepherd_spike_api`; it is unaffected.
 
 The complete installed-wheel local CLI lifecycle and reviewed hosted removal
-acceptance now pass. Both hosted qualification clusters are disabled and their
-reviewed gateway resources removed; provider projects/shared configuration remain.
+acceptance now pass. The hosted qualification cluster is disabled and its reviewed function removed;
+the provider project and shared configuration remain.
 See [current acceptance](independent-acceptance.md). Old sessions/keys cannot be
 reused for hosted inference.
 
@@ -34,7 +35,7 @@ version/archive updates as well as physical deletion until commit.
 Trigger state and runtime Storage permissions participate in drift detection.
 See the [hosted findings](hosted-qualification.md).
 
-The wheel contains the SQL, Edge source, Vercel template and a release manifest.
+The wheel contains SQL, Edge source and a release manifest.
 Every artifact and package Python source has a SHA-256. Each SQL file also records its content digest and
 the installed catalog fingerprint. The installer checks functions, grants,
 owners, columns, constraints, indexes, RLS and policies for drift before replay
@@ -64,8 +65,8 @@ real hosted OAuth discovery/onboarding acceptance remains unrun.
 All Python commands use uv. The installed package exposes the same commands
 through `oshepherd`; no checkout `scripts` module is required by the operator.
 
-1. Select an isolated **Free** Supabase project. For Vercel use an isolated
-   **Hobby** target. Verify the actual plans before provisioning or testing;
+1. Select an isolated **Free** Supabase project. Verify its actual plan before
+   provisioning or testing;
    no paid upgrade or larger paid-profile budget is part of this candidate.
 2. Create the private connection through hidden prompts:
 
@@ -74,7 +75,7 @@ through `oshepherd`; no checkout `scripts` module is required by the operator.
    ```
 
    Provide the selected project reference, publishable key, server-only secret
-   key, URL-encoded Postgres connection URL, hosting profile and existing API
+   key, URL-encoded Postgres connection URL and existing API
    schema list. Secrets are not command arguments. Remote database connections
    bind the project reference and require TLS. No gateway receives a DB password
    and no worker receives an administrator key.
@@ -151,7 +152,7 @@ supabase functions deploy ollama --project-ref <selected-ref> \
   --workdir .oshepherd/edge-release --no-verify-jwt --use-api
 ```
 
-These are operator actions, not commands run by a Vercel build. The function
+These are explicit operator deployment actions. The function
 performs application-key authentication. Its server configuration binds one
 cluster. Do not overwrite project-wide Oshepherd secrets for another installation.
 The [new provider adapters and local installer](local-installer.md) supplement
@@ -159,46 +160,6 @@ these manual commands with ownership receipts and failure reconciliation;
 actual Edge adoption/upgrade/reconciliation now pass, while hosted OAuth acceptance
 remains pending. A deployed
 health response alone does not prove artifact ownership.
-
-For the optional Vercel profile, configure a separate operator state directory
-with `profile=vercel_hobby`, its own cluster, credentials and worker pool. Build
-the current clean wheel and export a self-contained candidate:
-
-```sh
-uv build --out-dir .oshepherd/release
-uv run --locked oshepherd supabase export-vercel \
-  --wheel .oshepherd/release/oshepherd-0.0.24-py3-none-any.whl \
-  --output .oshepherd/vercel-release
-```
-
-Use the wheel filename for the actual package version after a version bump.
-Use uv's default source-archive-to-wheel path. Explicitly requesting a wheel
-directly from a dirty working tree can retain old setuptools `build/lib` files;
-the export rejects those. To recover a rejected build, build its clean archive:
-
-```sh
-uv build --wheel .oshepherd/release/oshepherd-0.0.24.tar.gz \
-  --out-dir .oshepherd/release
-```
-The export checks the wheel's manifest, artifact and Python source hashes, excludes credentials
-and checkout test/services, and creates a uv lock from the shipped runtime pins.
-It tries cached metadata first, then fetches missing registry metadata with the
-same exact runtime constraints. Do not rely on the
-published 0.0.24 package for these unreleased changes.
-
-The root `app.py` exports an ASGI application with no Redis/Celery initialization,
-network startup, migrations, collectors or signal handlers. `vercel.json` sets
-the resolved `app.py` function to 150 seconds; application policy stays at 135
-seconds and 4,000,000 response bytes. The template explicitly selects the FastAPI
-framework preset, including when the project was created with the CLI's default
-Other preset. Preview inference is denied by default.
-This uses the documented [FastAPI entrypoint and function configuration](https://vercel.com/docs/frameworks/backend/fastapi).
-Set `gateway.env` values only in the selected project's Production server
-environment, outside the template directory. Update the private operator
-`gateway_url` after deployment and inspect its actual protection/access behavior.
-There is no public Deploy button. The isolated hosted candidate is deployed;
-its actual checks and remaining qualification gates are in the
-[hosted report](hosted-qualification.md).
 
 ## Worker and inference
 
@@ -262,17 +223,17 @@ acknowledgement loss, rotation recovery, ownership/capacity mismatches, explicit
 challenge renewal, denied worker access to administration, revocation, preserved
 data and rollback after RLS drift. Production-schema Edge routes, NDJSON, async
 results and private downloads also pass. The official CLI recognizes installed
-migration history. The self-contained Vercel wheel import denies unauthenticated
-health and previews without initializing Redis or Celery.
+migration history. The Supabase Python gateway factory initializes neither
+Redis nor Celery.
 
-Both isolated hosted gateways subsequently passed real-model inference, route
-fixtures, exact NDJSON and private downloads. Their synchronous deadline was
+The isolated hosted Edge gateway subsequently passed real-model inference, route
+fixtures, exact NDJSON and private downloads. Its synchronous deadline was
 measured at 135 seconds, and async jobs completed beyond 400 seconds; see the
-[hosted report](hosted-qualification.md). Both hosted disconnect checks fail.
+[hosted report](hosted-qualification.md). The hosted disconnect check fails.
 
 The full current installed-wheel local CLI lifecycle, actual provider preflight/
 deployment/reconciliation and reviewed physical removal now pass. Remaining:
 fresh hosted/browser onboarding and overlapping-version upgrades, real OAuth
-app/callback/host setup, wider performance/resource/cost/quota evidence and both
-strict proxy disconnect gates. The [next-steps checklist](../next-steps.md) gives the order and acceptance
+app/callback/host setup, wider performance/resource/cost/quota evidence and the
+strict Edge proxy disconnect gate. The [next-steps checklist](../next-steps.md) gives the order and acceptance
 criteria; the [progress ledger](../progress.md) owns exact commands and results.

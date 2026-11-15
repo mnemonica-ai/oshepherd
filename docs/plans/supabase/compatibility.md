@@ -2,38 +2,22 @@
 
 Companion to the [implementation plan](implementation.md), inspected October 4, 2026. This is a specification and implementation test checklist. Unless explicitly marked as locally verified below, acceptance tests are **planned**, not passing or implemented.
 
-Current evidence is recorded in the [progress ledger](progress.md), updated
-October 14, 2026. The latest combined Python selection has 429 passes, one strict
-local Edge disconnect failure and two opt-in real-model cases deselected;
-subsequent probe guards are recorded separately in the ledger. Deno has 48 passing
-contracts. Both hosted profiles pass real inference/routes/downloads, measured
-135-second synchronous deadlines, async work beyond 400 seconds, 1,000-job loads,
-actual Auth refresh/recovery and bounded size probes. Installed-wheel local CLI
-onboarding and actual provider adoption/deployment/removal have acceptance
-evidence. Both hosted disconnect checks fail. The approved test gateways are now
-removed; see [independent acceptance](experiments/independent-acceptance.md).
-The broad matrix remains an acceptance specification; full provider ceilings,
-JavaScript SDK parity, performance/cost/resource limits, fresh hosted/browser
-onboarding and OAuth/Marketplace/public button flows remain unverified.
-The [next-steps checklist](next-steps.md) orders the remaining gates.
+Current evidence is in the [progress ledger](progress.md), updated November 15,
+2026. Fresh local Docker installation, real Ollama Python calls and second local
+server onboarding/restart pass, including System One. Historical hosted Edge
+checks cover real inference, routes, NDJSON, private downloads, bounded load,
+Auth refresh/recovery and size limits. The reviewed hosted function was removed
+and its cluster disabled; those credentials are not reusable.
 
-The later adoption-first CLI slice has **454 passing offline tests**, **24 passing
-focused local integration tests**, and actual installed-wheel share/invite/join
-with real Ollama JSON/NDJSON, restart and foreground shutdown. Its
-[acceptance report](experiments/cli-onboarding.md) distinguishes existing local
-installation evidence from mocked provider onboarding and unrun fresh hosted setup.
-It does not close the strict disconnect or browser installation gates.
-
-The October 31 `0.0.25a1` source adds provider creation/selection, Management SQL,
-Vercel REST onboarding and user services. These changes have separate contract and
-candidate-package checks in the ledger. Final fresh/live acceptance and actual
-published-package validation are pending consolidation; the matrix's unverified
-cases stay open. Candidate publication requires an explicit manual gate and does
-not qualify either profile.
+The strict local and hosted Edge reader-disconnect checks remain failing. This
+matrix remains an acceptance specification: full provider/resource ceilings,
+JavaScript SDK parity, wider cost/performance, physical second-machine tests,
+fresh hosted wizard and browser/OAuth onboarding remain unverified. Public
+publication is deferred. Follow [next steps](next-steps.md).
 
 ## Product contract
 
-Supabase's default gateway is an Edge Function with declared time/size/concurrency limits. FastAPI with the same Supabase backend supports Vercel and persistent hosting profiles. Persistent hosting is the option for long synchronous work; Vercel has separate finite duration and payload limits. See the [installation plan](installation.md). Existing FastAPI/Celery/Redis installations remain supported with their current CLI defaults. All existing routes are required; Edge limits are accepted and explicit, not grounds to omit a route. Async jobs provide a default-gateway path for longer work and require a different client flow.
+Supabase's default gateway is an Edge Function with declared time/size/concurrency limits. FastAPI with the same Supabase backend also supports persistent hosting. The current candidate retains a 135-second SQL maximum; longer synchronous budgets remain planned. See the [installation plan](installation.md). Existing FastAPI/Celery/Redis installations remain supported with their current CLI defaults. All existing routes are required; Edge limits are accepted and explicit, not grounds to omit a route. Async jobs provide a default-gateway path for longer work and require a different client flow.
 
 ## Existing route behavior
 
@@ -76,7 +60,7 @@ Compatibility concerns in the current baseline must be explicit:
 | C15 | [Redis service](../../../oshepherd/common/redis_service.py), [chat route](../../../oshepherd/api/chat/routes.py): live Pub/Sub, enqueue before subscribe | Durable batches/cursors recover missed notifications and late readers; deduplicate; no silent gaps. This improves an existing race rather than preserving it |
 | C16 | [Task executor](../../../oshepherd/worker/tasks.py), [worker data](../../../oshepherd/worker/worker_data.py) | Consistent configured Ollama host for inference and metadata; metadata currently mixes explicit base URL and global SDK configuration, so characterize precedence before changing Redis behavior |
 | C17 | [API server](../../../oshepherd/api/server.py), [System One tests](../../../tests/test_systemone.py) | FastAPI remains responsive during waits; preserve submit/wait thread affinity for Celery; validate actual multiprocess startup; Edge has per-invocation clients/buffers and no assumed shared process state |
-| C18 | Existing routes await inference without an Edge wall-clock limit | Edge accepts finite budgets; non-streamed limit differs from paid streaming limit; persistent FastAPI proves >400 s synchronous execution; Vercel enforces its own deployed duration/body budget; async job outlives all submission invocations |
+| C18 | Existing routes await inference without an Edge wall-clock limit | Edge accepts finite budgets; non-streamed limit differs from paid streaming limit; longer persistent FastAPI budgets remain unverified; async job outlives all submission invocations |
 | C19 | README promises endpoint/client support, not all Celery features or all Ollama fields | Document accepted limits and unsupported configuration/fields; no claim of general Celery replacement, complete Ollama parity, zero-cost hosting, or guaranteed client reconnection |
 
 ## Acceptance cases required for implementation
@@ -97,11 +81,11 @@ Compatibility concerns in the current baseline must be explicit:
 | V12: deployment lifecycle | Fresh migration + upgrade, old/new protocol overlap, worker drain/restart, gateway restart, bounded cleanup, failed migration, rollback to Redis for new jobs. Never double-submit in-flight jobs across backends |
 | V13: load and cost | Fixed fixture at 1/5/10/25 active streams, many idle workers, concurrent metadata and non-stream requests; measure candidate latency targets, CPU/memory, DB/WAL size, RPC count, Realtime/Storage/egress, backlog, recovery after saturation |
 | V14: real-world smoke | Known real Ollama models/hardware: chat/generate, legacy embeddings, System One, model inventory and missing models; cold/warm runs. Verify end-to-end usability without making sampled text an equality oracle |
-| V15: gateway limits | Hosted Free and paid: stream/non-stream, delayed body, idle gaps, sequential reused isolate and overlaps, platform kill, CPU cap, timeout error semantics, CORS/path/key support. Persistent FastAPI >400 s synchronous; Vercel Hobby/Pro deadlines and JSON/NDJSON payload boundaries tested separately; Edge async >400 s with later result retrieval |
-| V16: fresh installation | Supabase web flow, CLI fallback, Vercel with existing project, and Marketplace project where supported. Correct schema/policies/Storage/Cron/auth configuration; unauthenticated requests denied; no Redis dependency; infrastructure readiness distinct from connected worker |
+| V15: gateway limits | Hosted Free and paid: stream/non-stream, delayed body, idle gaps, sequential reused isolate and overlaps, platform kill, CPU cap, timeout error semantics, CORS/path/key support. Future persistent FastAPI >400 s synchronous target; Edge async >400 s with later result retrieval |
+| V16: fresh installation | Supabase guided CLI and future web flow, with fresh and existing projects. Correct schema/policies/Storage/Cron/auth configuration; unauthenticated requests denied; no Redis dependency; infrastructure readiness distinct from connected worker |
 | V17: install recovery | Fail after each bootstrap stage; lose successful provider responses; expire OAuth tokens; close browser; run two installers concurrently. Resume without duplicate projects/jobs/owners, changed key secrets or reapplied migrations. CLI and web histories agree; existing unrelated resources/configuration survive |
-| V18: installer authority | Forged/replayed OAuth state, wrong project/organization, spoofed Vercel callback, first-visitor ownership claim, leaked enrollment code, expired/reused challenge, revoked grants. No privilege granted; no secrets in URLs/logs/build output/client bundles; installer token deletion leaves runtime working |
-| V19: Vercel deployment | Clean template deploy using a released package; correct resolved ASGI entrypoint and configured duration; no Celery/Uvicorn startup; lifespan termination; cold/warm concurrent requests; JSON and streamed responses around 4.5 MB; authenticated client path unaffected by cache or deployment protection. No orphan computation after consumer lease expiry |
+| V18: installer authority | Forged/replayed OAuth state, wrong project/organization, first-visitor ownership claim, leaked enrollment code, expired/reused challenge, revoked grants. No privilege granted; no secrets in URLs/logs/build output/client bundles; installer token deletion leaves runtime working |
+| V19: retired | Historical hosting-specific gate is outside this branch; remaining gate IDs are preserved for existing evidence links. |
 | V20: environments and lifecycle | Preview has no production credentials or worker access; redeploy does not migrate; additive upgrade with old worker, failed deploy, gateway rollback and credential rotation. Uninstall disables owned runtime resources without deleting unrelated data or provider projects |
 | V21: first inference and support | Operator onboards a browserless worker without admin credentials, SMTP setup or existing Redis; local Ollama/model issues diagnosed; gateway JSON and terminal NDJSON succeed. Separate setup/inference timing; doctor redacts secrets/prompts; paused project/quota/auth failures produce actionable recovery |
 | V22: async contract | Follow the handoff's async v1 policy: chat/generate reject explicit streaming; submission disconnect preserves accepted work; unknown/other-caller IDs return 404; pending/result/failure/content-expiry map to 202/200/409/410; oversized successful result remains downloadable; signed download requires current authorization; cancellation/finish race preserves the winning terminal state |
@@ -140,8 +124,8 @@ On October 4, 2026:
 3. Used local Pydantic probes to confirm omitted-stream defaults, generate's default JSON format, chat extra-field dropping, and legacy embeddings' required `input`.
 4. Verified the installed `ollama==0.6.3` client's Edge path/Bearer-key construction using a mock HTTP transport in the earlier research pass.
 5. Used a local HTTP mock with one valid NDJSON chunk and no terminal `done`: the Python client iterator returned normally with `terminal_done=false`. Graceful EOF without a final result can therefore be silent; a real abrupt platform close may behave differently and must be tested.
-6. Consulted primary Supabase, Vercel, PostgreSQL, Celery and Ollama sources linked from the implementation and installation plans for runtime/resource limits, authentication, queue semantics, durable-notification tradeoffs and API behavior.
-7. Reviewed official Supabase OAuth/Management API/CLI and Vercel FastAPI/Deploy Button/Marketplace documentation for installation feasibility. The Management SQL endpoint is experimental; no button or hosted installer has been implemented or exercised.
+6. Consulted primary Supabase, PostgreSQL, Celery and Ollama sources linked from the implementation and installation plans for runtime/resource limits, authentication, queue semantics, durable-notification tradeoffs and API behavior.
+7. Reviewed official Supabase OAuth/Management API/CLI documentation for installation feasibility. The Management SQL endpoint is experimental; no button or hosted installer has been implemented or exercised.
 
 That list records the original research baseline. SQL migrations, Deno gateway,
 worker adapter and local fault/route tests were subsequently implemented; see the

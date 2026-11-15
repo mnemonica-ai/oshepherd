@@ -99,8 +99,29 @@ curl -X POST -H "Content-Type: application/json" -L http://127.0.0.1:5001/api/ge
   -d '{"model":"mistral","prompt":"Why is the sky blue?","stream":true}' --no-buffer
 ```
 
-Point any Ollama client at `http://<api-host>:5001`. The
-[README](../README.md#call-oshepherd) has Python, JavaScript and System One examples.
+Point an Ollama client at `http://<api-host>:5001`:
+
+```python
+from ollama import Client
+
+client = Client(host="http://127.0.0.1:5001")
+for chunk in client.generate(model="mistral", prompt="Say hello.", stream=True):
+    print(chunk.response or "", end="", flush=True)
+```
+
+For more examples, see [Python streaming](../examples/pretty_streaming.py) and
+[JavaScript/TypeScript](../examples/ts-scripts/README.md). System One uses
+`client.systemone()` with a compatible installed decision model such as `tev1:4b`.
+The [supported routes](../README.md#use-the-ollama-python-package) remain shared
+with the Supabase backend.
+
+From a development checkout, the Redis end-to-end tests need the API, Redis,
+worker and installed `mistral`, `embeddinggemma`, `tev1:4b` and `nimble:latest`
+models. With compatible models available:
+
+```sh
+uv run --locked pytest -s tests/test_e2e_api.py tests/test_e2e_streaming.py
+```
 
 ## Security
 

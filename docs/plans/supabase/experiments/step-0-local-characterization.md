@@ -141,9 +141,8 @@ the characterization slice.
 ## Not run and next work
 
 The submit/claim/append/read/finish spike, SQL concurrency/RLS tests, two
-identities, external worker, Edge Free/paid measurements, separate Vercel ASGI
-relay, real Ollama smoke, installer provider APIs, CLI migration/deploy and
-Marketplace permission tests are **not run**. No hosted credentials, target
+identities, external worker, Edge Free/paid measurements, real Ollama smoke,
+installer provider APIs and CLI migration/deploy tests are **not run**. No hosted credentials, target
 projects or cloud budget were assumed. Keep these gates open.
 
 Next: finalize RPC/idempotency/Auth/admission/output/async wire schemas; add an

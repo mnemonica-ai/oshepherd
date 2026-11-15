@@ -45,7 +45,7 @@ class OperatorConfig(BaseModel):
     publishable_key: SecretStr = Field(repr=False)
     secret_key: SecretStr = Field(repr=False)
     database_url: SecretStr | None = Field(default=None, repr=False)
-    profile: Literal["edge_free", "vercel_hobby"] = "edge_free"
+    profile: Literal["edge_free"] = "edge_free"
     gateway_url: str | None = None
     exposed_schemas: list[str] | None = None
     local_api_port: int = Field(default=55321, ge=1024, le=65535)
@@ -142,7 +142,7 @@ class Installation(BaseModel):
     v: Literal[1] = 1
     project_ref: str
     supabase_url: str
-    profile: Literal["edge_free", "vercel_hobby"]
+    profile: Literal["edge_free"]
     owner_subject: UUID
     cluster_id: UUID = Field(default_factory=uuid4)
     key_id: UUID = Field(default_factory=uuid4)
@@ -270,11 +270,7 @@ class Operator:
 
     def export_configuration(self, state):
         config = self.config
-        gateway = config.gateway_url or (
-            config.supabase_url + "/functions/v1/ollama"
-            if config.profile == "edge_free"
-            else None
-        )
+        gateway = config.gateway_url or config.supabase_url + "/functions/v1/ollama"
         write_private_json(
             self.directory / "client.json",
             {
@@ -290,12 +286,8 @@ class Operator:
             "SUPABASE_SCHEMA": "oshepherd_api",
             "OSHEPHERD_CLUSTER_ID": str(state.cluster_id),
             "OSHEPHERD_SYNC_SECONDS": "135",
-            "OSHEPHERD_GATEWAY_PROFILE": (
-                "vercel" if config.profile == "vercel_hobby" else "persistent"
-            ),
-            "OSHEPHERD_RESPONSE_BYTES": (
-                "4000000" if config.profile == "vercel_hobby" else "1048576"
-            ),
+            "OSHEPHERD_GATEWAY_PROFILE": "persistent",
+            "OSHEPHERD_RESPONSE_BYTES": "1048576",
         }
         write_private(
             self.directory / "gateway.env",

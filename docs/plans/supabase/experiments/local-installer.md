@@ -2,11 +2,11 @@
 
 Updated October 14, 2026. Candidate implementation; hosted OAuth/button onboarding is
 **not run**. No OAuth app/callback/hosting exists yet; the user chose local
-implementation and validation first. Both gateways remain experimental under
+implementation and validation first. Edge remains experimental under
 the existing disconnect contract.
 
-Actual Edge/Vercel adapter acceptance and reviewed live removal now pass; both
-test gateways are removed and their clusters disabled. See
+Actual Edge adapter acceptance and reviewed live removal pass; the test
+function is removed and its cluster disabled. See
 [independent acceptance](independent-acceptance.md) before reproducing hosted tests.
 
 The installer is a separate, single-operator FastAPI control service. The browser
@@ -21,8 +21,7 @@ task or a public multi-user installation portal.
 uv sync --locked --extra supabase --extra installer
 uv run --locked --extra installer pytest -q \
   tests/contracts/test_supabase_installer.py \
-  tests/contracts/test_supabase_edge_deployment.py \
-  tests/contracts/test_supabase_vercel_deployment.py
+  tests/contracts/test_supabase_edge_deployment.py
 ```
 
 Tests use actual ASGI requests/private journals and mocked official provider
@@ -76,13 +75,10 @@ does not install Ollama or download a model.
 uv run --locked oshepherd supabase deploy-edge \
   --connection-file <private-connection.json> --state-dir <owned-operator-dir> \
   --provider-file <private-supabase-provider.json>
-uv run --locked oshepherd supabase deploy-vercel \
-  --connection-file <private-connection.json> --state-dir <owned-operator-dir> \
-  --provider-file <private-vercel-provider.json> --wheel <verified-candidate.whl>
 ```
 
-Edge provider JSON has `organization_id` and `access_token`; Vercel JSON has
-`team_id`, `project_id`, `access_token`. Create them privately with mode 0600;
+Edge provider JSON has `organization_id` and `access_token`. Create it privately
+with mode 0600;
 never use token-valued command arguments or paste secrets into chat.
 
 Edge bundles verified packaged source without deployment, records the provider
@@ -91,26 +87,15 @@ Explicit `--adopt-existing` requires exact artifact, cluster-secret and health
 proof. Anonymous denial and authenticated health are checked separately.
 [Function deployment API](https://supabase.com/docs/reference/api/v1-deploy-a-function)
 
-Vercel verifies actual Hobby billing, project account binding and the verified
-gateway domain. A fresh verified wheel bundle receives eight encrypted,
-Production-only values through stdin. The CLI auth file stays outside uploads;
-exact team/project IDs override ambient bindings. Preview/shared-target collisions
-are refused; unrelated variables remain. Saved operation metadata reconciles an
-ambiguous deployment; a missing match requires investigation rather than a blind
-duplicate. READY and stable-domain authentication are independent checks.
-The approved isolated Hobby target passed actual preflight, encrypted Production
-configuration, a clean-wheel deployment, independent health/denial verification
-and a repeated call reusing the same deployment. Edge's Management adapter now
-passes actual exact CLI artifact adoption, upgrade and repeated reconciliation.
-Its source-relative upload paths match the official CLI's bundle hash; ownership
-checks remain strict. [Vercel CLI](https://vercel.com/docs/cli/deploy)
+The Management adapter passes actual exact artifact adoption, upgrade and
+repeated reconciliation. Source-relative upload paths match the official CLI's
+bundle hash; ownership checks remain strict.
 
-`plan-edge-removal` prints an owned-resource plan without mutation. Both adapters
-expose `removal_plan()` and `remove(expected_*_id, operator)` for a reviewed exact
-resource. Admission is disabled first; only the receipt-bound Edge function or
-Vercel deployment is removed. Shared schedules, data, environments/secrets,
+`plan-edge-removal` prints an owned-resource plan without mutation. The Edge adapter
+exposes `removal_plan()` and `remove(expected_*_id, operator)` for a reviewed exact
+resource. Admission is disabled first; only the receipt-bound Edge function is removed. Shared schedules, data, environments/secrets,
 other deployments and provider projects remain. Existing CLI `uninstall` remains
-cluster disablement. Reviewed hosted removal tests now pass on both providers,
+cluster disablement. Reviewed hosted removal tests pass on Edge,
 including recovery after simulated acknowledgement loss following actual
 deletion, repeated removal, and independent preservation checks. The
 [removal harness](independent-acceptance.md#actual-provider-adapter-and-removal-acceptance)
@@ -123,6 +108,5 @@ not a cross-service transaction.
 Real consent/refresh/revocation, HTTPS callbacks, fresh hosted/browser onboarding
 and a published pinned template/button remain unrun. The current packaged CLI
 browserless-worker lifecycle passes locally; it does not establish hosted browser
-acceptance. Marketplace access and
-installer hosting/service ownership are still prerequisites. These local tests
+acceptance. Installer hosting/service ownership and OAuth setup are still prerequisites. These local tests
 do not close hosted V16–V21 or justify publishing a placeholder button.

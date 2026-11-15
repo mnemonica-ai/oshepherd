@@ -4,12 +4,18 @@ setup(
     name="oshepherd",
     version="0.0.25a1",
     description="The Oshepherd guiding the Ollama(s) inference orchestration.",
-    long_description=open('README.md').read(),
-    long_description_content_type='text/markdown',
+    long_description=open("README.md").read(),
+    long_description_content_type="text/markdown",
     author="mnemonica.ai",
     author_email="info@mnemonica.ai",
     packages=find_packages(include=["oshepherd", "oshepherd.*"]),
-    package_data={"oshepherd.backends.supabase": ["release/manifest.json", "release/migrations/*.sql", "release/functions/ollama/*.ts", "release/templates/vercel/*", "release/templates/vercel/.vercelignore", "release/templates/vercel/.python-version"]},
+    package_data={
+        "oshepherd.backends.supabase": [
+            "release/manifest.json",
+            "release/migrations/*.sql",
+            "release/functions/ollama/*.ts",
+        ]
+    },
     python_requires=">=3.12",
     install_requires=[
         "uvicorn",
@@ -24,24 +30,11 @@ setup(
         "requests",
     ],
     extras_require={
-        'installer': ["cryptography==50.0.2"],
-        'supabase': ["httpx==0.28.1", "ollama==0.6.3"],
-        'dev': [
-            "pytest",
-            "httpx",
-            "jsonschema==4.23.0",
-            "black",
-            "build",
-            "twine"
-        ],
-        'tests': [
-            "pytest",
-            "httpx",
-            "jsonschema==4.23.0"
-        ],
-        'lint': [
-            "black"
-        ]
+        "installer": ["cryptography==50.0.2"],
+        "supabase": ["httpx==0.28.1", "ollama==0.6.3"],
+        "dev": ["pytest", "httpx", "jsonschema==4.23.0", "black", "build", "twine"],
+        "tests": ["pytest", "httpx", "jsonschema==4.23.0"],
+        "lint": ["black"],
     },
     entry_points={
         "console_scripts": [

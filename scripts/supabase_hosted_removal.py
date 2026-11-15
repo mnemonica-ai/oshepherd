@@ -20,7 +20,6 @@ from oshepherd.backends.supabase.private_files import (
     write_private_json,
 )
 from oshepherd.backends.supabase.releases import Database, OperatorError
-from oshepherd.backends.supabase.vercel_deployment import VercelDeployment, VercelTarget
 
 
 async def run(args):
@@ -29,24 +28,17 @@ async def run(args):
     operator = Operator(config, args.state_dir)
     provider = None
     results = {"hosted_qualified": False, "provider": args.provider}
-    if args.provider == "edge":
-        values = read_private_json(args.provider_file)
-        if set(values) != {"organization_id", "access_token"} or not all(
-            isinstance(value, str) and value for value in values.values()
-        ):
-            raise OperatorError("invalid_provider_configuration")
-        provider = SupabaseManagement(values["access_token"])
-        adapter = EdgeDeployment(
-            provider, config, args.state_dir, values["organization_id"]
-        )
-        identifier_field, expected_field = "function_id", "expected_function_id"
-        ambiguous = "provider_outcome_ambiguous"
-    else:
-        adapter = VercelDeployment(
-            VercelTarget.load(args.provider_file), config, args.state_dir
-        )
-        identifier_field, expected_field = "deployment_id", "expected_deployment_id"
-        ambiguous = "vercel_removal_outcome_ambiguous"
+    values = read_private_json(args.provider_file)
+    if set(values) != {"organization_id", "access_token"} or not all(
+        isinstance(value, str) and value for value in values.values()
+    ):
+        raise OperatorError("invalid_provider_configuration")
+    provider = SupabaseManagement(values["access_token"])
+    adapter = EdgeDeployment(
+        provider, config, args.state_dir, values["organization_id"]
+    )
+    identifier_field, expected_field = "function_id", "expected_function_id"
+    ambiguous = "provider_outcome_ambiguous"
     try:
         plan = await adapter.removal_plan()
         results["plan"] = plan
@@ -80,28 +72,16 @@ async def run(args):
             raise OperatorError("removal_requires_idle_disposable_installation")
         results["before"] = before
         if args.simulate_ack_loss:
-            if provider:
-                original = provider.request
+            original = provider.request
 
-                async def edge_request(method, path, **kwargs):
-                    value = await original(method, path, **kwargs)
-                    if method == "DELETE" and not results.get("delete_ack_discarded"):
-                        results["delete_ack_discarded"] = True
-                        raise OperatorError(ambiguous)
-                    return value
+            async def edge_request(method, path, **kwargs):
+                value = await original(method, path, **kwargs)
+                if method == "DELETE" and not results.get("delete_ack_discarded"):
+                    results["delete_ack_discarded"] = True
+                    raise OperatorError(ambiguous)
+                return value
 
-                provider.request = edge_request
-            else:
-                original = adapter.request
-
-                async def vercel_request(path, *, method="GET", **params):
-                    value = await original(path, method=method, **params)
-                    if method == "DELETE" and not results.get("delete_ack_discarded"):
-                        results["delete_ack_discarded"] = True
-                        raise OperatorError(ambiguous)
-                    return value
-
-                adapter.request = vercel_request
+            provider.request = edge_request
             try:
                 await adapter.remove(
                     **{expected_field: plan[identifier_field]}, operator=operator
@@ -138,7 +118,7 @@ async def run(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--provider", choices=("edge", "vercel"), required=True)
+    parser.add_argument("--provider", choices=("edge",), required=True)
     for name in (
         "connection-file",
         "state-dir",

@@ -1,7 +1,6 @@
 """Offline release integrity, credential isolation and operator boundaries."""
 
 import hashlib
-from fnmatch import fnmatchcase
 from pathlib import Path
 from types import SimpleNamespace
 from uuid import uuid4
@@ -29,26 +28,10 @@ from oshepherd.backends.supabase.releases import (
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def test_vercel_upload_policy_excludes_environment_variants_and_worker_state():
-    assets, _ = release_assets()
-    rules = assets.joinpath("templates/vercel/.vercelignore").read_text().splitlines()
-    for name in (
-        ".env",
-        ".env.local",
-        ".env.production",
-        ".env.development.local",
-        "gateway.env",
-        "local.worker-session.json",
-    ):
-        assert any(fnmatchcase(name, rule) for rule in rules)
-    for name in ("app.py", "vercel.json", "uv.lock", "runtime-requirements.txt"):
-        assert not any(fnmatchcase(name, rule) for rule in rules)
-
-
 def test_packaged_release_matches_checked_in_immutable_artifacts():
     assets, manifest = release_assets()
     assert manifest["profiles"]["edge_free"]["qualified"] is False
-    assert manifest["profiles"]["vercel_hobby"]["qualified"] is False
+    assert set(manifest["profiles"]) == {"edge_free"}
     for entry in manifest["migrations"]:
         source = (ROOT / "supabase" / entry["path"]).read_bytes()
         assert source == assets.joinpath(entry["path"]).read_bytes()
@@ -279,7 +262,6 @@ def test_cli_help_exposes_operator_workflow_without_backend_initialization():
         "revoke-worker",
         "uninstall",
         "export-bundle",
-        "export-vercel",
     ):
         assert command in result.output
 

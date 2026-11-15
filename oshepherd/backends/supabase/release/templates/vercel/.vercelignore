@@ -1,6 +1,0 @@
-.env*
-*.env
-.venv
-.oshepherd
-__pycache__
-*.worker-session.json

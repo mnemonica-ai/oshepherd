@@ -206,17 +206,11 @@ The API factory acquires no network resources on construction. HTTP clients and
 cursor readers belong to each request/stream and close after response or
 disconnect. No permanent collector, migration, reaper or essential post-response
 task runs inside the gateway. Authenticated responses use private/no-store caching.
-`create_vercel_app()` adds explicit backend/profile and preview-default-denial
-checks without Uvicorn or signal setup. A wheel-backed candidate deployment
-template now passes clean-cache local installation/import checks; see the
-[operator runbook](operator-lifecycle.md). Subsequent hosted Vercel checks pass
-inference/routes/downloads and measured application deadlines, but fail reader
-disconnect cancellation; see the [hosted report](hosted-qualification.md).
-
-Both profiles currently honor the experimental SQL maximum of 135 seconds;
-larger planned persistent/Vercel budgets are not implemented or advertised.
-The JSON/stream response cap defaults to 1 MiB; Vercel configuration cannot
-exceed 4,000,000 bytes. Async successful content can still use private downloads.
+The Python gateway is a separate persistent option using the same broker; see
+[operator setup](operator-lifecycle.md). Edge and persistent FastAPI currently
+honor the experimental SQL maximum of 135 seconds. Larger persistent budgets
+remain unimplemented. The JSON/stream response cap defaults to 1 MiB; async
+successful content can use private downloads.
 
 ## Private result follow-up
 

@@ -159,9 +159,7 @@ async def check_envelope(client, app, worker, config, state, url, headers, resul
                 await request(
                     "request_" + str(size), scenario, size=size, expected_status=413
                 )
-            response_limit = (
-                4000000 if config.profile == "vercel_hobby" else REQUEST_LIMIT
-            )
+            response_limit = REQUEST_LIMIT
             # Includes inline->Storage transition and the exact response budget.
             for size in (65536, 262144, response_limit):
                 scenario, expected = output_fixture(size)
@@ -182,7 +180,7 @@ async def check_envelope(client, app, worker, config, state, url, headers, resul
             expected_line = record_bytes(
                 OllamaExecutor.normalized_record("generate", record)
             )
-            total = 96 if config.profile == "vercel_hobby" else 24
+            total = 24
             app.overrides["/api/generate"] = Scenario(
                 (raw,) * total + scenario.chunks,
                 content_type="application/x-ndjson",

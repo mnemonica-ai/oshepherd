@@ -41,5 +41,5 @@ uv run --locked python -m scripts.inspect_edge_runtime
 ```
 
 Runtime source and logs remain private under `.oshepherd/local`. The inspection
-prints only image, digest, byte size and structural counts. Hosted Free/Hobby
+prints only image, digest, byte size and structural counts. Hosted Supabase Free
 limits, downstream disconnect propagation, soak and measured load/cost remain open.
