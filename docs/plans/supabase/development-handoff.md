@@ -1,39 +1,43 @@
 # Supabase development handoff
 
-Updated November 15, 2026. Work on branch `supabase`. Supabase is the primary
-broker and Edge is the main gateway; Redis remains a supported legacy backend.
-The candidate is experimental, unpublished and not production-qualified.
+Updated November 22, 2026. Work on branch `supabase`. Use the
+[documentation index](../../README.md) for user instructions, the
+[progress ledger](progress.md) for dated results, and [next steps](next-steps.md)
+for remaining work. Supabase is primary; Redis is supported. The candidate is
+experimental and unpublished.
 
 ## Start here
 
-Read the [walkthrough](../../supabase-walkthrough.md),
-[progress ledger](progress.md) and [remaining plan](next-steps.md). The current
-milestone is local CLI setup and the existing Ollama endpoint set. Publication,
-API expansion and hosted OAuth are deferred.
-
 ```sh
-uv sync --locked --extra supabase
+uv sync --locked --extra supabase --extra installer
 uv run --locked pytest -q tests/contracts tests/test_systemone.py
-uv run --locked python -m scripts.supabase_local_acceptance \
-  --work-dir "$PWD/.oshepherd/local/new-handoff-run" --decision-model tev1:4b
 ```
 
-The last command requires Docker, Supabase CLI 2.116.0, `psql`, Ollama and already
-installed text/embedding/decision models. Omit the decision flag if that model is
-not installed, and do not claim System One acceptance for that run. It creates
-and removes its own stack. Never reset unrelated containers or edit applied SQL.
+For live Docker/Ollama validation, follow the [disposable acceptance runbook](../../setup-supabase-local.md).
+It requires a fresh work directory, Docker, pinned Supabase CLI, `psql` and
+installed models. The [manual local walkthrough](../../supabase-walkthrough.md)
+is the path for a persistent database with Studio. Neither workflow requires
+publication. Do not reset unrelated containers or edit applied migrations.
+
+## Source map
+
+| Area | Location |
+| --- | --- |
+| CLI onboarding and operator lifecycle | `oshepherd/backends/supabase/` (`share_cli.py`, `join_cli.py`, `client_cli.py`, `operator.py`) |
+| Worker execution and local logs | `worker.py`, `startup.py`, `worker_logging.py` in that package |
+| Packaged SQL and release metadata | `oshepherd/backends/supabase/release/` |
+| Edge source and development SQL | `supabase/functions/ollama/`, `supabase/migrations/` |
+| Shared inference execution | `oshepherd/worker/executor.py` |
+| Wire contracts and deterministic fixtures | `protocol/` |
+| Offline checks and real-service integration | `tests/contracts/`, `tests/integration/supabase/` |
 
 ## What works
 
-Fresh local database installation, repeat owner/bootstrap, real Edge SDK calls,
-second local Ollama server invitation/join and restart passed. Both servers ran
-on the same host; the harness verified routing to the joined worker by stopping
-the primary worker. Real `tev1:4b` passed after an authorized model refresh.
-Legacy embeddings accepts `prompt`; decision-capable models advertise System One.
-
-The hosted wizard implements project/organization creation/selection, Free-plan
-checks, Management SQL, owner setup and Edge deployment. Local service testing
-covers launchd and systemd. Fresh live hosted wizard acceptance remains open.
+The candidate includes hosted create/select setup through the Management API,
+local Docker bootstrap, worker invite/join and saved-session restart, named client
+keys, private rotating worker logs, cleanup and optional user services. Redis
+retains its existing commands. Implementation is distinct from provider and
+resource qualification; consult the ledger before making a validation claim.
 
 ## Contracts to preserve
 
@@ -53,20 +57,16 @@ covers launchd and systemd. Fresh live hosted wizard acceptance remains open.
 
 ## Evidence and next work
 
-The focused branch has 545 passing offline Python tests after removing the
-separate hosting adapter. Earlier Edge evidence has 50 Deno passes and three
-selected local integration passes. Fresh real-model acceptance has 13 checks
-per primary/joined/restarted stage in the earlier run. The latest two reruns
-failed at the joined worker with Edge CPU-limit responses 503/546, while first-worker
-inference and cleanup passed. Diagnose that resource gate before claiming a new
-full acceptance pass. Reports are private and ignored; consult the
-ledger for their locations and the dates/scope of older hosted measurements.
+The [latest offline verification](progress.md#november-22-offline-verification)
+records the source revision and test count. Earlier real-model, installed-wheel
+and hosted runs are dated separately in the ledger. Do not reuse a historical
+pass as acceptance for a new source revision, or interpret a manual smoke test
+as completion of the full matrix.
 
-Next validate a physical second machine and the full fresh hosted wizard on a
-new explicitly selected disposable installation. Earlier hosted clusters were
-disabled and their reviewed gateway removed. Wider resource/cost qualification
-and reliable Edge cancellation remain open. Local wheel testing requires no
-PyPI release. Hosted OAuth needs separate app/callback/host prerequisites.
+The [remaining plan](next-steps.md) covers Edge CPU limits and cancellation,
+physical second-machine validation, hosted lifecycle coverage and resource/cost
+measurements. Public distribution and hosted browser authentication are later
+work. Test locally built wheels using [candidate installation](../../install.md#install-the-0025a1-candidate).
 
 ## Protocol contracts to preserve and audit
 
@@ -88,10 +88,7 @@ Choose conservative finite defaults for currently unspecified tuning values and 
 
 ## Async v1 policy
 
-Async jobs cover the non-streamed inference operations already supported by the worker: `/api/generate`, `/api/chat`, `/api/embeddings` and `/v1/systemone`. Metadata routes do not create jobs. For chat/generate, omitted `stream` means false and explicit `stream=true` is rejected with 422 before admission; asynchronous stream replay is outside the initial contract. System One retains its existing always-non-streamed normalization, including ignored extra `stream` values.
-
-`POST /jobs` returns 202 with job ID and status location. Job ownership is tied to the authenticated caller scope, not knowledge of the ID. `GET /jobs/{id}` returns 200 with the durable state even when inference failed. Unknown or other-caller IDs return 404 after authentication, without disclosing ownership. Result retrieval returns 202 while queued/running, 200 for a retained successful result, 409 with a stable error code for failed/cancelled/execution-expired work, and 410 when retained result content has expired. Content-expiry tombstones must last for the advertised retrieval/idempotency window; after their documented expiry, 404 is permissible.
-
-The default successful result is the operation's original JSON, with the requesting gateway's response-size limit enforced before writing headers. If a completed result exceeds that limit, return a documented `result_too_large` error (413) and leave the job successful and downloadable; do not rerun inference. Explicit download mode returns a small JSON descriptor with a short-lived signed URL, size, checksum, content type and expiry. Generate URLs only after authorization, never persist them as the durable result reference, and explain that they are bearer credentials.
-
-Submission disconnect does not cancel an accepted async job. Idempotency keys recover ambiguous submission outcomes. Cancellation is idempotent and races atomically with finish: a winning terminal state cannot be overwritten. Async jobs retain the same capacity, attempt fencing, retry and execution-deadline rules as synchronous jobs, without a consumer lease.
+The canonical policy is in the [Supabase protocol](../../../protocol/supabase/v1/README.md#output-state-and-async-api).
+It defines admission, request/response schemas, ownership, result/download
+statuses, retained content and cancellation. Keep V22 in the
+[compatibility matrix](compatibility.md) aligned with that contract.

@@ -1,5 +1,9 @@
 # Local worker recovery and control evidence
 
+> Dated evidence. Results and feature gaps below describe the recorded revision.
+> See the [progress ledger](../progress.md) for current status and the
+> [documentation index](../../../README.md) for current user instructions.
+
 Verified October 10, 2026 against the isolated local Supabase stack. These are
 deterministic lifecycle checks, not hosted load qualification or a long-running soak.
 

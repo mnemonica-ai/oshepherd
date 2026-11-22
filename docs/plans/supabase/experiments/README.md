@@ -1,15 +1,38 @@
 # Supabase implementation experiments
 
-Experimental harnesses and redacted evidence live here. Each report distinguishes
-service-free characterization, local Supabase integration and hosted measurements.
-Passing one does not establish another.
+These pages retain detailed procedures and measurements from different source
+revisions. They are developer material, not alternative end-user setup guides.
+Start with the [documentation index](../../../README.md) for current instructions.
+The [progress ledger](../progress.md) owns validation status and
+[next steps](../next-steps.md) owns remaining work.
 
-- [Step 0 local characterization](step-0-local-characterization.md): route and
-  worker fixtures plus controllable fake Ollama, October 4, 2026.
-- [Local Edge lifecycle](local-edge-lifecycle.md): real SQL/Auth/Edge/external
-  worker and local-model verification, including the failing disconnect gate.
-- [Local maintenance](local-maintenance.md): durable deletion recovery, orphan
-  isolation, bounded SQL purge and actual database Cron, October 6, 2026.
+## Runbooks
+
+| Document | Scope |
+| --- | --- |
+| [Local Edge lifecycle](local-edge-lifecycle.md) | Development spike harness, real transport checks and strict disconnect regression |
+| [Operator lifecycle](operator-lifecycle.md) | Versioned install, upgrade, rotation, revocation and removal |
+| [Candidate distribution](distribution.md) | Local artifact verification and explicitly gated publication infrastructure |
+| [Local installer](local-installer.md) | Separate OAuth/control-service development; hosted browser acceptance is pending |
+
+For automated fresh-stack acceptance, use the [disposable local runbook](../../../setup-supabase-local.md).
+A runbook may include dated results; rerunning its commands does not inherit those results.
+
+## Dated evidence
+
+| Report | Original scope/date |
+| --- | --- |
+| [Step 0 characterization](step-0-local-characterization.md) | Legacy route and worker fixtures, October 4 |
+| [Local maintenance](local-maintenance.md) | Deletion recovery, orphan isolation and Cron, October 6 |
+| [Worker recovery](worker-recovery.md) | Independent control, Auth refresh and fencing, October 10 |
+| [Disconnect signals](disconnect-signals.md) | Edge abort timing investigation, October 11 |
+| [Hosted qualification](hosted-qualification.md) | Bounded hosted measurements, October |
+| [Independent acceptance](independent-acceptance.md) | Hosted size boundaries, installed wheel and provider removal, October 14 |
+| [CLI onboarding](cli-onboarding.md) | First implementation and later October 31 acceptance |
+
+Historical hosted qualification targets were retired. Their credentials and
+receipts are not current test inputs. Statements about missing features in an
+old report describe that revision, not the latest implementation.
 
 ## Controllable Ollama upstream
 
@@ -57,16 +80,14 @@ responses; these tests do **not** measure network first-byte latency, actual
 wall-clock silence, socket disconnects, Edge CPU limits. Run the
 service over real HTTP in the subsequent relay harness for those measurements.
 
-## Outstanding step 0 experiments
+## Running new experiments
 
-Local SQL/Auth/Edge/external-worker lifecycle, two-identity isolation, optional
-FastAPI and maintenance harnesses now exist; see their reports above. Still
-required: hosted Edge limits, full load/adversarial matrices, release
-release artifacts and installer API/CLI capability probes. Spike SQL stays
-outside production migration history; local success does not qualify a release.
+Use the [remaining plan](../next-steps.md) to select the next gate. Keep offline,
+local integration and hosted evidence separate. Record the source revision,
+runtime versions, configured limits, actual payload/output bytes, timings,
+terminal markers, failures, resource measurements and scoped cleanup.
 
-Hosted experiments need explicitly selected isolated projects, plans/regions,
-authorized credentials and a budget. Record actual payload/output bytes,
-timings, terminal markers, failures, runtime versions, configured limits,
-CPU/memory where available, resource IDs and scoped cleanup. Never include
-credentials, prompts from real users or model files in evidence.
+Hosted experiments need an explicitly selected isolated target and credentials.
+Keep private reports under ignored state directories; never put credentials,
+real-user prompts or model files in checked-in evidence. A historical passing
+experiment does not qualify a newer release.

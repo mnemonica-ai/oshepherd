@@ -158,34 +158,13 @@ URL and headers with Ollama's `AsyncClient` for asynchronous Python calls.
 
 ### Send requests from a remote script
 
-For the full create, transfer, test and revoke flow, follow the
-[client onboarding walkthrough](supabase-client-walkthrough.md). To add another
-machine that serves inference, use the [worker onboarding walkthrough](supabase-worker-walkthrough.md).
+Follow the [client onboarding walkthrough](supabase-client-walkthrough.md) to
+create a named key, transfer it, send requests, and revoke it independently.
+Use this installation's `.oshepherd/cloud/first-run` state directory. Transfer
+only the exported client file; the operator state stays on this machine.
 
-On the installation host, issue a separate key using the directory from step 3.
-
-```sh
-uv run --locked oshepherd client create --state-dir .oshepherd/cloud/first-run \
-  --name remote-script --output remote-client.json
-uv run --locked oshepherd client list --state-dir .oshepherd/cloud/first-run
-```
-
-The commands use the `connection.json` in that state directory. Copy only
-`remote-client.json` to the consuming machine over a private channel, keep it
-at mode `0600`, and update the Python example to read it there. The remote
-script uses the hosted HTTPS gateway while the worker in Terminal 1 serves
-requests. Use `oshepherd invite` and `oshepherd join` when adding another Ollama
-worker to serve inference.
-
-When the script no longer needs access, revoke its key from the installation host.
-
-```sh
-uv run --locked oshepherd client revoke --state-dir .oshepherd/cloud/first-run \
-  --name remote-script
-```
-
-This blocks subsequent authenticated calls from that client. Choose a new
-name if you need to issue a replacement key.
+To add a machine that serves inference, follow the separate
+[worker onboarding walkthrough](supabase-worker-walkthrough.md).
 
 ## 5. Inspect the cloud database
 

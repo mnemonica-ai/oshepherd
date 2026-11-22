@@ -5,6 +5,12 @@ remains a legacy option. PyPI publication is outside the current milestone.
 
 ## Completed local milestone
 
+The delivered onboarding surface now also includes named client credentials and
+worker lifecycle logs. The user reported successful local/cloud setup,
+remote-client onboarding and use of the logging changes on November 22. See the
+[ledger](progress.md#november-22-manual-walkthrough-feedback) for the scope of
+that feedback and [offline verification](progress.md#november-22-offline-verification).
+
 A fresh Docker Supabase database is installed through the CLI, with no spike SQL
 preloaded. The Edge gateway routes official Ollama Python requests to real local
 Ollama. `invite` and `join` onboard a second server; the first worker is stopped
@@ -35,7 +41,8 @@ joined and restarted stages after a justified fix, with real System One included
 
 Use a reachable installation and a fresh private invitation. Install a locally
 built candidate wheel on a second machine, run Ollama there, join it and prove
-that it handles real inference when the first worker is unavailable. Restart it
+that it handles real inference using a model served only by the second worker,
+while keeping the operator's cleanup running. Restart it
 without the invitation and verify its saved restricted session. Confirm that
 no operator credentials were transferred.
 
@@ -46,7 +53,8 @@ rewrite invitation bindings as a workaround.
 
 ## 2. Complete fresh hosted setup acceptance
 
-The wizard implements organization/project creation and selection, Free-plan
+The manual cloud walkthrough has user-reported success; this step is the broader
+repeatable acceptance matrix. The wizard implements organization/project creation and selection, Free-plan
 checks, durable reconciliation after uncertain creation, Management SQL setup,
 Edge deployment and owner/worker enrollment. It needs a full run on a newly
 selected disposable hosted project. Local container tests do not prove the live

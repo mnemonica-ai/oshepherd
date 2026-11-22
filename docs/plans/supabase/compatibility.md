@@ -1,19 +1,16 @@
 # Supabase backend: compatibility and verification matrix
 
-Companion to the [implementation plan](implementation.md), inspected October 4, 2026. This is a specification and implementation test checklist. Unless explicitly marked as locally verified below, acceptance tests are **planned**, not passing or implemented.
+Companion to the [implementation plan](implementation.md), originally inspected
+October 4 and reconciled November 22, 2026. C01–C19 describe compatibility
+requirements and V01–V22 define acceptance gates; a row is not itself proof that
+a gate passed. Current and historical results belong in the
+[progress ledger](progress.md).
 
-Current evidence is in the [progress ledger](progress.md), updated November 15,
-2026. Fresh local Docker installation, real Ollama Python calls and second local
-server onboarding/restart pass, including System One. Historical hosted Edge
-checks cover real inference, routes, NDJSON, private downloads, bounded load,
-Auth refresh/recovery and size limits. The reviewed hosted function was removed
-and its cluster disabled; those credentials are not reusable.
-
-The strict local and hosted Edge reader-disconnect checks remain failing. This
-matrix remains an acceptance specification: full provider/resource ceilings,
-JavaScript SDK parity, wider cost/performance, physical second-machine tests,
-fresh hosted wizard and browser/OAuth onboarding remain unverified. Public
-publication is deferred. Follow [next steps](next-steps.md).
+The candidate has offline, local and bounded hosted evidence, plus successful
+user-reported local/cloud and remote-client tests. The complete provider/resource
+matrix, JavaScript SDK parity and physical second-machine acceptance remain
+open. Edge reader-disconnect cancellation is still a failing gate. Follow
+[next steps](next-steps.md) for the current work order.
 
 ## Product contract
 
@@ -40,13 +37,13 @@ Compatibility concerns in the current baseline must be explicit:
 - Chat Pydantic models drop tools and image fields; tool roles and object JSON schemas are not supported by the current schema. Do not count silently dropped fields as successful support. Broader support needs a versioned change and tests across both backends/gateways.
 - Generate/chat omitted-stream behavior differs from upstream Ollama's HTTP streaming default. Preserve Oshepherd behavior during backend introduction; publish any later change.
 - System One has tested error conventions: invalid top-level input is 422 before queueing; publish/result/upstream failures map to 500 with `error: "Internal Server Error"` and a message. Preserve these for existing failure categories. New platform/admission/auth errors have their own documented statuses.
-- Chat/generate/embeddings validation occurs inside request handlers and their error behavior is not comprehensively tested. Capture it in characterization fixtures; do not assume all invalid requests currently yield 422. Fix inconsistent validation deliberately in the shared contract rather than recreate an accidental unhandled exception in Deno.
+- Legacy chat/generate/embeddings validation occurs inside request handlers. Characterization fixtures record their existing error behavior; Supabase validates before admission and returns 422. Preserve that explicit compatibility difference rather than reproducing legacy unhandled exceptions in Deno.
 - Legacy embeddings accepts Oshepherd's `input` and, since the November 15 local
   acceptance slice, the Python SDK's `prompt` alias on both backends and Edge.
   `input` wins when both are supplied; queue payloads remain canonical `input`.
   `/api/embed` remains new functionality outside the current endpoint scope.
 - Trailing-slash requests are used in existing e2e tests. Preserve successful client behavior with a method/body-preserving redirect or direct path normalization, including behind the Edge prefix.
-- Current FastAPI app does not configure CORS or application-key auth. Browser CORS and Supabase API keys are additions, not claims about existing protection. Restrict configured browser origins; never publish an operator key in a public frontend.
+- The legacy Redis FastAPI app does not configure CORS or application-key auth. Browser CORS and Supabase API keys are additions, not claims about existing protection. Restrict configured browser origins; never publish an operator key in a public frontend.
 
 ## Operational properties
 
@@ -88,21 +85,22 @@ Compatibility concerns in the current baseline must be explicit:
 | V19: retired | Historical hosting-specific gate is outside this branch; remaining gate IDs are preserved for existing evidence links. |
 | V20: environments and lifecycle | Preview has no production credentials or worker access; redeploy does not migrate; additive upgrade with old worker, failed deploy, gateway rollback and credential rotation. Uninstall disables owned runtime resources without deleting unrelated data or provider projects |
 | V21: first inference and support | Operator onboards a browserless worker without admin credentials, SMTP setup or existing Redis; local Ollama/model issues diagnosed; gateway JSON and terminal NDJSON succeed. Separate setup/inference timing; doctor redacts secrets/prompts; paused project/quota/auth failures produce actionable recovery |
-| V22: async contract | Follow the handoff's async v1 policy: chat/generate reject explicit streaming; submission disconnect preserves accepted work; unknown/other-caller IDs return 404; pending/result/failure/content-expiry map to 202/200/409/410; oversized successful result remains downloadable; signed download requires current authorization; cancellation/finish race preserves the winning terminal state |
+| V22: async contract | Follow the [async v1 protocol](../../../protocol/supabase/v1/README.md#output-state-and-async-api): chat/generate reject explicit streaming; submission disconnect preserves accepted work; unknown/other-caller IDs return 404; pending/result/failure/content-expiry map to 202/200/409/410; oversized successful result remains downloadable; signed download requires current authorization; cancellation/finish race preserves the winning terminal state |
 
 A gateway can enforce a smaller workload envelope, but every supported route must pass its relevant contract and explicit-limit cases. Edge-only runtime tests cannot prove FastAPI behavior; a passing FastAPI test cannot establish hosted Edge support.
 
 ## Existing tests: what they prove and miss
 
-- [`tests/test_systemone.py`](../../../tests/test_systemone.py) is the only focused service-free suite. It verifies validation/passthrough, official Python client state types, worker request behavior, error mapping, and Celery thread affinity. Reuse these assertions with backend injection; retain the thread-specific test for the Redis adapter.
+- [`tests/contracts/`](../../../tests/contracts/) covers deterministic Redis/Supabase routes, transport, onboarding, operator recovery, named clients and logging. [`tests/test_systemone.py`](../../../tests/test_systemone.py) also preserves System One validation, SDK payloads and Celery thread affinity. Offline tests do not prove live provider behavior.
 - [`tests/test_e2e_api.py`](../../../tests/test_e2e_api.py) uses a hardcoded FastAPI host and live models. Its `test_basic_embeddings_using_ollama` calls **local Ollama directly**, so it does not establish Oshepherd embedding parity. Its raw `/api/show` assertion uses the current nested wrapper, while the SDK assertion expects upstream top-level fields; characterize this inconsistency instead of claiming both pass.
 - [`tests/test_e2e_streaming.py`](../../../tests/test_e2e_streaming.py) checks chat/generate output and `done` markers with live models, bounded to 128 output tokens. It does not exercise lost messages, reconnects, long lifetimes, large results or concurrent claims.
-- The existing [release workflow](../../../.github/workflows/bump-and-release.yaml) is not a backend compatibility pipeline. Add deliberate CI jobs for deterministic tests, migration/RPC/policy integration, and separately gated hosted/live-model suites. Do not turn credential absence into a silent passing hosted test.
+- The [contract workflow](../../../.github/workflows/contract-tests.yaml) and [candidate workflow](../../../.github/workflows/candidate-release.yaml) are separate from the [legacy release workflow](../../../.github/workflows/bump-and-release.yaml). Live integration and hosted/model acceptance require their own configured services; credential absence must not be reported as a passing hosted test.
 
 Available deterministic and isolated local commands:
 
 ```sh
 # Service-free characterization and operator contracts.
+uv sync --locked --extra supabase --extra installer
 uv run --locked pytest -q tests/contracts tests/test_systemone.py
 
 # Real isolated local stack; retains the known strict disconnect failure.

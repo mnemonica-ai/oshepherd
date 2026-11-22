@@ -50,8 +50,7 @@ uv run --locked oshepherd share \
 Run this from the repository root. Choose a new dedicated test project in the
 wizard below. Do not pass the local `--connection-file`. Your hosted client
 configuration will be `.oshepherd/cloud/first-run/client.json`; use that path
-in the Python example instead of the default path shown below. Keep this state
-directory and repeat the same command to resume or recover an interrupted setup.
+with the linked Python example below. Keep this state directory and repeat the same command to resume or recover an interrupted setup.
 Pass the same state directory to later operator commands such as `invite`.
 
 ## 1. Share this machine
@@ -98,112 +97,32 @@ a second, separate installation, pass a different `--state-dir`.
 
 ## 2. Send a request
 
-`client.json` holds the gateway URL and an application key. Keep it private;
-anyone with the key can use your workers. Every request needs the key as a bearer
-token.
+Use the Python example in [cloud walkthrough step 4](supabase-cloud-walkthrough.md#4-send-requests-through-the-hosted-gateway).
+If you used the default `share` state directory, read
+`~/.local/state/oshepherd/share/client.json` instead of the walkthrough's path.
+The file supplies the gateway URL and application bearer key.
 
-```python
-import json
-from pathlib import Path
-
-import ollama
-
-config = json.loads(
-    (Path.home() / ".local/state/oshepherd/share/client.json").read_text()
-)
-client = ollama.Client(
-    host=config["gateway_url"],
-    headers={"Authorization": "Bearer " + config["application_key"]},
-)
-print(client.generate(model="llama3.2:3b", prompt="Why is the sky blue?")["response"])
-```
-
-Or with curl:
-
-```sh
-CLIENT=~/.local/state/oshepherd/share/client.json
-curl "$(jq -r .gateway_url "$CLIENT")/api/generate" \
-  -H "Authorization: Bearer $(jq -r .application_key "$CLIENT")" \
-  -H "Content-Type: application/json" \
-  -d '{"model":"llama3.2:3b","prompt":"Why is the sky blue?","stream":false}'
-```
-
-The gateway serves generate, chat, embeddings, System One, tags, ps, show and
-version. Use a model your workers actually have.
-
-**Limits:**
-
-- Each request has a 135-second budget.
-- Request bodies and Edge response bodies are each capped at 1 MiB. For larger or
-  longer jobs, use the asynchronous `/jobs` endpoint, which stores results of up
-  to 32 MiB for you to download.
-- Your Supabase Free plan limits also apply.
+See the [supported routes](../README.md#use-the-ollama-python-package) and
+[protocol limits](../protocol/supabase/v1/README.md#finite-experimental-limits).
+The synchronous budget is 135 seconds; larger or longer work uses the separate
+asynchronous `/jobs` flow.
 
 ## 3. Give another application access
 
-For a complete example, follow the [client onboarding walkthrough](supabase-client-walkthrough.md).
-
-On the installation host, create a separate application key for each script or
-service that sends requests to the gateway.
-
-```sh
-oshepherd client create --name remote-script --output remote-client.json
-oshepherd client list
-```
-
-These commands use the default `share` state directory. If you started `share`
-with `--state-dir`, pass the same option to each client command. The commands
-read `connection.json` in that directory unless you supply
-`--connection-file` explicitly.
-
-Transfer `remote-client.json` privately to the consuming machine and keep it
-at mode `0600`. Point the Python example above at that file. It carries the
-HTTPS gateway URL and a bearer key. Keep the installation state and its
-operator credentials on the installation host, and keep the export out of
-version control.
-
-```sh
-oshepherd client revoke --name remote-script
-```
-
-Revocation blocks subsequent authenticated requests made with that client's
-key. Other clients and the installation's `client.json` keep their keys.
-`client list` shows the names, key IDs and recorded status in the selected
-local state. If creation is interrupted, repeat the command with the same
-name and output. You can export an active client's existing key to a fresh
-file by using the same name. Choose a new name after revocation.
+The [client onboarding walkthrough](supabase-client-walkthrough.md) covers the
+create/list/revoke commands, credential transfer, Python example and recovery
+steps. Give each consuming application its own named key. Pass the same
+`--state-dir` used for `share`, or omit it for the default directory.
 
 ## 4. Add another inference worker
 
-For a complete example, follow the [worker onboarding walkthrough](supabase-worker-walkthrough.md).
+The [worker onboarding walkthrough](supabase-worker-walkthrough.md) covers the
+invite/join commands, private file transfer, verification, restart and invitation
+renewal steps. Every worker gets its own restricted session. It does not use a
+client application key or need the operator's credentials.
 
-Use `invite` and `join` to add another machine that runs Ollama and serves
-inference. On the machine running `share`, create a unique worker invitation.
-
-```sh
-oshepherd invite --name second-machine --output ~/second-machine.invitation.json
-```
-
-Copy the file to the other machine privately, for example with `scp`, and keep it
-at mode `0600`. It works once, it expires, and anyone holding it can join a worker.
-It contains no Supabase token or administrator credentials. Don't paste its
-contents into chat, shell arguments or URLs.
-
-On the other machine, with oshepherd installed and Ollama running:
-
-```sh
-oshepherd join --invitation-file ~/second-machine.invitation.json
-```
-
-Once it reports the worker registered, it serves requests while it runs. To
-restart it later, run `oshepherd join` without the file. Its state lives in
-`~/.local/state/oshepherd/worker`. If an invitation expired, or you are unsure
-whether it was used, create a new one with `invite --renew` and a new `--output`
-path.
-
-Keep `share` running on the first machine even if other machines do all the
-inference: it runs the stored-result cleanup. The background service below can
-take that over.
+Keep `share` running on the operator machine even when other workers handle the
+inference: it runs stored-result cleanup. Its background service can take over.
 
 ## Run in the background
 
@@ -222,6 +141,11 @@ oshepherd service stop
 oshepherd service start
 oshepherd service uninstall
 ```
+
+The example uses the default operator directory. If you followed the cloud
+walkthrough, use your installation's `.oshepherd/cloud/first-run` directory instead
+(prefer its absolute path for a service). Services require an installed candidate
+wheel; follow [installation](install.md#install-the-0025a1-candidate).
 
 On a joined machine, use `--kind join --state-dir ~/.local/state/oshepherd/worker`.
 For more than one service on a machine, give each a `--name`.
@@ -261,8 +185,5 @@ worker revocation.
 
 ## Status
 
-Local/containerized service tests and earlier inference checks have passed;
-later full local reruns hit the Edge CPU limit. On November 22, the user reported
-the manual local and cloud walkthroughs working. This is manual functional
-feedback; the broader hosted acceptance matrix and stream-cancellation fix
-remain open. The [progress ledger](plans/supabase/progress.md) has the evidence.
+See the [progress ledger](plans/supabase/progress.md) for current implementation,
+manual test feedback and remaining qualification gates.

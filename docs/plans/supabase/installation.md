@@ -1,10 +1,10 @@
 # Supabase installation and hosting
 
-Updated November 15, 2026. The guided CLI and operator engine are implemented;
-fresh local Docker acceptance passes. The latest full wizard against a newly
-created hosted project and reliable Edge disconnect cancellation remain open.
-See the [walkthrough](../../supabase-walkthrough.md),
-[hosted guide](../../setup-supabase.md) and [progress ledger](progress.md).
+Updated November 22, 2026. This is the installation architecture and acceptance
+specification. The guided CLI and operator engine are implemented. For current
+instructions, use the [documentation index](../../README.md); for dated local,
+cloud and manual test evidence, use the [progress ledger](progress.md). The full
+hosted lifecycle matrix and reliable Edge disconnect cancellation remain open.
 
 ## Product path
 

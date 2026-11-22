@@ -28,9 +28,10 @@ to add an Ollama server, or the [client onboarding walkthrough](docs/supabase-cl
 to give a script its own credentials.
 
 This branch is an experimental, unpublished candidate. PyPI
-publication is outside the current milestone. The latest full local reruns hit
-an Edge CPU limit on the joined worker (HTTP 503/546); see
-[validation status](docs/plans/supabase/progress.md#branch-cleanup-follow-up).
+publication is outside the current milestone. See the
+[documentation index](docs/README.md) for installation, operations, database
+references and development guides, and the [progress ledger](docs/plans/supabase/progress.md)
+for validation status.
 
 ## Moving from Redis to Supabase
 
@@ -82,48 +83,24 @@ migrate Redis jobs or switch an existing deployment automatically.
 
 ## Try it locally
 
-Follow the [manual single-worker walkthrough](docs/supabase-walkthrough.md)
-to keep the local database for Python requests and inspect it in Supabase
-Studio. The disposable acceptance test below also exercises joining and
-restarting a second worker.
+Follow the [local walkthrough](docs/supabase-walkthrough.md) for Docker setup,
+Studio, persistent state and Python requests. It needs Python 3.12, uv, Docker,
+Supabase CLI **2.116.0**, `psql` and Ollama. For a hosted database, use the
+[cloud walkthrough](docs/supabase-cloud-walkthrough.md); it needs no local
+Supabase containers, Supabase CLI or `psql`.
 
-From this checkout, with Python 3.12, uv, Docker, Supabase CLI **2.116.0**, `psql`
-and Ollama available:
-
-```sh
-uv sync --locked --extra supabase
-
-# Download these only if you do not already have compatible models installed.
-ollama pull llama3.2:3b
-ollama pull embeddinggemma:latest
-
-uv run --locked python -m scripts.supabase_local_acceptance \
-  --work-dir "$PWD/.oshepherd/local/first-run" --serve
-```
-
-Use a new work directory for each run. The runner installs into a fresh database,
-checks the first worker, invites a second local Ollama server, and verifies its
-saved-session restart. `--serve` leaves the test installation running for your
-own requests. Ctrl-C removes its disposable stack and database while preserving
-private logs and unrelated services.
-
-In a second terminal:
-
-```sh
-uv run --locked python examples/supabase_client.py \
-  --client-file .oshepherd/local/first-run/operator/client.json \
-  --model llama3.2:3b --embedding-model embeddinggemma:latest
-```
-
-The [local walkthrough](docs/supabase-walkthrough.md) explains each CLI step,
-Studio, persistent state and local invitations. The
-[cloud walkthrough](docs/supabase-cloud-walkthrough.md) covers hosted setup
-and requests without local Supabase containers.
+After setup, add [workers](docs/supabase-worker-walkthrough.md) or
+[clients](docs/supabase-client-walkthrough.md), and inspect
+[worker logs](docs/supabase-worker-walkthrough.md#watch-worker-logs).
+Developers can run the separate [disposable acceptance workflow](docs/setup-supabase-local.md),
+which removes its own test database when it finishes.
 
 ## Use the Ollama Python package
 
 `client.json` contains the gateway URL and your private application key. The URL
 includes `/functions/v1/ollama`; it is not the database REST endpoint.
+This example uses the manual local walkthrough's state directory. For cloud,
+use `.oshepherd/cloud/first-run/client.json`, or use a named client's export.
 
 ```python
 import json
@@ -131,7 +108,7 @@ from pathlib import Path
 from ollama import Client
 
 settings = json.loads(Path(
-    ".oshepherd/local/first-run/operator/client.json"
+    ".oshepherd/local/end-user/operator/client.json"
 ).read_text())
 client = Client(
     host=settings["gateway_url"],
@@ -169,19 +146,12 @@ are outside this milestone. The existing show response wraps upstream model
 information inside `model_info`. Legacy embeddings accepts the Python SDK's
 `prompt` as well as `input`.
 
-System One requires a compatible installed decision model. Real `tev1:4b`
-inference has passed through local Supabase, both local servers and worker
-restart. A later rerun hit an Edge CPU limit on the joined server
-(HTTP 503); resource qualification remains open. Add `--decision-model tev1:4b` to the acceptance command to include it;
-models advertising the `decision` capability are registered automatically.
+System One requires a compatible installed decision model. Models advertising
+the `decision` capability are registered automatically. The
+[acceptance guide](docs/setup-supabase-local.md#endpoint-scope-and-limits)
+explains how to include real decision inference in validation.
 
 ## Current limits and remaining work
-
-Fresh Docker setup, CLI installation, real generate/chat/embeddings/System One,
-second-server onboarding and restart have passed locally. The two Ollama servers
-in that test run on the same machine. The latest reruns failed at the joined-worker stage because Edge exhausted its
-CPU budget. Physical second-machine networking and the full fresh hosted-project
-wizard also still need acceptance.
 
 Synchronous requests have a 135-second budget, including queueing and model
 loading. Edge request/response bodies are capped at 1 MiB. The asynchronous
@@ -197,7 +167,7 @@ workflow, but the candidate is not production-qualified.
 ## Development
 
 ```sh
-uv sync --locked --extra supabase
+uv sync --locked --extra supabase --extra installer
 uv run --locked pytest -q tests/contracts tests/test_systemone.py
 # After changing packaged Python or Edge sources:
 uv run --locked python -m scripts.build_supabase_release

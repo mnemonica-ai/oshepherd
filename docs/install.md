@@ -22,6 +22,37 @@ The Supabase candidate is not published to PyPI. The unpinned package commands
 below describe the legacy published installation; do not use them to obtain this
 branch's Supabase changes. Public publication is outside the current milestone.
 
+## Install the 0.0.25a1 candidate
+
+Use this to try the Supabase setups before they reach PyPI. You need the candidate
+wheel file, `oshepherd-0.0.25a1-py3-none-any.whl`.
+
+To build and verify it from a checkout of the repository that contains the
+candidate, run this in the checkout. The output directory must be new or empty:
+
+```sh
+uv run --locked python -m scripts.verify_candidate --build \
+  --dist .oshepherd/local/candidate --report .oshepherd/local/candidate.json
+```
+
+Install that wheel as a global command, using its absolute path. Keep the
+`[supabase]` suffix; it adds the libraries the Supabase setups need:
+
+```sh
+uv tool install --python 3.12 '/absolute/path/oshepherd-0.0.25a1-py3-none-any.whl[supabase]'
+oshepherd share --help
+```
+
+If an older oshepherd is already installed, add `--force` to replace it.
+
+For background services, install the wheel: services require the exact installed
+package and refuse editable installs. Foreground local testing can use
+`uv sync --locked --extra supabase` from this checkout; start with the
+[Supabase walkthrough](supabase-walkthrough.md).
+
+Publishing to PyPI is outside the current milestone. Use the checkout or a
+locally built and verified candidate wheel for Supabase testing.
+
 ## Install the legacy published package with uv
 
 1. Install uv, if you don't have it:
@@ -72,37 +103,6 @@ Otherwise the service keeps trying to start a program that has gone or changed.
 After an upgrade, install the service again. Uninstalling oshepherd leaves your
 saved state and cloud resources in place.
 
-## Install the 0.0.25a1 candidate
-
-Use this to try the Supabase setups before they reach PyPI. You need the candidate
-wheel file, `oshepherd-0.0.25a1-py3-none-any.whl`.
-
-To build and verify it from a checkout of the repository that contains the
-candidate, run this in the checkout. The output directory must be new or empty:
-
-```sh
-uv run --locked python -m scripts.verify_candidate --build \
-  --dist .oshepherd/local/candidate --report .oshepherd/local/candidate.json
-```
-
-Install that wheel as a global command, using its absolute path. Keep the
-`[supabase]` suffix; it adds the libraries the Supabase setups need:
-
-```sh
-uv tool install --python 3.12 '/absolute/path/oshepherd-0.0.25a1-py3-none-any.whl[supabase]'
-oshepherd share --help
-```
-
-If an older oshepherd is already installed, add `--force` to replace it.
-
-For background services, install the wheel: services require the exact installed
-package and refuse editable installs. Foreground local testing can use
-`uv sync --locked --extra supabase` from this checkout; start with the
-[Supabase walkthrough](supabase-walkthrough.md).
-
-Publishing to PyPI is outside the current milestone. Use the checkout or a
-locally built and verified candidate wheel for Supabase testing.
-
 ## Install with pip
 
 uv is recommended, but pip works in a virtual environment you manage:
@@ -113,10 +113,17 @@ python3.12 -m venv ~/.venvs/oshepherd
 ~/.venvs/oshepherd/bin/oshepherd --help
 ```
 
-For Supabase setups, install `'oshepherd[supabase]'` instead, or the candidate
-wheel path with `[supabase]` until it is published. Background services accept
-this environment as long as it stays in place. Don't create it under a temporary
-or cache directory.
+Those commands install the legacy published package. For Supabase, replace the
+install command with the locally built candidate wheel:
+
+```sh
+~/.venvs/oshepherd/bin/pip install '/absolute/path/oshepherd-0.0.25a1-py3-none-any.whl[supabase]'
+```
+
+Background services accept this environment as long as it stays in place. Don't
+create it under a temporary or cache directory. When replacing an installed
+candidate, uninstall its service first and reinstall the service afterwards as
+described under [upgrade or remove](#upgrade-or-remove).
 
 ## Ask a coding agent to install it
 

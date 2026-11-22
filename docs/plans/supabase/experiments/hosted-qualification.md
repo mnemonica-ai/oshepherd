@@ -1,5 +1,9 @@
 # Hosted Supabase candidate qualification
 
+> Dated evidence. Results and feature gaps below describe the recorded revision.
+> See the [progress ledger](../progress.md) for current status and the
+> [documentation index](../../../README.md) for current user instructions.
+
 Recorded October 2026; revised November 15 to focus on Supabase Edge. This is
 historical evidence, not a fresh-project wizard acceptance claim. The isolated
 Free project ran PostgreSQL 17.11, with Supabase CLI 2.116.0 and a protected

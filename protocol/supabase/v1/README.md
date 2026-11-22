@@ -7,7 +7,8 @@ good values until their SQL freshness expires. These budgets do not limit
 inference reads or replace independent heartbeat and Auth refresh.
 
 Status: experimental implementation contract. Python/TypeScript clients and SQL
-must use these schemas; hosted envelopes and capacity remain unverified. This
+must use these schemas. Bounded hosted measurements exist, while full resource
+qualification remains open; see the [progress ledger](../../../docs/plans/supabase/progress.md). This
 version is separate from the legacy characterization fixtures in `protocol/v1`.
 
 ## Envelope, identity and error conventions
@@ -97,8 +98,10 @@ worker identities nor the non-login runtime owner receive Storage SELECT or
 DELETE privileges. Private scheduled sweep functions remain runtime-owned and
 are not granted to Data API roles.
 
-Application keys contain 256 random bits, prefixed `osk_`, and are stored only
-as SHA-256 hashes. Hashes are never returned by runtime RPCs. Membership is
+Application keys contain 256 random bits, prefixed `osk_`, and the database stores
+only their SHA-256 hashes. Private client exports and the operator's named-client
+registry retain raw keys for use and re-export; see [client onboarding](../../../docs/supabase-client-walkthrough.md).
+Hashes are never returned by runtime RPCs. Membership is
 bound to the authenticated caller scope rather than knowledge of job IDs.
 
 An authenticated operator provisions a confirmed Auth user with no reusable

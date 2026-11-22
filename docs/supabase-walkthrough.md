@@ -186,33 +186,12 @@ in direct Ollama calls, refresh the model.
 
 ### Give a local script a separate key
 
-The [client onboarding walkthrough](supabase-client-walkthrough.md) covers
-credential transfer, Python integration, recovery and revocation in detail.
-
-From the repository root, use the operator directory from step 2. The commands
-read its private `connection.json`.
-
-```sh
-uv run --locked oshepherd client create \
-  --state-dir .oshepherd/local/end-user/operator \
-  --name local-script --output local-client.json
-uv run --locked oshepherd client list --state-dir .oshepherd/local/end-user/operator
-```
-
-Set `--client-file local-client.json` in the example above, or update your
-script to read that file, then send a request. Keep the file at mode `0600`.
-The exported URL points to the loopback gateway on this host. To send requests
-from a different machine, use a reachable gateway such as the hosted HTTPS
-endpoint in the [cloud walkthrough](supabase-cloud-walkthrough.md).
-
-Revoke the script's key, then verify that a new request with it is rejected.
-
-```sh
-uv run --locked oshepherd client revoke \
-  --state-dir .oshepherd/local/end-user/operator --name local-script
-```
-
-Use `invite` and `join` in step 6 to add a worker that serves inference.
+Follow the [client onboarding walkthrough](supabase-client-walkthrough.md), using
+its [local Docker variation](supabase-client-walkthrough.md#local-docker-variation).
+It covers creating, testing, re-exporting and revoking a script's own credentials.
+Use `.oshepherd/local/end-user/operator` as the operator state directory. The
+exported loopback gateway is reachable from this host; use a cloud installation
+for a physical remote client.
 
 ## 5. Inspect the database in Supabase Studio
 
@@ -266,94 +245,25 @@ database so you can resume the same installation.
 
 ## 6. Onboard another Ollama server
 
-See the [worker onboarding walkthrough](supabase-worker-walkthrough.md) for the
-full invite/join flow, verification, restarts and a remote-machine cloud example.
+Follow the [worker onboarding walkthrough's local Docker variation](supabase-worker-walkthrough.md#local-docker-variation)
+for a second Ollama server on this host. It covers invitation creation, separate
+worker state, verification and restart.
 
-For the manual installation above, create a private one-use invitation:
-
-```sh
-uv run --locked oshepherd invite \
-  --connection-file "$PWD/.oshepherd/local/end-user/operator/connection.json" \
-  --state-dir "$PWD/.oshepherd/local/end-user/operator" \
-  --name second-server \
-  --output "$PWD/.oshepherd/local/second-server.invitation.json"
-```
-
-For another server on the same machine, start it in a separate terminal:
-
-```sh
-OLLAMA_HOST=127.0.0.1:11435 ollama serve
-```
-
-Then join it, using a separate worker state directory:
-
-```sh
-uv run --locked oshepherd join \
-  --invitation-file "$PWD/.oshepherd/local/second-server.invitation.json" \
-  --state-dir "$PWD/.oshepherd/local/second-worker" \
-  --ollama-url http://127.0.0.1:11435
-```
-
-To restart later, leave that Ollama server running and omit the invitation:
-
-```sh
-uv run --locked oshepherd join \
-  --state-dir "$PWD/.oshepherd/local/second-worker"
-```
-
-The saved configuration remembers the Ollama URL. Keep `share` running for
-maintenance even when another worker handles inference. An expired or uncertain
-invitation can be replaced explicitly with `invite --renew` and a new output
-path. Joined workers receive restricted Auth sessions, not operator credentials.
-
-**A physical second machine needs a reachable Supabase origin.** The local
-configuration above uses loopback: transferring its invitation to another host
-will not work. Do not rewrite invitation URLs to bypass project binding. Use a
-hosted HTTPS installation from the [cloud walkthrough](supabase-cloud-walkthrough.md)
-for that path; cross-machine self-hosted networking is
-not covered by this local acceptance workflow.
+For a physical second machine, use the guide's cloud example. The local
+configuration uses loopback Supabase URLs, so transferring its invitation to a
+remote host will not work. Keep `share` running for stored-result cleanup.
 
 ## Run the full disposable acceptance test
 
-Use the runner to exercise first-worker inference, joined-worker inference and
-a saved-session restart in a fresh project.
+The [automated acceptance guide](setup-supabase-local.md) covers the runner's
+prerequisites, commands, checks, logs and cleanup behavior. It tests primary,
+joined and restarted workers in a fresh database. Stop the manual local project
+before running it because the ports overlap. It removes its own test database;
+use the manual walkthrough above when you want to keep your database.
 
-```sh
-uv run --locked python -m scripts.supabase_local_acceptance \
-  --work-dir "$PWD/.oshepherd/local/walkthrough" --serve
-```
-
-Use a new work directory and reserve ports 56320–56322, 56383 and 11435.
-Stop the manual local project before starting the runner.
-
-The runner exercises the following steps.
-
-1. Starts fresh Supabase containers with an empty database and unique project ID.
-2. Runs `oshepherd supabase configure` and `install --create-owner`, then repeats
-   installation to verify that cluster identity and keys are preserved.
-3. Serves the real Supabase Edge Function and runs `oshepherd share` against
-   local Ollama on port 11434.
-4. Sends requests with the official Ollama Python package.
-5. Starts another Ollama server on port 11435, creates an invitation and runs
-   `join`. It stops the first worker and verifies that the joined worker handles
-   inference, then repeats after a saved-session restart.
-6. With `--serve`, resumes both workers and maintenance for your own requests.
-
-The second Ollama process uses the same local model files and runs on port
-11435. The runner reuses an existing default Ollama server and leaves unrelated
-containers running. Ctrl-C removes the test stack and its database. Private logs
-and `report.json` remain under the work directory. Omit `--serve` for cleanup
-immediately after acceptance.
-
-Earlier full local runs passed with real models, including System One. The
-latest reruns passed the first worker and hit the Edge CPU limit on the joined
-worker (HTTP 503/546). The runner cleans up and exits on failure. It reaches
-`--serve` only after all acceptance stages pass. For a sustained first-worker
-test, use the [manual setup](#2-create-the-local-supabase-project). See the
-[validation ledger](plans/supabase/progress.md#branch-cleanup-follow-up).
-
-Pass `--decision-model tev1:4b` to include System One in a new acceptance run
-with a compatible model already installed. The report lists the checks run.
+Earlier complete runs passed, while the later November 15 runs hit Edge CPU
+limits at the joined-worker stage. See the [dated evidence](plans/supabase/progress.md#branch-cleanup-follow-up)
+before interpreting an acceptance run.
 
 ## Limits and troubleshooting
 

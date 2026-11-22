@@ -1,6 +1,6 @@
 # Supabase broker: implementation plan
 
-Updated November 15, 2026. Status: implemented experimental candidate with local
+Updated November 22, 2026. Status: implemented experimental candidate with local
 and bounded hosted evidence in the [progress ledger](progress.md). The strict
 Edge reader-disconnect gate still fails; full release qualification and
 hosted OAuth/button onboarding remain incomplete. The user-approved test gateway
@@ -98,28 +98,32 @@ If LISTEN becomes worthwhile, use a persistent session/direct connection and an 
 
 ## 4. Gateway and execution boundaries
 
-### Proposed code layout
+### Current code layout
 
-Keep this planning material together under `docs/plans/supabase/`. During implementation, group platform artifacts under the conventional root `supabase/` directory and Python-specific code under one backend package. Shared contracts and inference execution remain platform-neutral:
+The implementation is split between the backend package, versioned release
+assets and development harnesses:
 
 ```text
-docs/plans/supabase/           # index, implementation, installation, compatibility
-supabase/
-  config.toml
-  migrations/
-  functions/ollama/
-  tests/                      # SQL/policy and Edge tests
-  install/                    # release manifest, bootstrap engine, hosted installer
-  examples/                   # gateway/worker configuration without secrets
-oshepherd/backends/
-  base.py                     # shared backend contract
-  redis.py                    # existing behavior behind the contract
-  supabase/                   # HTTP/RPC client, gateway reader, worker loop, sessions
-oshepherd/worker/executor.py   # shared local Ollama execution
-protocol/                     # versioned schemas and cross-language fixtures
+docs/README.md                         # user and developer documentation index
+docs/plans/supabase/                   # designs, acceptance criteria and evidence
+oshepherd/backends/supabase/           # operator, gateways, workers and CLI
+  release/migrations/                 # immutable packaged migration histories
+  release/functions/ollama/            # packaged Edge artifact
+  release/manifest.json               # source hashes and selected histories
+oshepherd/worker/executor.py           # shared Ollama execution
+supabase/functions/ollama/             # Edge source and Deno tests
+supabase/migrations/                   # versioned development SQL
+protocol/                             # schemas and cross-language fixtures
+tests/contracts/                      # offline compatibility and lifecycle tests
+tests/integration/supabase/            # SQL/Auth/Edge integration tests
+scripts/                              # candidate build and acceptance runners
 ```
 
-`protocol/` now contains versioned characterization schemas/fixtures; `tests/contracts` and `tests/support` provide service-free checks and a controllable fake upstream. See [step 0 evidence](experiments/step-0-local-characterization.md). The other paths remain implementation targets. Build release artifacts from those sources, including the standalone template's pinned package/manifest dependencies. Shared API routes and the CLI select an adapter; they must not contain Supabase SQL, enrollment internals or transport-specific state transitions.
+The original proposed `backends/base.py`, `backends/redis.py` and
+`supabase/install/` layout was not adopted. Existing Redis code stays in its API
+and worker packages. Refresh packaged assets after source changes with
+`python -m scripts.build_supabase_release`; never edit an applied migration.
+The interfaces below describe design boundaries, not literal exported symbols.
 
 ### Interfaces and configuration
 

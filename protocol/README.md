@@ -1,6 +1,6 @@
 # Oshepherd protocol fixtures
 
-`v1/` starts delivery step 0 with a **characterization contract**, captured from
+`v1/` contains the legacy API **characterization contract**, originally captured from
 runtime baseline `1ed65b0` using the dependency versions in `requirements.txt`.
 The checked-in JSON and NDJSON are independent of the Python and TypeScript
 clients. Tests must consume these files, rather than manufacture expected values
@@ -12,10 +12,10 @@ alias for `input`, with existing `input` taking precedence. The normalized queue
 schema and worker payload remain unchanged. The former HTTP 500 is a fixed
 compatibility defect, not an expected failure.
 
-This slice does not freeze the Supabase RPC, enrollment or async wire protocol.
-Those schemas and identity/limits/authorization decisions remain prerequisites
-for production migrations. `v1` identifies the fixture format, not a claim of a
-deployed Supabase protocol version.
+Supabase's RPC, enrollment and async contracts are defined separately in
+[`supabase/v1`](supabase/v1/README.md). Both sets of fixtures are implemented and
+tested. `v1` here identifies the legacy fixture format, not a deployed Supabase
+schema version or a release-qualification claim.
 
 Run the characterization checks with:
 
@@ -56,12 +56,12 @@ tests; real registry filtering, name deduplication, running-model concatenation
 and show wrapping are exercised. Conflicting live digests currently use the
 last scanned tag; Supabase must follow the plan's explicit alias/digest policy.
 
-## Known differences to resolve during extraction
+## Legacy behavior and Supabase differences
 
-Malformed/invalid generate/chat/embeddings/show input currently returns an
+The legacy characterization records malformed/invalid generate/chat/embeddings/show input as an
 unhandled plain-text HTTP 500; System One returns a JSON 422 before enqueueing.
-The new shared validator should deliberately standardize invalid requests to
-422, with a recorded compatibility decision, instead of reproducing these 500s.
+Supabase gateways validate normalized requests before admission and return 422;
+they do not reproduce those legacy 500s.
 Legacy worker-result errors use the existing route JSON 500 mapping. Publish
 and result exceptions are caught by System One but escape the other inference
 routes. Legacy streaming errors include `done: true`; this is an error record,
@@ -73,10 +73,12 @@ worker tests run the actual SDK against the fake upstream to verify this
 boundary, including embeddings' `input` to legacy `prompt` translation.
 
 The existing SDK and worker can silently finish a stream without `done: true`.
-The Supabase executor must report incomplete output as a failure. Fake upstream
+The Supabase executor reports incomplete output as a failure. Fake upstream
 tests distinguish graceful incomplete EOF from an abrupt connection exception;
-live socket/platform kill behavior still needs the relay experiments.
+live socket/platform behavior is tracked separately in the
+[progress ledger](../docs/plans/supabase/progress.md).
 
-Future schemas should be added in a separate reviewed slice with RPC role,
-idempotency, limits, output and async state fixtures, following the
-[handoff](../docs/plans/supabase/development-handoff.md#finalize-the-protocol-before-production-migrations).
+Changes to the [Supabase protocol](supabase/v1/README.md) need versioned fixtures
+and a reviewed migration when applicable. Preserve the
+[protocol contracts](../docs/plans/supabase/development-handoff.md#protocol-contracts-to-preserve-and-audit)
+and the existing Redis characterization.

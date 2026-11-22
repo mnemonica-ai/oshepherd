@@ -1,5 +1,9 @@
 # Local maintenance verification
 
+> Dated evidence. Results and feature gaps below describe the recorded revision.
+> See the [progress ledger](../progress.md) for current status and the
+> [documentation index](../../../README.md) for current user instructions.
+
 October 6, 2026. Experimental SQL remains outside production migration history.
 This extends the [local lifecycle](local-edge-lifecycle.md); hosted cleanup/load
 and production installation remain unverified.

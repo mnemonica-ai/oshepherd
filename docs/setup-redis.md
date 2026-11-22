@@ -11,11 +11,12 @@ Ollama client ──> oshepherd API ──> Redis ──> oshepherd worker ─�
 ```
 
 You run and secure all three parts yourself. There is no cloud account involved.
+For the primary Supabase path, start at the [documentation index](README.md).
 
 ## What you need
 
-- oshepherd installed on the API machine and on each worker machine. Any version
-  works; see [Install](install.md).
+- Compatible oshepherd versions installed on the API and worker machines; use
+  the same version for this walkthrough. See [Install](install.md).
 - A Redis server that the API and every worker can reach. It is both the Celery
   message broker and its result backend, and it carries streamed responses.
 - [Ollama](https://ollama.com/download) running on each worker machine, with the

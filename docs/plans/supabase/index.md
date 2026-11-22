@@ -1,22 +1,15 @@
 # Supabase primary broker
 
-Updated November 15, 2026. Supabase is the primary development and onboarding
-path. Redis remains a legacy backend with its existing CLI defaults. The
-candidate is experimental and unpublished; publication is outside this milestone.
+Updated November 22, 2026. This index groups the accepted design and acceptance
+specifications. Supabase is implemented as the primary onboarding path; Redis
+remains supported with its existing low-level CLI defaults. The candidate is
+experimental and unpublished.
 
-The fresh local Docker workflow passes CLI install/share/invite/join, official
-Ollama Python calls and real inference across primary, joined and restarted
-workers, including System One, in the earlier acceptance run. The latest reruns
-hit Edge CPU limits on the joined worker; see
-[the follow-up](progress.md#branch-cleanup-follow-up). Start with the
-[walkthrough](../../supabase-walkthrough.md) and
-[current evidence](progress.md#fresh-local-cli-and-python-sdk-acceptance).
-
-Hosted Edge has historical real inference, route/stream/private-download,
-bounded load/Auth/recovery and size evidence. Its reviewed test function was
-removed and its cluster disabled. Reader-disconnect cancellation still fails
-through Edge; full fresh hosted wizard acceptance, physical second-machine
-onboarding and the broader resource envelope remain open.
+Start at the [documentation index](../../README.md) for user instructions. The
+[progress ledger](progress.md) owns dated results, including successful manual
+local/cloud use, remote-client onboarding and worker logging. The
+[next-steps plan](next-steps.md) owns remaining acceptance work. Historical Edge
+CPU-limit and disconnect findings remain open until their specific checks pass.
 
 ## Decisions
 
@@ -40,6 +33,8 @@ onboarding and the broader resource envelope remain open.
 | --- | --- |
 | [Local walkthrough](../../supabase-walkthrough.md) | Fresh Docker setup with Studio, Python inference and another local Ollama server |
 | [Cloud walkthrough](../../supabase-cloud-walkthrough.md) | Supabase account/project setup, hosted inference, database inspection and restart |
+| [Worker onboarding](../../supabase-worker-walkthrough.md) | Invite/join, remote and local workers, restarts and logs |
+| [Client onboarding](../../supabase-client-walkthrough.md) | Named credentials, Python requests, re-export and revocation |
 | [Next steps](next-steps.md) | Remaining acceptance and qualification work |
 | [Progress ledger](progress.md) | Implemented behavior and dated evidence |
 | [CLI onboarding](cli-onboarding.md) | Share/join design and implementation slices |

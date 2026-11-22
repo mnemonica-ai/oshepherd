@@ -1,10 +1,11 @@
 # Adoption-first CLI onboarding
 
-Updated November 22, 2026. This is the current implementation priority, ahead of
-hosted OAuth/buttons and additional benchmark work. Existing inference contracts,
-ownership checks and experimental status remain in force. This document describes
-the target experience; the source candidate now includes `share`, `invite`, `join`, provider creation/selection
-and optional services. The full A1–A5 acceptance and publication promise remains incomplete.
+Updated November 22, 2026. This design records the CLI onboarding scope and its
+A1–A5 acceptance criteria. The candidate implements `share`, `invite`, `join`,
+provider creation/selection and optional services, plus named client credentials
+and worker logging. Use the [documentation index](../../README.md) for current
+instructions and the [progress ledger](progress.md) for results. Full hosted,
+second-machine and publication acceptance remains incomplete.
 
 The November 15 milestone is specifically local: fresh Docker Supabase,
 CLI bootstrap/share, existing Redis-compatible endpoints through the official
@@ -97,9 +98,9 @@ Management SQL, A4 foreground supervision/user-service management, and A5 candid
 verification plus an explicitly gated publication workflow. These implementation
 claims do not establish fresh hosted, real service-manager or published-package
 acceptance. Do not mark A3 complete merely because mocked creation passes.
-The orchestrator coordinates subagents, reviews their integration and maintains
-one evidence ledger. Work in separate files where possible; no agent edits applied
-migrations or deploys to an unspecified provider target.
+Keep one evidence ledger and immutable applied migrations. Historical agent
+coordination details are recorded in the implementation reports rather than
+serving as instructions for future work.
 
 ## Security and acceptance boundaries
 

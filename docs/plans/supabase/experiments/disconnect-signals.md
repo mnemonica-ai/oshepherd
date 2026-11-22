@@ -1,5 +1,9 @@
 # Hosted disconnect signal investigation
 
+> Dated evidence. Results and feature gaps below describe the recorded revision.
+> See the [progress ledger](../progress.md) for current status and the
+> [documentation index](../../../README.md) for current user instructions.
+
 Recorded October 11, 2026 on the authorized isolated Supabase Free target.
 This investigation does not close the strict cancellation gate or qualify the Edge
 profile. No production gateway or applied migration source was changed.

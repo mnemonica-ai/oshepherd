@@ -2,6 +2,9 @@
 
 | Plan | Scope | Status |
 | --- | --- | --- |
-| [Optional Supabase backend](supabase/index.md) | Edge gateway by default, optional FastAPI gateway, durable workers, installation and hosting | Researched proposal; implementation and hosted validation pending |
+| [Supabase primary broker](supabase/index.md) | Edge gateway, optional FastAPI gateway, workers, clients, installation and operations | Implemented experimental candidate; remaining qualification tracked in the progress ledger |
 
-The Supabase documents describe an additional deployment option. Existing FastAPI + Celery + Redis remains supported and the existing CLI default.
+These documents contain design decisions and acceptance criteria. Start with the
+[documentation index](../README.md) for user guides. Supabase is the primary
+onboarding path; existing FastAPI + Celery + Redis remains supported, and
+`start-api` / `start-worker` retain their Redis defaults.

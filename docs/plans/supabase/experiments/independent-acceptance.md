@@ -1,5 +1,9 @@
 # October 14 independent acceptance
 
+> Dated evidence. Results and feature gaps below describe the recorded revision.
+> See the [progress ledger](../progress.md) for current status and the
+> [documentation index](../../../README.md) for current user instructions.
+
 Recorded October 14, 2026; this page retains Supabase Edge evidence. The
 user preserved the gateway contract and experimental status and approved
 removal of the isolated qualification function. The cluster is disabled and the

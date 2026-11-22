@@ -1,5 +1,9 @@
 # Step 0: local characterization evidence
 
+> Dated evidence. Results and feature gaps below describe the recorded revision.
+> See the [progress ledger](../progress.md) for current status and the
+> [documentation index](../../../README.md) for current user instructions.
+
 Date: October 4, 2026. Branch: `supabase`. Checkout: `f06d79e`, with runtime
 baseline `1ed65b0` unchanged (`git diff 1ed65b0 HEAD -- oshepherd tests
 pyproject.toml setup.py requirements.txt` was empty before this slice).

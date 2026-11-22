@@ -1,5 +1,9 @@
 # CLI adoption: first implementation and acceptance
 
+> Dated evidence. Results and feature gaps below describe the recorded revision.
+> See the [progress ledger](../progress.md) for current status and the
+> [documentation index](../../../README.md) for current user instructions.
+
 October 14, 2026. The user prioritized terminal-first adoption and explicitly
 authorized implementation subagents. The orchestrator committed that roadmap in
 `3ae5a70`, then integrated and reviewed independent join, share and provider-setup

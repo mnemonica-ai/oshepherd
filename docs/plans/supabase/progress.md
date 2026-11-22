@@ -13,8 +13,9 @@ production-qualified. PyPI publication is outside the current milestone.
 | Gateway | Edge routes for the existing Redis endpoint set; optional persistent FastAPI with Supabase | Reliable reader-disconnect cancellation through Edge |
 | Local setup | Fresh Docker stack, CLI configure/install/create-owner, repeat installation and real SDK inference | Physical second-machine networking |
 | Worker onboarding | `share`, private `invite`, `join`, session refresh/restart, capability discovery | Full fresh hosted-project and physical second-machine acceptance |
+| Client onboarding | Named application keys, private export, local registry, independent revocation; user-reported remote-client success | Broader hosted lifecycle qualification |
 | Hosted setup | Organization/project create/select, Management SQL, owned Edge deployment and recovery | Latest complete wizard against a fresh hosted project |
-| Operations | Doctor, migrations, rotation, worker revocation, disablement, maintenance, user services | Full hosted upgrade/resource matrix |
+| Operations | Doctor, migrations, rotation, worker revocation, disablement, maintenance, user services, console/private rotating worker logs | Full hosted upgrade/resource matrix |
 | Packaging | Hash-verified wheel assets and local candidate verification | Public distribution deferred |
 | Browser installer | Local OAuth/control service and fault tests | Hosted OAuth/callback/installer acceptance |
 
@@ -36,6 +37,26 @@ client credentials. This is manual functional feedback; remote-worker onboarding
 and the complete hosted acceptance matrix remain separate checks. Dedicated
 [client](../../supabase-client-walkthrough.md) and
 [worker](../../supabase-worker-walkthrough.md) onboarding walkthroughs are available.
+
+After worker lifecycle logging was added, the user reported the changes working
+in their setup. Logs now include job claims, starts and classified outcomes,
+with private rotating files. This feedback does not specify a new full
+multi-worker acceptance run or close the previously observed Edge resource gate.
+
+## November 22 offline verification
+
+Revision `0f2633e` added named client credentials and the onboarding guides;
+its offline suite passed 551 tests. Revision `3e25ccf` added worker lifecycle
+logging; the same command passed **572 tests**, including redaction, outcome
+classification, file permissions and rotation checks:
+
+```sh
+uv sync --locked --extra supabase --extra installer
+uv run --locked pytest -q tests/contracts tests/test_systemone.py
+```
+
+The run had one existing FastAPI/Starlette deprecation warning. These are
+service-free checks, not a new Docker or hosted acceptance run.
 
 ## Fresh local CLI and Python SDK acceptance
 
@@ -80,7 +101,7 @@ See [local acceptance](../../setup-supabase-local.md) and the
 
 ## Branch cleanup follow-up
 
-The Supabase-focused branch passes **545 offline Python tests** and a clean
+At the November 15 cleanup revision, **545 offline Python tests** passed, along with a clean
 source archive/wheel build, hash verification and isolated installed CLI checks.
 The manifest contains only `edge_free`, still `qualified: false`. Shared runtime
 pins moved to `requirements/runtime.txt` and match the locked export.
@@ -155,6 +176,8 @@ Counts are snapshots of their respective source revisions, not cumulative totals
 | November 15 local CLI/SDK implementation | 573 offline Python passes; 50 Deno passes; three selected real Edge route/SDK integration passes |
 | November 15 real-model fresh-stack acceptance | 13 checks per stage with System One; joined-worker routing and restart verified; cleanup passed |
 | November 15 Supabase-focused branch cleanup | 545 offline Python tests pass after removing the separate hosting adapter's tests; Edge and Redis contract coverage retained |
+| November 22 named clients (`0f2633e`) | 551 offline Python tests pass; user reports successful remote-client onboarding |
+| November 22 worker logs (`3e25ccf`) | 572 offline Python tests pass; user reports successful manual use |
 
 ## Open qualification gates
 
