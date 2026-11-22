@@ -1,5 +1,9 @@
 # Test distributed inference with local Supabase
 
+For interactive local use with Supabase Studio enabled by default, follow the
+[single-worker walkthrough](supabase-walkthrough.md). The automated acceptance
+runner below uses a minimal disposable stack without Studio.
+
 This workflow uses a new Docker Supabase project, the real Edge gateway,
 `oshepherd` CLI commands and the official Ollama Python package. No hosted project,
 PyPI publication or Redis server is needed. The existing development stack is

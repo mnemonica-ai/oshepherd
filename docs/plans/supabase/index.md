@@ -38,7 +38,8 @@ onboarding and the broader resource envelope remain open.
 
 | Document | Purpose |
 | --- | --- |
-| [Walkthrough](../../supabase-walkthrough.md) | Fresh Docker setup, Python inference and another Ollama server |
+| [Local walkthrough](../../supabase-walkthrough.md) | Fresh Docker setup with Studio, Python inference and another local Ollama server |
+| [Cloud walkthrough](../../supabase-cloud-walkthrough.md) | Supabase account/project setup, hosted inference, database inspection and restart |
 | [Next steps](next-steps.md) | Remaining acceptance and qualification work |
 | [Progress ledger](progress.md) | Implemented behavior and dated evidence |
 | [CLI onboarding](cli-onboarding.md) | Share/join design and implementation slices |

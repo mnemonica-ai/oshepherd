@@ -1,6 +1,6 @@
 # Supabase next steps
 
-Updated November 15, 2026. Supabase is the primary broker on this branch; Redis
+Updated November 22, 2026. Supabase is the primary broker on this branch; Redis
 remains a legacy option. PyPI publication is outside the current milestone.
 
 ## Completed local milestone
@@ -52,6 +52,13 @@ Edge deployment and owner/worker enrollment. It needs a full run on a newly
 selected disposable hosted project. Local container tests do not prove the live
 Management API's response/error shapes or the new hosted `postgres` privileges.
 
+Authentication decision (November 22): keep the current direct-API setup and
+manual Supabase personal access token for this milestone. The user creates the
+token in Supabase and enters it at `oshepherd share`'s hidden prompt; setup saves
+it privately for recovery. Hosted setup makes HTTPS requests to Supabase rather
+than invoking Supabase CLI commands, and it does not reuse `supabase login`.
+Browser-based authentication is follow-up work, not a blocker for this hosted test.
+
 Verify fresh and existing-project paths, interrupted/resumed setup, repeat
 installation, real SDK inference, second-machine joining, key rotation,
 revocation and overlapping-version upgrades. Measure cloud readiness separately
@@ -91,6 +98,15 @@ outside the checkout. Publication remains deferred; local wheel testing is
 sufficient for this milestone.
 
 ## Later: optional browser onboarding and distribution
+
+Add browser-based authentication to the CLI sharing journey so interactive users
+can authorize their Supabase account without manually creating and copying a
+token. Evaluate a supported Supabase login integration or an OAuth flow before
+choosing the implementation; do not assume CLI credentials are automatically
+available to oshepherd. Retain manual tokens for headless use. Acceptance should
+cover successful consent, denial/cancellation, interrupted login, credential
+expiry/revocation and private credential storage while preserving explicit
+project selection and resumable setup.
 
 The local OAuth installer exists, but hosted consent/refresh/revocation, a
 registered Supabase OAuth app, controlled callback domain, durable installer

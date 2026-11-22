@@ -12,9 +12,15 @@ broker**. Point the official Ollama Python client at one gateway and let
 oshepherd route requests to your connected workers. Models and inference stay on
 your machines; prompts, jobs and results pass through Supabase.
 
-**Start with the [Supabase walkthrough](docs/supabase-walkthrough.md):** create a
-clean local Docker stack, connect local Ollama, send Python requests, and onboard
-another server. This branch is an experimental, unpublished candidate. PyPI
+**Choose a walkthrough:**
+
+| Example | Where Supabase runs | Guide |
+| --- | --- | --- |
+| Fully local | Docker containers on your machine, including Studio | [Local walkthrough](docs/supabase-walkthrough.md) |
+| Supabase Cloud | Hosted project created by `oshepherd share`; Ollama stays on your machine | [Cloud walkthrough](docs/supabase-cloud-walkthrough.md) |
+
+Both examples cover setup, Python requests, database inspection and restart.
+This branch is an experimental, unpublished candidate. PyPI
 publication is outside the current milestone. The latest full local reruns hit
 an Edge CPU limit on the joined worker (HTTP 503/546); see
 [validation status](docs/plans/supabase/progress.md#branch-cleanup-follow-up).
@@ -47,13 +53,18 @@ path can be tested first with local Supabase containers.
 | Add workers | `invite`, then `join` with a private one-use invitation | Configure the worker's Redis connection |
 | Python client | Gateway URL plus application bearer key | FastAPI URL |
 | Run infrastructure | Supabase; Ollama stays local | FastAPI, Celery and Redis |
-| Guide | [Supabase walkthrough](docs/supabase-walkthrough.md) | [Redis setup](docs/setup-redis.md) |
+| Guide | [Local](docs/supabase-walkthrough.md) / [Cloud](docs/supabase-cloud-walkthrough.md) | [Redis setup](docs/setup-redis.md) |
 
 Redis remains supported as a legacy option. Existing `start-api` and
 `start-worker` commands retain their Redis defaults; choosing Supabase does not
 migrate Redis jobs or switch an existing deployment automatically.
 
 ## Try it locally
+
+Follow the [manual single-worker walkthrough](docs/supabase-walkthrough.md)
+to keep the local database for Python requests and inspect it in Supabase
+Studio. The disposable acceptance test below also exercises joining and
+restarting a second worker.
 
 From this checkout, with Python 3.12, uv, Docker, Supabase CLI **2.116.0**, `psql`
 and Ollama available:
@@ -83,8 +94,10 @@ uv run --locked python examples/supabase_client.py \
   --model llama3.2:3b --embedding-model embeddinggemma:latest
 ```
 
-The [walkthrough](docs/supabase-walkthrough.md) explains each CLI step, a persistent
-manual setup, invitations, troubleshooting and the hosted setup path.
+The [local walkthrough](docs/supabase-walkthrough.md) explains each CLI step,
+Studio, persistent state and local invitations. The
+[cloud walkthrough](docs/supabase-cloud-walkthrough.md) covers hosted setup
+and requests without local Supabase containers.
 
 ## Use the Ollama Python package
 

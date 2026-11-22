@@ -7,13 +7,15 @@ uv sync --locked --extra supabase
 uv run --locked oshepherd --help
 ```
 
-Follow the [Supabase walkthrough](supabase-walkthrough.md). No publication is
+Choose the [local Docker walkthrough](supabase-walkthrough.md) or the
+[Supabase Cloud walkthrough](supabase-cloud-walkthrough.md). No publication is
 needed. For a global command or background services, build and verify the local
 wheel using [the candidate instructions](#install-the-0025a1-candidate).
 
 | Setup | Guide | Package |
 | --- | --- | --- |
-| Supabase, primary experimental workflow | [Walkthrough](supabase-walkthrough.md) | This checkout or its verified `0.0.25a1` wheel with `[supabase]` |
+| Supabase, local Docker | [Local walkthrough](supabase-walkthrough.md) | This checkout with `[supabase]` |
+| Supabase Cloud | [Cloud walkthrough](supabase-cloud-walkthrough.md) | This checkout or its verified `0.0.25a1` wheel with `[supabase]` |
 | Redis, legacy self-hosted setup | [Redis](setup-redis.md) | Existing published package or this checkout |
 
 The Supabase candidate is not published to PyPI. The unpinned package commands

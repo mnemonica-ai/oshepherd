@@ -1,6 +1,6 @@
 # Supabase progress ledger
 
-Updated November 15, 2026. This ledger summarizes the Supabase evidence retained
+Updated November 22, 2026. This ledger summarizes the Supabase evidence retained
 on this branch. Supabase is now the primary documented broker; Redis remains
 available with its existing CLI defaults. The candidate is unpublished and not
 production-qualified. PyPI publication is outside the current milestone.
@@ -17,6 +17,19 @@ production-qualified. PyPI publication is outside the current milestone.
 | Operations | Doctor, migrations, rotation, worker revocation, disablement, maintenance, user services | Full hosted upgrade/resource matrix |
 | Packaging | Hash-verified wheel assets and local candidate verification | Public distribution deferred |
 | Browser installer | Local OAuth/control service and fault tests | Hosted OAuth/callback/installer acceptance |
+
+## November 22 manual walkthrough feedback
+
+The user reported the local Docker walkthrough working and subsequently
+reported the cloud setup flow working after being guided to let `oshepherd share`
+create a project in a Free organization. The conversation does not include a
+captured hosted acceptance report or a per-endpoint/restart result list. Record
+this as user-reported manual functional success, without treating it as proof of
+the complete hosted, second-machine, recovery, upgrade or resource matrix.
+
+The documentation now provides separate [local](../../supabase-walkthrough.md)
+and [cloud](../../supabase-cloud-walkthrough.md) examples. Known Edge cancellation
+and CPU-limit gates remain open; package version and qualification are unchanged.
 
 ## Fresh local CLI and Python SDK acceptance
 

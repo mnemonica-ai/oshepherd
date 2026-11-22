@@ -1,6 +1,6 @@
 # Adoption-first CLI onboarding
 
-Updated November 15, 2026. This is the current implementation priority, ahead of
+Updated November 22, 2026. This is the current implementation priority, ahead of
 hosted OAuth/buttons and additional benchmark work. Existing inference contracts,
 ownership checks and experimental status remain in force. This document describes
 the target experience; the source candidate now includes `share`, `invite`, `join`, provider creation/selection
@@ -43,6 +43,21 @@ Ollama's local port or configure inbound tunnels.
 
 Supabase is the primary broker and Edge is its gateway. Existing Redis commands
 remain available as a legacy option and retain their defaults.
+
+## Current authentication decision
+
+For the current hosted milestone, direct HTTPS requests to Supabase and a manually
+created personal access token are accepted. `oshepherd share` prompts privately
+for the token and stores it in its private operator state for setup/recovery. It
+uses the Management API for provisioning, SQL setup and Edge deployment, plus
+the project's APIs for Auth and runtime operations; it does not wrap Supabase CLI
+commands or inherit a `supabase login` session. The Supabase CLI in the local
+walkthrough manages the Docker test environment separately.
+
+Browser-based authentication is planned as a later improvement to `share`.
+Choose a supported login integration or OAuth flow, keep manual-token support
+for headless use, and validate consent, recovery and credential lifecycle before
+advertising it. See the [follow-up plan](next-steps.md#later-optional-browser-onboarding-and-distribution).
 
 ## Journey and readiness
 

@@ -1,7 +1,9 @@
-# Set up oshepherd with Supabase
+# Hosted Supabase setup and operations
 
-Start with the [Supabase walkthrough](supabase-walkthrough.md) for local-first
-testing without a hosted project or PyPI release. This page covers hosted setup.
+For a complete first-run example, follow the
+[Supabase Cloud walkthrough](supabase-cloud-walkthrough.md). This reference
+covers hosted setup, additional workers, services and disablement. For Docker
+containers on your machine, use the [local walkthrough](supabase-walkthrough.md).
 
 > **Experimental.** This needs the `0.0.25a1` candidate, which is not on PyPI yet.
 > Closing a streaming client does not yet reliably cancel the inference behind it,
@@ -33,6 +35,24 @@ Ollama client ──HTTPS──> Supabase Edge Function ──> Supabase databas
   If a later step needs one, you are asked for a new token.
 
 No Supabase CLI, database password, `psql` or hand-written config file is needed.
+
+### Moving from a local Docker test
+
+Stop the local gateway and worker with Ctrl-C, then run `supabase stop` from
+that local project's directory. Keep Ollama running. For a fresh hosted test
+from this checkout, use a separate state directory:
+
+```sh
+uv run --locked oshepherd share \
+  --state-dir "$PWD/.oshepherd/cloud/first-run" --model llama3.2:3b
+```
+
+Run this from the repository root. Choose a new dedicated test project in the
+wizard below. Do not pass the local `--connection-file`. Your hosted client
+configuration will be `.oshepherd/cloud/first-run/client.json`; use that path
+in the Python example instead of the default path shown below. Keep this state
+directory and repeat the same command to resume or recover an interrupted setup.
+Pass the same state directory to later operator commands such as `invite`.
 
 ## 1. Share this machine
 
@@ -200,7 +220,8 @@ worker revocation.
 
 ## Status
 
-Local and containerized testing passes. That covers real macOS and Linux
-services, and fresh-database setup through the Management API path. Hosted
-acceptance on a newly created Supabase project, and the stream-cancellation fix,
-are still open. The [progress ledger](plans/supabase/progress.md) has the evidence.
+Local/containerized service tests and earlier inference checks have passed;
+later full local reruns hit the Edge CPU limit. On November 22, the user reported
+the manual local and cloud walkthroughs working. This is manual functional
+feedback; the broader hosted acceptance matrix and stream-cancellation fix
+remain open. The [progress ledger](plans/supabase/progress.md) has the evidence.
