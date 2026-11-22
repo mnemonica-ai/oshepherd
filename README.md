@@ -27,8 +27,8 @@ Once an installation is running, follow the [worker onboarding walkthrough](docs
 to add an Ollama server, or the [client onboarding walkthrough](docs/supabase-client-walkthrough.md)
 to give a script its own credentials.
 
-This branch is an experimental, unpublished candidate. PyPI
-publication is outside the current milestone. See the
+Supabase support is experimental and published as the `0.1.0rc1` release
+candidate: `uv tool install --python 3.12 'oshepherd[supabase]==0.1.0rc1'`. See the
 [documentation index](docs/README.md) for installation, operations, database
 references and development guides, and the [progress ledger](docs/plans/supabase/progress.md)
 for validation status.

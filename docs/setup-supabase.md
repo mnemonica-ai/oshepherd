@@ -5,7 +5,7 @@ For a complete first-run example, follow the
 covers hosted setup, additional workers, services and disablement. For Docker
 containers on your machine, use the [local walkthrough](supabase-walkthrough.md).
 
-> **Experimental.** This needs the `0.0.25a1` candidate, which is not on PyPI yet.
+> **Experimental.** This needs the `0.1.0rc1` release candidate.
 > Closing a streaming client does not yet reliably cancel the inference behind it,
 > so a cancelled request can keep a worker busy until it finishes.
 
@@ -23,8 +23,8 @@ Ollama client ──HTTPS──> Supabase Edge Function ──> Supabase databas
 ## What you need
 
 - macOS or Linux.
-- oshepherd `0.0.25a1` installed with `[supabase]`. See
-  [Install the 0.0.25a1 candidate](install.md#install-the-0025a1-candidate).
+- oshepherd `0.1.0rc1` installed with `[supabase]`. See
+  [Install the 0.1.0rc1 candidate](install.md#install-the-010rc1-candidate).
 - [Ollama](https://ollama.com/download) running, with at least one model pulled.
   oshepherd never downloads models.
 - A [Supabase](https://supabase.com) account on the Free plan, and a personal access
@@ -144,8 +144,8 @@ oshepherd service uninstall
 
 The example uses the default operator directory. If you followed the cloud
 walkthrough, use your installation's `.oshepherd/cloud/first-run` directory instead
-(prefer its absolute path for a service). Services require an installed candidate
-wheel; follow [installation](install.md#install-the-0025a1-candidate).
+(prefer its absolute path for a service). Services require an installed package,
+not a checkout; follow [installation](install.md#install-the-010rc1-candidate).
 
 On a joined machine, use `--kind join --state-dir ~/.local/state/oshepherd/worker`.
 For more than one service on a machine, give each a `--name`.

@@ -14,8 +14,8 @@ running on the operator machine for inference and stored-result cleanup. These
 commands run from that checkout and use `.oshepherd/cloud/first-run`, the state
 directory created by that guide.
 
-Use the checkout or a candidate built with the new `client` commands; the
-Supabase candidate is not published to PyPI. Confirm the commands are available:
+Use the checkout or the [installed `0.1.0rc1` candidate](install.md#install-the-010rc1-candidate).
+Confirm the commands are available:
 
 ```sh
 uv run --locked oshepherd client --help

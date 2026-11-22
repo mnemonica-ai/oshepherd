@@ -1,8 +1,8 @@
 # Documentation
 
 Supabase is oshepherd's primary setup path. Redis/Celery/FastAPI remains supported
-with its existing CLI defaults. The Supabase candidate is currently unpublished;
-use a checkout or a locally built wheel as described in [installation](install.md).
+with its existing CLI defaults. The Supabase candidate is published as
+`0.1.0rc1`; see [installation](install.md).
 
 ## Start and use an installation
 

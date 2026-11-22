@@ -12,9 +12,9 @@ container-image and model downloads need internet access.
 For a hosted installation, use the separate
 [Supabase Cloud walkthrough](supabase-cloud-walkthrough.md).
 
-This guide uses the unpublished `0.0.25a1` candidate. The checkout is enough
-for local testing. See [candidate installation](install.md#install-the-0025a1-candidate)
-for installation from a local wheel.
+This guide uses the `0.1.0rc1` candidate. The checkout is enough
+for local testing. See [candidate installation](install.md#install-the-010rc1-candidate)
+to install it from PyPI.
 
 ## 1. Prepare the checkout and models
 

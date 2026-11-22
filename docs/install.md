@@ -1,57 +1,53 @@
 # Install oshepherd
 
-For the primary Supabase workflow, test this branch from a checkout:
+For the Supabase workflow, install the
+[0.1.0rc1 release candidate](#install-the-010rc1-candidate), then choose the
+[local Docker walkthrough](supabase-walkthrough.md) or the
+[Supabase Cloud walkthrough](supabase-cloud-walkthrough.md).
+
+| Setup | Guide | Package |
+| --- | --- | --- |
+| Supabase, local Docker | [Local walkthrough](supabase-walkthrough.md) | `oshepherd[supabase]==0.1.0rc1` or this checkout |
+| Supabase Cloud | [Cloud walkthrough](supabase-cloud-walkthrough.md) | `oshepherd[supabase]==0.1.0rc1` or this checkout |
+| Redis, legacy self-hosted setup | [Redis](setup-redis.md) | `oshepherd` (latest stable) or this checkout |
+
+The Supabase backend is published as an experimental release candidate. Plain
+`oshepherd` installs, including the unpinned commands under
+[the legacy published package](#install-the-legacy-published-package-with-uv),
+still get the latest stable version, which does not include Supabase.
+
+## Install the 0.1.0rc1 candidate
+
+Pin the version: uv and pip skip release candidates unless you ask for one. Keep
+the `[supabase]` suffix; it adds the libraries the Supabase setups need:
+
+```sh
+uv tool install --python 3.12 'oshepherd[supabase]==0.1.0rc1'
+oshepherd share --help
+```
+
+If an older oshepherd is already installed, add `--force` to replace it. To run it
+once without installing, use `uvx --from 'oshepherd[supabase]==0.1.0rc1' oshepherd share`.
+Background services need an installed package, not `uvx`.
+
+### From a checkout
+
+To test unreleased changes, run from a checkout instead:
 
 ```sh
 uv sync --locked --extra supabase
 uv run --locked oshepherd --help
 ```
 
-Choose the [local Docker walkthrough](supabase-walkthrough.md) or the
-[Supabase Cloud walkthrough](supabase-cloud-walkthrough.md). No publication is
-needed. For a global command or background services, build and verify the local
-wheel using [the candidate instructions](#install-the-0025a1-candidate).
-
-| Setup | Guide | Package |
-| --- | --- | --- |
-| Supabase, local Docker | [Local walkthrough](supabase-walkthrough.md) | This checkout with `[supabase]` |
-| Supabase Cloud | [Cloud walkthrough](supabase-cloud-walkthrough.md) | This checkout or its verified `0.0.25a1` wheel with `[supabase]` |
-| Redis, legacy self-hosted setup | [Redis](setup-redis.md) | Existing published package or this checkout |
-
-The Supabase candidate is not published to PyPI. The unpinned package commands
-below describe the legacy published installation; do not use them to obtain this
-branch's Supabase changes. Public publication is outside the current milestone.
-
-## Install the 0.0.25a1 candidate
-
-Use this to try the Supabase setups before they reach PyPI. You need the candidate
-wheel file, `oshepherd-0.0.25a1-py3-none-any.whl`.
-
-To build and verify it from a checkout of the repository that contains the
-candidate, run this in the checkout. The output directory must be new or empty:
+Services refuse editable installs. For a global command or background services
+from a checkout, build and verify a wheel; the output directory must be new or
+empty:
 
 ```sh
 uv run --locked python -m scripts.verify_candidate --build \
   --dist .oshepherd/local/candidate --report .oshepherd/local/candidate.json
+uv tool install --python 3.12 '/absolute/path/oshepherd-0.1.0rc1-py3-none-any.whl[supabase]'
 ```
-
-Install that wheel as a global command, using its absolute path. Keep the
-`[supabase]` suffix; it adds the libraries the Supabase setups need:
-
-```sh
-uv tool install --python 3.12 '/absolute/path/oshepherd-0.0.25a1-py3-none-any.whl[supabase]'
-oshepherd share --help
-```
-
-If an older oshepherd is already installed, add `--force` to replace it.
-
-For background services, install the wheel: services require the exact installed
-package and refuse editable installs. Foreground local testing can use
-`uv sync --locked --extra supabase` from this checkout; start with the
-[Supabase walkthrough](supabase-walkthrough.md).
-
-Publishing to PyPI is outside the current milestone. Use the checkout or a
-locally built and verified candidate wheel for Supabase testing.
 
 ## Install the legacy published package with uv
 
@@ -113,11 +109,11 @@ python3.12 -m venv ~/.venvs/oshepherd
 ~/.venvs/oshepherd/bin/oshepherd --help
 ```
 
-Those commands install the legacy published package. For Supabase, replace the
-install command with the locally built candidate wheel:
+Those commands install the latest stable package. For Supabase, install the
+candidate instead:
 
 ```sh
-~/.venvs/oshepherd/bin/pip install '/absolute/path/oshepherd-0.0.25a1-py3-none-any.whl[supabase]'
+~/.venvs/oshepherd/bin/pip install 'oshepherd[supabase]==0.1.0rc1'
 ```
 
 Background services accept this environment as long as it stays in place. Don't
@@ -128,8 +124,8 @@ described under [upgrade or remove](#upgrade-or-remove).
 ## Ask a coding agent to install it
 
 Paste this into a coding agent such as Claude Code. Replace `PACKAGE` with
-`oshepherd` for the Redis setup, or with the quoted candidate wheel path ending in
-`[supabase]` for Supabase setups:
+`oshepherd` for the Redis setup, or with `'oshepherd[supabase]==0.1.0rc1'` for
+Supabase setups:
 
 ```text
 Install the oshepherd command-line tool on this machine as a global command.

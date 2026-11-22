@@ -8,8 +8,8 @@ outbound. No inbound Ollama port or tunnel is needed.
 For a fully local installation with Docker and Studio, use the separate
 [local walkthrough](supabase-walkthrough.md).
 
-This guide uses the unpublished `0.0.25a1` candidate from this checkout. For an
-installed package, follow [candidate installation](install.md#install-the-0025a1-candidate).
+This guide runs the `0.1.0rc1` candidate from this checkout. For an
+installed package, follow [candidate installation](install.md#install-the-010rc1-candidate).
 Docker, the Supabase CLI and `psql` are not required for this cloud example.
 
 ## 1. Create an organization and access token

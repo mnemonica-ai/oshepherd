@@ -16,8 +16,7 @@ examples use its operator state directory, `.oshepherd/cloud/first-run`. Keep
 result cleanup. Run operator commands below from that checkout in another terminal.
 
 On the second machine, install Ollama and the same oshepherd candidate as the
-operator. This Supabase candidate is unpublished: use a matching checkout with
-Python 3.12 and uv, or follow [candidate installation](install.md#install-the-0025a1-candidate).
+operator. Use a matching checkout with Python 3.12 and uv, or follow [candidate installation](install.md#install-the-010rc1-candidate).
 For a checkout, run:
 
 ```sh
