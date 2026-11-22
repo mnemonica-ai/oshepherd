@@ -1,0 +1,40 @@
+{
+  "additionalProperties": true,
+  "properties": {
+    "model": {
+      "title": "Model",
+      "type": "string"
+    },
+    "state": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "items": {},
+          "type": "array"
+        }
+      ],
+      "title": "State"
+    },
+    "questions": {
+      "additionalProperties": true,
+      "title": "Questions",
+      "type": "object"
+    }
+  },
+  "required": [
+    "model",
+    "state",
+    "questions"
+  ],
+  "title": "SystemOneRequestPayload",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:oshepherd:protocol:v1:systemone:request",
+  "x-extra-behavior": "preserve"
+}

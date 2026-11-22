@@ -1,0 +1,12 @@
+{
+  "status": "local model lifecycle passed; release qualification and disconnect gate pending",
+  "supabase_cli": "2.116.0",
+  "deno": "1.41.0",
+  "python": "3.12",
+  "uv": "0.9.18",
+  "python_local_observed": "3.12.12",
+  "docker_observed": "29.8.1",
+  "postgres_major": 15,
+  "edge_runtime_observed": "v1.74.3",
+  "external_javascript_dependencies": []
+}

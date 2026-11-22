@@ -1,0 +1,103 @@
+{
+  "generate": {
+    "model": "fixture:latest",
+    "created_at": "2026-10-04T12:00:00Z",
+    "response": "Sí, 雪 🐑",
+    "done": true,
+    "done_reason": "stop",
+    "context": [
+      1,
+      2
+    ],
+    "total_duration": 1200000,
+    "load_duration": 100000,
+    "prompt_eval_count": 2,
+    "prompt_eval_duration": 200000,
+    "eval_count": 3,
+    "eval_duration": 900000
+  },
+  "chat": {
+    "model": "fixture:latest",
+    "created_at": "2026-10-04T12:00:00Z",
+    "message": {
+      "role": "assistant",
+      "content": "Sí, 雪 🐑"
+    },
+    "done": true,
+    "done_reason": "stop",
+    "total_duration": 1200000,
+    "load_duration": 100000,
+    "prompt_eval_count": 2,
+    "prompt_eval_duration": 200000,
+    "eval_count": 3,
+    "eval_duration": 900000
+  },
+  "embeddings": {
+    "embedding": [
+      0.125,
+      -0.5,
+      0.0,
+      1.25
+    ]
+  },
+  "systemone": {
+    "model": "fixture:latest",
+    "answers": {
+      "refund": {
+        "type": "noul",
+        "noul": 0.875
+      }
+    },
+    "usage": {
+      "input_tokens": 20,
+      "output_tokens": 1
+    }
+  },
+  "tags": {
+    "models": [
+      {
+        "name": "fixture:latest",
+        "model": "fixture:latest",
+        "digest": "sha256:fixture-a",
+        "size": 42,
+        "modified_at": "2026-10-04T12:00:00Z",
+        "details": {
+          "format": "gguf",
+          "family": "fixture",
+          "parameter_size": "1B",
+          "quantization_level": "Q4_0"
+        }
+      }
+    ]
+  },
+  "ps": {
+    "models": [
+      {
+        "name": "fixture:latest",
+        "model": "fixture:latest",
+        "digest": "sha256:fixture-a",
+        "size": 42,
+        "size_vram": 24,
+        "expires_at": "2026-10-04T12:05:00Z",
+        "details": {
+          "family": "fixture"
+        }
+      }
+    ]
+  },
+  "show": {
+    "license": "fixture license",
+    "modelfile": "FROM fixture",
+    "parameters": "num_ctx 1024",
+    "template": "{{ .Prompt }}",
+    "details": {
+      "family": "fixture"
+    },
+    "model_info": {
+      "fixture.context_length": 1024
+    }
+  },
+  "version": {
+    "version": "0.6.3-fixture"
+  }
+}

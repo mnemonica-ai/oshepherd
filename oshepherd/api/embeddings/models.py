@@ -1,10 +1,10 @@
 from typing import List, Optional
-from pydantic import BaseModel
+from pydantic import AliasChoices, BaseModel, Field
 
 
 class EmbeddingsPayload(BaseModel):
     model: str
-    input: str
+    input: str = Field(validation_alias=AliasChoices("input", "prompt"))
     options: Optional[dict] = None
     keep_alive: Optional[str] = "5m"
 

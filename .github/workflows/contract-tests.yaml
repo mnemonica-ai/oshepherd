@@ -1,0 +1,32 @@
+name: deterministic API contracts
+
+on:
+  pull_request:
+  push:
+    branches: [main, supabase]
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: '0.9.18'
+          enable-cache: true
+      - run: uv python install
+      - run: uv sync --locked --extra supabase --extra installer
+      - run: uv export --locked --all-extras --no-hashes --no-emit-project --output-file requirements.txt
+      - run: git diff --exit-code -- requirements.txt
+      - run: uv export --locked --no-dev --extra supabase --no-hashes --no-emit-project --no-annotate --no-header --output-file requirements/runtime.txt
+      - run: git diff --exit-code -- requirements/runtime.txt
+      - run: uv run --locked pytest -q tests/contracts tests/test_systemone.py
+  edge-contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v1.41.0
+      - run: deno check supabase/functions/ollama/index.ts
+      - run: deno test --allow-read=protocol supabase/functions/ollama/gateway_test.ts

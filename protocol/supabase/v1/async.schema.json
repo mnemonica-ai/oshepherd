@@ -1,0 +1,229 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:oshepherd:supabase:v1:async",
+  "$defs": {
+    "submission": {
+      "type": "object",
+      "properties": {
+        "endpoint": {
+          "enum": [
+            "/api/generate",
+            "/api/chat",
+            "/api/embeddings",
+            "/v1/systemone"
+          ]
+        },
+        "payload": {
+          "type": "object"
+        },
+        "limits": {
+          "type": "object",
+          "properties": {
+            "queue_ms": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 3600000
+            },
+            "total_ms": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 86400000
+            },
+            "max_output_bytes": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 33554432
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "endpoint",
+        "payload"
+      ],
+      "additionalProperties": false
+    },
+    "accepted": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "status": {
+          "enum": [
+            "queued",
+            "running",
+            "succeeded",
+            "failed",
+            "cancelled",
+            "expired"
+          ]
+        },
+        "status_url": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "status",
+        "status_url"
+      ],
+      "additionalProperties": false
+    },
+    "status": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "status": {
+          "enum": [
+            "queued",
+            "running",
+            "succeeded",
+            "failed",
+            "cancelled",
+            "expired"
+          ]
+        },
+        "attempt": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 6
+        },
+        "created_at": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$"
+        },
+        "updated_at": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$"
+        },
+        "execution_deadline": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "code",
+                "message"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "result": {
+          "type": "object",
+          "properties": {
+            "available": {
+              "type": "boolean"
+            },
+            "size_bytes": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 33554432
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "checksum": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "expires_at": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "available",
+            "size_bytes",
+            "checksum",
+            "expires_at"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "id",
+        "status",
+        "attempt",
+        "created_at",
+        "updated_at",
+        "execution_deadline",
+        "error",
+        "result"
+      ],
+      "additionalProperties": false
+    },
+    "download": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "size_bytes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 33554432
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "content_type": {
+          "const": "application/json"
+        },
+        "expires_at": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$"
+        }
+      },
+      "required": [
+        "url",
+        "size_bytes",
+        "sha256",
+        "content_type",
+        "expires_at"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

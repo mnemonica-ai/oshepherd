@@ -1,0 +1,179 @@
+{
+  "v": 1,
+  "release": "supabase-v1-local-candidate",
+  "protocol": 1,
+  "schema": "oshepherd_api",
+  "private_schema": "oshepherd",
+  "bucket": "oshepherd-results",
+  "python": "3.12",
+  "supabase_cli": "2.116.0",
+  "gateway": "ollama",
+  "profiles": {
+    "edge_free": {
+      "sync_seconds": 135,
+      "qualified": false
+    }
+  },
+  "migrations": [
+    {
+      "version": "20261010000100",
+      "path": "migrations/20261010000100_oshepherd_v1.sql",
+      "sha256": "0a366cc321a7dd79aac17b48f0586db05b8abf294cddf8c0b3c14a4f29c9ede0",
+      "content_sha256": "8c413f2e94cf994d2400ef3c174c1c311bad71bf2279a77440396e10678e36ca"
+    },
+    {
+      "version": "20261010000200",
+      "path": "migrations/20261010000200_oshepherd_operator.sql",
+      "sha256": "e31684f2a0b5b4dbd0030ef350f0aa607ac0fde60f555a93eb8031217981f231",
+      "content_sha256": "b28f55aaa4fd922b6b3753e607485c019da1748b91ea7258a79aa65d05553784"
+    },
+    {
+      "version": "20261011000100",
+      "path": "migrations/20261011000100_oshepherd_storage_baseline.sql",
+      "sha256": "02c61b006c92b4873ab90b40a4cc1cd7b4f3a686d84196ff7f24f66a67255071",
+      "content_sha256": "dccbbf30f280f19bb297c7df3bfc66e70244999e6ab205707de52cd1b923ef75"
+    },
+    {
+      "version": "20261011000200",
+      "path": "migrations/20261011000200_oshepherd_storage_compatibility.sql",
+      "sha256": "2a97341e895f286e9ffb96e2ae16379472990ae693aad43458e8b95333b86c00",
+      "content_sha256": "88dd62fa13fc9dd77d89182688dc7cd8d3b054622b6ffc8e6e84076f1e62b5fe"
+    },
+    {
+      "version": "20261011000300",
+      "path": "migrations/20261011000300_oshepherd_storage_drift.sql",
+      "sha256": "841743710e168e72e2f8bc9fdd180f5c370cce5523001a083df1bf3cea01bfa2",
+      "content_sha256": "a739d609fe4502497ddbb0e10a3e4ccbaa17a78954cbcfaf1cb30fcef47d4343"
+    },
+    {
+      "version": "20261011000400",
+      "path": "migrations/20261011000400_oshepherd_drift_lookup.sql",
+      "sha256": "51ee85e60611bc014ef5cafa4af71e53057994bb5a5f3cb2edec2ff7847ed282",
+      "content_sha256": "8493a5ed23eda88afdf5c90fc3641b12943661951fb1e72299e6b10eaa907306"
+    },
+    {
+      "version": "20261011000500",
+      "path": "migrations/20261011000500_oshepherd_storage_lock.sql",
+      "sha256": "e32c7cf791d632a5a06e4818e104579617f395bf67764ecaf2605e9b282ae488",
+      "content_sha256": "bb8017cb3c9d587e59058edaf7c0224511ace8bdba7db196a50fc233a1edfdc3"
+    }
+  ],
+  "migration_paths": [
+    [
+      "20261011000100",
+      "20261011000200",
+      "20261011000300",
+      "20261011000400",
+      "20261011000500"
+    ],
+    [
+      "20261010000100",
+      "20261010000200",
+      "20261011000200",
+      "20261011000300",
+      "20261011000400",
+      "20261011000500"
+    ]
+  ],
+  "artifacts": {
+    "functions/ollama/gateway.ts": "b7b599b074ceb8aab8f8a06faccf02f9800c3079e82398a4d8b2fa214071660b",
+    "functions/ollama/index.ts": "b705c20e49f5d0cf69ccd6ac3c1638cc9555233335fd8009f3008edd4ddc65db",
+    "functions/ollama/normalize.ts": "fd0ed1ceb98f95114de087dcda99a5aed051d6fd1c83ee865a534724ec2d9ecd",
+    "functions/ollama/rpc.ts": "67cee51debf522ad348dd7d1872a82ecdbf9d162913ad02ba032b2ff66af92ca",
+    "functions/ollama/storage.ts": "d99f9b7980ba11f2bb074464a600af2e9101c95768e52fcba70618bf37d3271b"
+  },
+  "python_sources": {
+    "__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "api/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "api/app.py": "b72955885c36f04f92fa8b7fe16aae1f431b9983ab6065e7fce472172f3ddabd",
+    "api/chat/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "api/chat/models.py": "db7059022d0a5ffaf4be52fa1786e44edcbfefd58b61cfcc0210889a3af4c595",
+    "api/chat/routes.py": "877dabfeb5cdde1bf3e3fb87246d224e01814f60a1294ae66d9705a53de5d009",
+    "api/config.py": "5eb5ef59e12245c64164fefddeb9489cad7c749130aab1d6853d3e811ff9ef65",
+    "api/embeddings/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "api/embeddings/models.py": "72109adb12ddbb843b32428280c2fa29470f7f21c0ef990017f87f70f55492ec",
+    "api/embeddings/routes.py": "4226d27797e77630c8bc882c4abfc3f72ea1de02dc19c00a67f08f1b664c0b89",
+    "api/factory.py": "502b09c8c6c2b2cf08787ff8d9f34eb1ec813783dcdb9307cfb8097bfd4720b1",
+    "api/generate/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "api/generate/models.py": "ab4724ed34c8d54dfec87745079829c77118d033701057741921edc3d311790c",
+    "api/generate/routes.py": "0e1d3af6bed155ab9aed2f435c6fb67bfe401222f6de626d46415d486aae7f8d",
+    "api/health.py": "da9de09d5cd89aee46eb031b79c06148551bfa8e7b6c5e90dcedf1b04dc72262",
+    "api/network_data.py": "2f33b650a085af31fe0904cba55b29c1ae15f038edd261c4682880f74cc5af33",
+    "api/ps/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "api/ps/routes.py": "fdb29456f76d16c9e5c4617cf860933c46ef5b7f58c99f3cf2e17b4cf241b8f1",
+    "api/server.py": "96f9352fb25b98e0c2f7cc6a503da1d0063349cd4f6d6da47782f416d190bef4",
+    "api/show/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "api/show/models.py": "b415ea6f3cbc86182dcc8bdd144e86115cd93a6c1e8d0e6bf41c043ad16ddca7",
+    "api/show/routes.py": "d81cb1540ee6416e655a9f24b5a9be98983d32d6c483d0afcb1bae8cf4f45738",
+    "api/systemone/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "api/systemone/models.py": "85bb1375d9a9f1986f47b8e3865564cba5b67d947a46cba4ca862a5dab0b3e51",
+    "api/systemone/routes.py": "1a12796a332faafec2d6834d476c31ed8862e34f47cf66a1239dbd9dca347eb2",
+    "api/tags/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "api/tags/models.py": "afc36d18b2d8c0dc16262202987dea08687a277b7aa1644bca0a6fb6856fd7fe",
+    "api/tags/routes.py": "761b6d355ce09e859b3e44d9481f2f04cdbf620c2de22e993a5f67e39396acd8",
+    "api/utils.py": "3f0f7b2797acc47768752feb866c1204af5b3cfcbdf07f6811df2c04c1990cf8",
+    "api/version/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "api/version/models.py": "b5b48e25a4ea4338ee4b4910f1da54e6f09631a8cdeabebcdcbd7374f6a622c9",
+    "api/version/routes.py": "2540dc04ca02b4b336dc8f395e4d2abd0845ed5cf47edb4d8783ca7173827582",
+    "backends/__init__.py": "93ca994a094d2726bc321dbba80ce9acc7e10095a2f9fdf4ff5d39da60e1376f",
+    "backends/supabase/__init__.py": "b5fac1e853bc2aa2d1a9f12a96292e28a7bb65aa6a2fc5f99c76c45ad89c2593",
+    "backends/supabase/client.py": "537aa798bc95ff904e7fb551e46d15aaa1d6f9488a28a9332fedc8ab526a4795",
+    "backends/supabase/client_cli.py": "78feab8335c9c86838b71aa175ee727978eeced5f7e09583179fd4851464b3ea",
+    "backends/supabase/config.py": "26c40eb1672941dacfd88cf258b44ed6b6096407a4d2b9f56a8cd6bc8819f338",
+    "backends/supabase/edge_deployment.py": "dcecd38fb42fa59bc9d78429c47eac70ce33e67f628d74a669bf1d9efddc5659",
+    "backends/supabase/gateway.py": "7df9c51df0f4fab256aa1b4b8e85b90d81424cee9dda64704770057bea0a121b",
+    "backends/supabase/gateway_storage.py": "d5a44f761109a393f4a222e81f7f4310e04664ba633e6d944ef57e6026259a91",
+    "backends/supabase/installer.py": "e59ade75f213f280b8b2870c5945d3f71b6085a255339d0123eb2c9a6fa9bc74",
+    "backends/supabase/installer_store.py": "359d0a04a867be04cc517224cd22b490f89dd2785d368c9d2e992a832bd3194d",
+    "backends/supabase/join_cli.py": "6bb356c95d0301844603f3b33ff16903de7732753d50a8338a3af98173a6fb3c",
+    "backends/supabase/maintenance.py": "ab4de3c7b1439334574dc8acaf02f540fab804dd3793495941850888a4d5e251",
+    "backends/supabase/management.py": "760cb6f4e4a77f1cb406dbb0dff57d9e9095fa215dfbb57e282cf41f8b4fad6c",
+    "backends/supabase/management_database.py": "20da125e8da59dcbbd3c31e437365972295b411dad9d49520c616547c1ae07cd",
+    "backends/supabase/named_clients.py": "da1e5a2defe1f3d8b5a19b7e62a6a88cea5bdc5fd0bd3445dca62616d2de6a8d",
+    "backends/supabase/oauth.py": "582e1298433af521380cb11d34b4aff02eb171d8566fe98d877d617b0e24e120",
+    "backends/supabase/onboarding.py": "ff3b6d8a986e4645c00bdac9c1f078e5791c2292a9172cd67c2c49637fd4969f",
+    "backends/supabase/operator.py": "577bb9d1e5715df6d7d3ee265d5d5ae09df435cdb4f4191598185626b977f360",
+    "backends/supabase/operator_cli.py": "abaab58936ea16ff5a947783755dee7242a58f901dbf496fe178ec9fbd02af49",
+    "backends/supabase/private_files.py": "440d41a5fb69fdd80da324634d6b91342170b363e37ad60e391d5b3ec895db85",
+    "backends/supabase/provider_cli.py": "0852259f3676d99b2d271617e55250f112eef7036a4bae7a427c003ec84f731f",
+    "backends/supabase/provider_setup.py": "e89d0ecb03a967ff39d3a492967a8bf221229788467e279afa128dc13a7f9a65",
+    "backends/supabase/provisioning.py": "79543eeed29001b4016d81880b7803791276a83ca2d0e50f2c924dc39641e2c1",
+    "backends/supabase/releases.py": "229ac18940e4230f33d27c1513b4f0d8b14152395496a8bdbaf034060f33d836",
+    "backends/supabase/runtime_bundle.py": "49f286cd7eb7ede8c229451cc5765fcd32f3b18124377fd8e94f088b9b651504",
+    "backends/supabase/service.py": "fc68a7b1c05a2aca06051ba8bd2f1c852a454166d538da4969dae0104c409cf5",
+    "backends/supabase/service_cli.py": "fcc3168777b1a044582aeb38a6da392f23c4b6080c4814f2d44aafccaa1a5287",
+    "backends/supabase/sessions.py": "2b99e8007120e14caa1e6871f0c5199fda47fe0cbdb5bf217b3dc3a81cbc5972",
+    "backends/supabase/share_cli.py": "db21e78f0c4901ef5df32060a6a5da9866704507a988102978f7bad03c8883d5",
+    "backends/supabase/sharing.py": "d75baf087d1e72e57d211e2a1658afed841d5eed0421cf6d5d5e1b0774d0388c",
+    "backends/supabase/startup.py": "4f79f287aec3fb2faad72c14c9848b981c19a30c1b3e9755de3536ba3fe5e8fc",
+    "backends/supabase/storage.py": "4c7c47455691efafa584f477457a7184b4544dc28185411d1372bb06d63e91b5",
+    "backends/supabase/worker.py": "0dbea173d04d8b520c87418d3fbe04071e05c4d4625a62e45bab540aa81b7df4",
+    "backends/supabase/worker_logging.py": "8dcc0657bf9a4b646695d09a63d8fba96fbfd9d9e5e5b8e0243de5abbb64291e",
+    "cli.py": "6f8468189036dd15c2321ff50edf884f23ed9ec1a6315f3d77bd4a6885b1cd03",
+    "common/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "common/lib.py": "1cca1eed71134dcf913f043dddd32bb83a6c5927975492b5b23a64e2ed3a0fb1",
+    "common/logging_config.py": "4e3b11bf9443d613e50ba879e0dbd98035336bb48f4c75216a4c529f434b2d73",
+    "common/ollama.py": "836c3302c3229b6308868235bb53950058099369d80ee6842a5a6d1a7fbc66c5",
+    "common/protocol.py": "2ccbc8970ce9a6c126c0f69b097597c1dfdcc06c9499cfae423582581d146a1c",
+    "common/redis_service.py": "27fbf08ab06c63fb5fcd74382b3b19f46642716d2c378dd2fe55e5a5bb73aa18",
+    "worker/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "worker/app.py": "2a7eee58520e27f9f8444fb014b29c6911ca73709af40d1e31120f4bbf152046",
+    "worker/config.py": "4c2c89dcc6b1990c16736e26ae1407e0941fa6c7e8d92f2930da5d5da76830be",
+    "worker/executor.py": "0fefc4f689ebc1d21e0411911abeb0602c873c7609df9740429bcd11f2268789",
+    "worker/ollama_task.py": "a110454b12e35672afd2c1e5cee73a95a6bd616a39e5343bb7812c084901896c",
+    "worker/tasks.py": "4ecf8c20beda6cdc1e92da9af3e925ee149dc290c1e195b7e2310332c908d6a6",
+    "worker/worker_data.py": "8fbf522742e0957990f2e16d3c502c5cae1f3d38ce54a777a1aa7a447746a290"
+  },
+  "schedules": [
+    {
+      "name": "oshepherd-reap-v1",
+      "interval": "10 seconds",
+      "command": "set statement_timeout='5s'; set lock_timeout='100ms'; select oshepherd.scheduled_sweep('reap');"
+    },
+    {
+      "name": "oshepherd-purge-v1",
+      "interval": "* * * * *",
+      "command": "set statement_timeout='5s'; set lock_timeout='100ms'; select oshepherd.scheduled_sweep('purge'); delete from cron.job_run_details where runid in(select d.runid from cron.job_run_details d join cron.job j on j.jobid=d.jobid where j.jobname in('oshepherd-reap-v1','oshepherd-purge-v1') and j.username=current_user and d.end_time<clock_timestamp()-interval '2 days' order by d.runid limit 256);"
+    }
+  ]
+}

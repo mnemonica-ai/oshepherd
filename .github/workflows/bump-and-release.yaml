@@ -1,16 +1,9 @@
-name: bump & release
+name: manual legacy version bump
 
 on:
-  push:
-    branches:
-      - main
-    paths-ignore:
-      - README.md
-      - LICENSE
-      - assets/**
-      - examples/**
-      - tests/**
-      - .github/**
+  # Keep legacy version rewriting explicitly invoked. A push must not replace a
+  # reviewed PEP 440 prerelease with a stable patch version before publication.
+  workflow_dispatch:
 
 jobs:
   release-on-push:
@@ -29,13 +22,21 @@ jobs:
           max_commits: 250
           prerelease: true
 
+      - name: Install uv
+        if: steps.release.outputs.version != ''
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: '0.9.18'
+
       - name: bump version in package files
         if: steps.release.outputs.version != ''
         run: |
           sed -i "s/^version = .*/version = \"${{ steps.release.outputs.version }}\"/" pyproject.toml
           sed -i "s/    version=.*/    version=\"${{ steps.release.outputs.version }}\",/" setup.py
+          uv lock
+          uv export --locked --all-extras --no-hashes --no-emit-project --output-file requirements.txt
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add pyproject.toml setup.py
+          git add pyproject.toml setup.py uv.lock requirements.txt
           git commit -m "chore: bump version to ${{ steps.release.outputs.version }} [skip ci]"
           git push

@@ -1,0 +1,1025 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:oshepherd:supabase:v1:rpc",
+  "$defs": {
+    "bootstrap_cluster": {
+      "type": "object",
+      "properties": {
+        "v": {
+          "const": 1
+        },
+        "operation_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "cluster_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "owner_subject": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "v",
+        "operation_id",
+        "cluster_id",
+        "owner_subject"
+      ],
+      "additionalProperties": false
+    },
+    "create_api_key": {
+      "type": "object",
+      "properties": {
+        "v": {
+          "const": 1
+        },
+        "operation_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "cluster_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "key_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "raw_key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      },
+      "required": [
+        "v",
+        "operation_id",
+        "cluster_id",
+        "key_id",
+        "raw_key"
+      ],
+      "additionalProperties": false
+    },
+    "enroll_worker": {
+      "type": "object",
+      "properties": {
+        "v": {
+          "const": 1
+        },
+        "operation_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "cluster_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "auth_subject": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "capacity": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 64
+        }
+      },
+      "required": [
+        "v",
+        "operation_id",
+        "cluster_id",
+        "auth_subject",
+        "capacity"
+      ],
+      "additionalProperties": false
+    },
+    "revoke_worker": {
+      "type": "object",
+      "properties": {
+        "v": {
+          "const": 1
+        },
+        "operation_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "cluster_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "worker_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "v",
+        "operation_id",
+        "cluster_id",
+        "worker_id"
+      ],
+      "additionalProperties": false
+    },
+    "register_worker": {
+      "type": "object",
+      "properties": {
+        "v": {
+          "const": 1
+        },
+        "operation_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "v",
+        "operation_id"
+      ],
+      "additionalProperties": false
+    },
+    "update_models": {
+      "type": "object",
+      "properties": {
+        "v": {
+          "const": 1
+        },
+        "operation_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "session_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "generation": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        },
+        "models": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "digest": {
+                "type": "string"
+              },
+              "operations": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "generate",
+                    "chat",
+                    "embeddings",
+                    "systemone"
+                  ]
+                },
+                "maxItems": 4
+              },
+              "details": {
+                "type": "object"
+              },
+              "show": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "name",
+              "digest",
+              "operations",
+              "details",
+              "show"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 256
+        },
+        "running": {
+          "type": "object"
+        },
+        "version": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "v",
+        "operation_id",
+        "session_id",
+        "generation",
+        "models",
+        "running",
+        "version"
+      ],
+      "additionalProperties": false
+    },
+    "heartbeat_and_claim": {
+      "type": "object",
+      "properties": {
+        "v": {
+          "const": 1
+        },
+        "operation_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "session_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "generation": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        },
+        "active_attempts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "job_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "attempt_id": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "job_id",
+              "attempt_id"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 64
+        },
+        "max_jobs": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 64
+        },
+        "draining": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "v",
+        "operation_id",
+        "session_id",
+        "generation",
+        "active_attempts",
+        "max_jobs",
+        "draining"
+      ],
+      "additionalProperties": false
+    },
+    "submit_job": {
+      "type": "object",
+      "properties": {
+        "v": {
+          "const": 1
+        },
+        "operation_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "cluster_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "request": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "enum": [
+                "generate",
+                "chat",
+                "embeddings",
+                "systemone"
+              ]
+            },
+            "payload": {
+              "type": "object"
+            }
+          },
+          "required": [
+            "type",
+            "payload"
+          ],
+          "additionalProperties": false
+        },
+        "mode": {
+          "enum": [
+            "sync",
+            "async"
+          ]
+        },
+        "limits": {
+          "type": "object",
+          "properties": {
+            "queue_ms": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 3600000
+            },
+            "total_ms": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 86400000
+            },
+            "max_output_bytes": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 33554432
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "idempotency_key": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "consumer_token": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "v",
+        "operation_id",
+        "cluster_id",
+        "key",
+        "request",
+        "mode",
+        "limits",
+        "idempotency_key",
+        "consumer_token"
+      ],
+      "additionalProperties": false
+    },
+    "append_output": {
+      "type": "object",
+      "properties": {
+        "v": {
+          "const": 1
+        },
+        "operation_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "session_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "generation": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        },
+        "job_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "attempt_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        },
+        "content": {
+          "type": "string",
+          "minLength": 1
+        },
+        "checksum": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "v",
+        "operation_id",
+        "session_id",
+        "generation",
+        "job_id",
+        "attempt_id",
+        "seq",
+        "content",
+        "checksum"
+      ],
+      "additionalProperties": false
+    },
+    "finish_job": {
+      "type": "object",
+      "properties": {
+        "v": {
+          "const": 1
+        },
+        "operation_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "session_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "generation": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        },
+        "job_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "attempt_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "final_chunks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 16
+        },
+        "result": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "inline": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "object_path": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "size_bytes": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 33554432
+                },
+                "checksum": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "content_type": {
+                  "const": "application/json"
+                }
+              },
+              "required": [
+                "inline",
+                "object_path",
+                "size_bytes",
+                "checksum",
+                "content_type"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "v",
+        "operation_id",
+        "session_id",
+        "generation",
+        "job_id",
+        "attempt_id",
+        "final_chunks",
+        "result"
+      ],
+      "additionalProperties": false
+    },
+    "fail_attempt": {
+      "type": "object",
+      "properties": {
+        "v": {
+          "const": 1
+        },
+        "operation_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "session_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "generation": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        },
+        "job_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "attempt_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "error": {
+          "type": "object",
+          "properties": {
+            "code": {
+              "type": "string"
+            },
+            "message": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "code",
+            "message"
+          ],
+          "additionalProperties": false
+        },
+        "retryable": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "v",
+        "operation_id",
+        "session_id",
+        "generation",
+        "job_id",
+        "attempt_id",
+        "error",
+        "retryable"
+      ],
+      "additionalProperties": false
+    },
+    "read_updates": {
+      "type": "object",
+      "properties": {
+        "v": {
+          "const": 1
+        },
+        "operation_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "cluster_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "cursors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "job_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "cursor": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 2147483647
+              },
+              "consumer_token": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "job_id",
+              "cursor",
+              "consumer_token"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 32
+        },
+        "max_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 262144
+        },
+        "max_chunks": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 64
+        }
+      },
+      "required": [
+        "v",
+        "operation_id",
+        "cluster_id",
+        "key",
+        "cursors",
+        "max_bytes",
+        "max_chunks"
+      ],
+      "additionalProperties": false
+    },
+    "cancel_job": {
+      "type": "object",
+      "properties": {
+        "v": {
+          "const": 1
+        },
+        "operation_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "cluster_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "job_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "consumer_token": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reason": {
+          "enum": [
+            "cancelled",
+            "execution_expired",
+            "consumer_expired",
+            "reader_stalled"
+          ]
+        }
+      },
+      "required": [
+        "v",
+        "operation_id",
+        "cluster_id",
+        "key",
+        "job_id",
+        "consumer_token",
+        "reason"
+      ],
+      "additionalProperties": false
+    },
+    "read_metadata": {
+      "type": "object",
+      "properties": {
+        "v": {
+          "const": 1
+        },
+        "operation_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "cluster_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "operation": {
+          "enum": [
+            "tags",
+            "ps",
+            "show",
+            "version"
+          ]
+        },
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "v",
+        "operation_id",
+        "cluster_id",
+        "key",
+        "operation",
+        "model"
+      ],
+      "additionalProperties": false
+    },
+    "backend_info": {
+      "type": "object",
+      "properties": {
+        "v": {
+          "const": 1
+        },
+        "operation_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "cluster_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      },
+      "required": [
+        "v",
+        "operation_id",
+        "cluster_id",
+        "key"
+      ],
+      "additionalProperties": false
+    },
+    "reap_jobs": {
+      "type": "object",
+      "properties": {
+        "v": {
+          "const": 1
+        },
+        "operation_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "cluster_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 256
+        }
+      },
+      "required": [
+        "v",
+        "operation_id",
+        "cluster_id",
+        "limit"
+      ],
+      "additionalProperties": false
+    },
+    "purge_expired": {
+      "type": "object",
+      "properties": {
+        "v": {
+          "const": 1
+        },
+        "operation_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "cluster_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 256
+        }
+      },
+      "required": [
+        "v",
+        "operation_id",
+        "cluster_id",
+        "limit"
+      ],
+      "additionalProperties": false
+    },
+    "response": {
+      "type": "object",
+      "properties": {
+        "v": {
+          "const": 1
+        },
+        "data": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "v",
+        "data"
+      ],
+      "additionalProperties": false
+    },
+    "maintenance_tick": {
+      "type": "object",
+      "properties": {
+        "v": {
+          "type": "integer",
+          "const": 1
+        },
+        "operation_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "cluster_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 64
+        }
+      },
+      "required": [
+        "v",
+        "operation_id",
+        "cluster_id",
+        "limit"
+      ],
+      "additionalProperties": false
+    },
+    "complete_maintenance": {
+      "type": "object",
+      "properties": {
+        "v": {
+          "type": "integer",
+          "const": 1
+        },
+        "operation_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "cluster_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "claim_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "deleted_paths": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/){3}result\\.json$"
+          }
+        },
+        "failed_paths": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/){3}result\\.json$"
+          }
+        }
+      },
+      "required": [
+        "v",
+        "operation_id",
+        "cluster_id",
+        "claim_id",
+        "deleted_paths",
+        "failed_paths"
+      ],
+      "additionalProperties": false
+    },
+    "installation_info": {
+      "type": "object",
+      "properties": {
+        "v": {
+          "const": 1
+        },
+        "operation_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "cluster_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "v",
+        "operation_id",
+        "cluster_id"
+      ],
+      "additionalProperties": false
+    },
+    "disable_cluster": {
+      "type": "object",
+      "properties": {
+        "v": {
+          "const": 1
+        },
+        "operation_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "cluster_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "v",
+        "operation_id",
+        "cluster_id"
+      ],
+      "additionalProperties": false
+    },
+    "revoke_api_key": {
+      "type": "object",
+      "properties": {
+        "v": {
+          "const": 1
+        },
+        "operation_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "cluster_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "key_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "v",
+        "operation_id",
+        "cluster_id",
+        "key_id"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

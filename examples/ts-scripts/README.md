@@ -1,10 +1,15 @@
 # Oshepherd in JavaScript/TypeScript
 
-This example demonstrates how to use Oshepherd and Ollama with a JavaScript/TypeScript streaming client.
+This example demonstrates streaming through the legacy Redis/FastAPI setup.
+It currently connects to `http://127.0.0.1:5001`, requests `mistral`, and does not
+send an application key. It is not a Supabase onboarding example; use the
+[client walkthrough](../../docs/supabase-client-walkthrough.md) for that flow.
 
 ## Requirements
 
-Before running this example, follow the Oshepherd setup instructions in the [main README](../../README.md#usage):
+Before running this example, follow the [Redis setup guide](../../docs/setup-redis.md)
+and ensure a worker serves `mistral`. Change the host/model in
+`pretty_streaming.ts` if your setup differs.
 
 For this TypeScript example, you'll also need:
 

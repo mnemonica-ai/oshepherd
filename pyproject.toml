@@ -1,6 +1,10 @@
+[build-system]
+requires = ["setuptools==80.9.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "oshepherd"
-version = "v0.0.24"
+version = "0.1.0rc1"
 description = "The Oshepherd guiding the Ollama(s) inference orchestration."
 readme = "README.md"
 authors = [
@@ -26,14 +30,23 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
+installer = ["cryptography==50.0.2"]
+supabase = [
+    "httpx==0.28.1",
+    "ollama==0.6.3"
+]
 dev = [
     "pytest",
+    "httpx",
+    "jsonschema==4.23.0",
     "black",
     "build",
     "twine"
 ]
 tests = [
-  "pytest"
+  "pytest",
+  "httpx",
+  "jsonschema==4.23.0"
 ]
 lint = [
   "black"
@@ -45,3 +58,19 @@ Issues = "https://github.com/mnemonica-ai/oshepherd/issues"
 
 [project.scripts]
 oshepherd = "oshepherd.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["oshepherd", "oshepherd.*"]
+
+[tool.setuptools.package-data]
+"oshepherd.backends.supabase" = ["release/manifest.json", "release/migrations/*.sql", "release/functions/ollama/*.ts"]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "httpx",
+    "jsonschema==4.23.0",
+    "black",
+    "build",
+    "twine",
+]
