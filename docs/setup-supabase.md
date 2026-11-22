@@ -139,9 +139,46 @@ version. Use a model your workers actually have.
   to 32 MiB for you to download.
 - Your Supabase Free plan limits also apply.
 
-## 3. Connect another machine
+## 3. Give another application access
 
-On the machine running `share`, create an invitation with a unique worker name:
+For a complete example, follow the [client onboarding walkthrough](supabase-client-walkthrough.md).
+
+On the installation host, create a separate application key for each script or
+service that sends requests to the gateway.
+
+```sh
+oshepherd client create --name remote-script --output remote-client.json
+oshepherd client list
+```
+
+These commands use the default `share` state directory. If you started `share`
+with `--state-dir`, pass the same option to each client command. The commands
+read `connection.json` in that directory unless you supply
+`--connection-file` explicitly.
+
+Transfer `remote-client.json` privately to the consuming machine and keep it
+at mode `0600`. Point the Python example above at that file. It carries the
+HTTPS gateway URL and a bearer key. Keep the installation state and its
+operator credentials on the installation host, and keep the export out of
+version control.
+
+```sh
+oshepherd client revoke --name remote-script
+```
+
+Revocation blocks subsequent authenticated requests made with that client's
+key. Other clients and the installation's `client.json` keep their keys.
+`client list` shows the names, key IDs and recorded status in the selected
+local state. If creation is interrupted, repeat the command with the same
+name and output. You can export an active client's existing key to a fresh
+file by using the same name. Choose a new name after revocation.
+
+## 4. Add another inference worker
+
+For a complete example, follow the [worker onboarding walkthrough](supabase-worker-walkthrough.md).
+
+Use `invite` and `join` to add another machine that runs Ollama and serves
+inference. On the machine running `share`, create a unique worker invitation.
 
 ```sh
 oshepherd invite --name second-machine --output ~/second-machine.invitation.json

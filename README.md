@@ -2,6 +2,9 @@
 
 <p align="center">
   <img src="assets/oshepherd_logo.png" alt="oshepherd" width="180">
+</p>
+
+<p align="center">
   <a href="https://supabase.com">
     <img src="https://supabase.com/brand-assets/supabase-icon-green-transparent.svg" alt="Supabase" width="80">
   </a>
@@ -20,12 +23,30 @@ your machines; prompts, jobs and results pass through Supabase.
 | Supabase Cloud | Hosted project created by `oshepherd share`; Ollama stays on your machine | [Cloud walkthrough](docs/supabase-cloud-walkthrough.md) |
 
 Both examples cover setup, Python requests, database inspection and restart.
+Once an installation is running, follow the [worker onboarding walkthrough](docs/supabase-worker-walkthrough.md)
+to add an Ollama server, or the [client onboarding walkthrough](docs/supabase-client-walkthrough.md)
+to give a script its own credentials.
+
 This branch is an experimental, unpublished candidate. PyPI
 publication is outside the current milestone. The latest full local reruns hit
 an Edge CPU limit on the joined worker (HTTP 503/546); see
 [validation status](docs/plans/supabase/progress.md#branch-cleanup-follow-up).
 
 ## Moving from Redis to Supabase
+
+<p align="center">
+  <a href="https://redis.io">
+    <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/redis/redis-original-wordmark.svg" alt="Redis" height="64">
+  </a>
+  &nbsp;&nbsp;
+  <a href="https://docs.celeryq.dev">
+    <img src="https://raw.githubusercontent.com/celery/celery/main/docs/images/celery_512.png" alt="Celery" height="64">
+  </a>
+  &nbsp;&nbsp;
+  <a href="https://fastapi.tiangolo.com">
+    <img src="https://raw.githubusercontent.com/fastapi/fastapi/master/docs/en/docs/img/logo-teal.svg" alt="FastAPI" height="64">
+  </a>
+</p>
 
 The original architecture uses a FastAPI gateway, Celery and Redis. Supabase now
 provides the main development and onboarding path: Postgres coordinates durable
@@ -199,3 +220,5 @@ and [pull requests](https://github.com/mnemonica-ai/oshepherd/pulls).
 
 Developed by [mnemonica.ai](https://mnemonica.ai). [MIT license](LICENSE).
 Supabase's unmodified logo comes from its [official brand assets](https://supabase.com/brand).
+The Redis logo comes from [Devicon](https://github.com/devicons/devicon);
+the Celery and FastAPI logos come from their official project repositories.

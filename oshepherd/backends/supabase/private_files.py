@@ -40,22 +40,47 @@ def read_private_json(filename, *, limit=65536):
         return json.loads(content)
 
 
-def write_private(filename, content):
+def output_directory(path):
+    """Validate an existing output parent without changing its permissions."""
+    if any(item.is_symlink() for item in (path, *path.parents)):
+        raise ValueError("Private directories cannot be symlinks")
+    metadata = path.stat()
+    if (
+        metadata.st_uid != os.getuid()
+        or not stat.S_ISDIR(metadata.st_mode)
+        or metadata.st_mode & 0o022
+        or metadata.st_mode & 0o300 != 0o300
+    ):
+        raise ValueError(
+            "Output directory must be owned and writable only by this user"
+        )
+    return path
+
+
+def write_private(filename, content, *, replace=True):
     path = Path(filename).absolute()
-    parent = private_directory(path.parent)
-    if path.is_symlink():
-        raise ValueError("Private state cannot be a symlink")
-    if path.exists():
-        metadata = path.stat()
-        if metadata.st_uid != os.getuid() or not stat.S_ISREG(metadata.st_mode):
-            raise ValueError("Private state must be an owned regular file")
+    if replace:
+        parent = private_directory(path.parent)
+        if path.is_symlink():
+            raise ValueError("Private state cannot be a symlink")
+        if path.exists():
+            metadata = path.stat()
+            if metadata.st_uid != os.getuid() or not stat.S_ISREG(metadata.st_mode):
+                raise ValueError("Private state must be an owned regular file")
+    else:
+        parent = output_directory(path.parent)
     descriptor, temporary = tempfile.mkstemp(prefix=".private-", dir=parent)
     try:
         with os.fdopen(descriptor, "w") as stream:
+            if not replace:
+                os.fchmod(stream.fileno(), 0o600)
             stream.write(content)
             stream.flush()
             os.fsync(stream.fileno())
-        os.replace(temporary, path)
+        if replace:
+            os.replace(temporary, path)
+        else:
+            os.link(temporary, path)
         descriptor = os.open(parent, os.O_RDONLY)
         try:
             os.fsync(descriptor)
@@ -66,5 +91,5 @@ def write_private(filename, content):
             os.unlink(temporary)
 
 
-def write_private_json(filename, value):
-    write_private(filename, json.dumps(value))
+def write_private_json(filename, value, *, replace=True):
+    write_private(filename, json.dumps(value), replace=replace)

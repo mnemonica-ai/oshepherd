@@ -205,6 +205,7 @@ for _name, _module, _help in (
         "Join an installation or restart its saved foreground worker.",
     ),
     ("invite", "share_cli", "Create a private invitation for another machine."),
+    ("client", "client_cli", "Manage named credentials for consuming inference."),
     ("service", "service_cli", "Manage optional per-user background sharing."),
 ):
     main.add_command(

@@ -184,6 +184,36 @@ health. To check System One, install a compatible `tev1:4b` and pass
 `--decision-model tev1:4b` to the client. For an unsupported model-format error
 in direct Ollama calls, refresh the model.
 
+### Give a local script a separate key
+
+The [client onboarding walkthrough](supabase-client-walkthrough.md) covers
+credential transfer, Python integration, recovery and revocation in detail.
+
+From the repository root, use the operator directory from step 2. The commands
+read its private `connection.json`.
+
+```sh
+uv run --locked oshepherd client create \
+  --state-dir .oshepherd/local/end-user/operator \
+  --name local-script --output local-client.json
+uv run --locked oshepherd client list --state-dir .oshepherd/local/end-user/operator
+```
+
+Set `--client-file local-client.json` in the example above, or update your
+script to read that file, then send a request. Keep the file at mode `0600`.
+The exported URL points to the loopback gateway on this host. To send requests
+from a different machine, use a reachable gateway such as the hosted HTTPS
+endpoint in the [cloud walkthrough](supabase-cloud-walkthrough.md).
+
+Revoke the script's key, then verify that a new request with it is rejected.
+
+```sh
+uv run --locked oshepherd client revoke \
+  --state-dir .oshepherd/local/end-user/operator --name local-script
+```
+
+Use `invite` and `join` in step 6 to add a worker that serves inference.
+
 ## 5. Inspect the database in Supabase Studio
 
 Step 2 enables Studio and its Postgres metadata service by default. Open
@@ -230,6 +260,9 @@ from the local project directory. Keep its `operator` directory with the
 database so you can resume the same installation.
 
 ## 6. Onboard another Ollama server
+
+See the [worker onboarding walkthrough](supabase-worker-walkthrough.md) for the
+full invite/join flow, verification, restarts and a remote-machine cloud example.
 
 For the manual installation above, create a private one-use invitation:
 

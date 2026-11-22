@@ -87,6 +87,31 @@ Edge, Postgres and the outbound worker before reaching Ollama. Ctrl-C in the
 runner terminal cleans up its test stack, including the database; this runner
 is intentionally disposable.
 
+To give a local script a separate bearer key, run these commands while the
+stack is up. Each reads `connection.json` from the selected operator directory.
+
+```sh
+uv run --locked oshepherd client create \
+  --state-dir .oshepherd/local/my-first-acceptance/operator \
+  --name local-script --output local-client.json
+uv run --locked oshepherd client list \
+  --state-dir .oshepherd/local/my-first-acceptance/operator
+```
+
+Point the request example at `local-client.json` and send a request. Then revoke
+the key and verify that another request with it is rejected.
+
+```sh
+uv run --locked oshepherd client revoke \
+  --state-dir .oshepherd/local/my-first-acceptance/operator \
+  --name local-script
+```
+
+The file still uses the loopback gateway on the stack host. A remote consumer
+needs a gateway it can reach, such as the hosted HTTPS gateway in the
+[cloud walkthrough](supabase-cloud-walkthrough.md). Use `invite` and `join` to
+add a worker that serves inference.
+
 ## CLI steps exercised by the runner
 
 After starting a fresh local Supabase project and saving `supabase status -o json`

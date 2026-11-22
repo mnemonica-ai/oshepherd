@@ -31,6 +31,12 @@ The documentation now provides separate [local](../../supabase-walkthrough.md)
 and [cloud](../../supabase-cloud-walkthrough.md) examples. Known Edge cancellation
 and CPU-limit gates remain open; package version and qualification are unchanged.
 
+The user also reported successful remote-client onboarding using the new named
+client credentials. This is manual functional feedback; remote-worker onboarding
+and the complete hosted acceptance matrix remain separate checks. Dedicated
+[client](../../supabase-client-walkthrough.md) and
+[worker](../../supabase-worker-walkthrough.md) onboarding walkthroughs are available.
+
 ## Fresh local CLI and Python SDK acceptance
 
 On November 15, the local harness started new uniquely named Docker Supabase
