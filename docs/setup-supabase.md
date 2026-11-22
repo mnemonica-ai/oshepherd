@@ -207,6 +207,10 @@ take that over.
 
 ## Run in the background
 
+Workers write [lifecycle logs](supabase-worker-walkthrough.md#watch-worker-logs)
+beside their session file in both foreground and service mode. The file records
+job IDs, models, durations and outcomes without prompts, responses or credentials.
+
 After foreground setup works, stop it with Ctrl-C and install a per-user service.
 It starts at login and needs no root access. It uses launchd on macOS and systemd
 user units on Linux.

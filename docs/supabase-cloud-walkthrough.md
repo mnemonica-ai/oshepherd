@@ -100,6 +100,12 @@ The final message includes an endpoint like
 the worker and result cleanup. The selected model is used for verification;
 the worker advertises all compatible installed models.
 
+Worker job activity appears in this terminal and is saved in
+`.oshepherd/cloud/first-run/local.worker-session.log`. Follow it from another
+terminal with `tail -F .oshepherd/cloud/first-run/local.worker-session.log`.
+See [worker logs](supabase-worker-walkthrough.md#watch-worker-logs) for events,
+rotation and joined-worker log locations.
+
 For an existing project, choose its entry instead of option 0. The wizard still
 requires target confirmation and installs oshepherd's resources. This tests
 existing-project setup rather than automatic project creation.

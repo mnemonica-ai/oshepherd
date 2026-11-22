@@ -8,6 +8,7 @@ import json
 import logging
 import re
 import time
+from uuid import UUID
 
 import httpx
 import ollama
@@ -22,6 +23,33 @@ from oshepherd.worker.executor import IncompleteOutputError, OutputTooLargeError
 from .client import RpcError
 
 logger = logging.getLogger(__name__)
+
+LOG_ERROR_CODES = frozenset(
+    {
+        "stale_attempt",
+        "stale_session",
+        "worker_revoked",
+        "backend_unavailable",
+        "backend_error",
+        "protocol_mismatch",
+        "invalid_rpc_response",
+        "storage_unavailable",
+        "storage_not_configured",
+        "execution_expired",
+        "output_too_large",
+        "incomplete_upstream_output",
+        "upstream_unavailable",
+        "upstream_error",
+        "invalid_upstream_output",
+    }
+)
+
+
+def log_identifier(value):
+    try:
+        return str(UUID(str(value)))
+    except (ValueError, TypeError, AttributeError):
+        return "unknown"
 
 
 class SupabaseWorker:
@@ -63,6 +91,7 @@ class SupabaseWorker:
         self.systemone = systemone
         self.result_storage = result_storage
         self.cluster_id = None
+        self.worker_id = None
         self.session = None
         self.jobs = {}
         self.ready = asyncio.Event()
@@ -74,7 +103,17 @@ class SupabaseWorker:
             raise ValueError("configured_concurrency_exceeds_enrollment")
         self.session = {key: registered[key] for key in ("session_id", "generation")}
         self.cluster_id = registered["cluster_id"]
+        self.worker_id = registered.get("worker_id")
         await self.inventory()
+        logger.info(
+            json.dumps(
+                {
+                    "event": "worker_registered",
+                    "worker_id": log_identifier(self.worker_id),
+                    "capacity": self.concurrency,
+                }
+            )
+        )
         self.ready.set()
 
     async def inventory(self):
@@ -164,12 +203,70 @@ class SupabaseWorker:
                 continue
             if len(self.jobs) >= self.concurrency:
                 raise RpcError("protocol_mismatch")
+            self.log_job("job_claimed", claim)
             self.jobs[claim["job_id"]] = (
                 claim,
                 asyncio.create_task(self.execute(claim, response["server_now"])),
             )
 
+    def log_job(self, event, claim, *, elapsed=None, error_code=None):
+        # Only explicit metadata is logged, never payloads, output or exceptions.
+        request = claim.get("request", {})
+        if not isinstance(request, dict):
+            request = {}
+        operation = request.get("type")
+        payload = request.get("payload", {})
+        model = payload.get("model") if isinstance(payload, dict) else None
+        if not isinstance(model, str) or not re.fullmatch(
+            r"[A-Za-z0-9][A-Za-z0-9._:/@+\-]{0,255}", model
+        ):
+            model = "unknown"
+        data = {
+            "event": event,
+            "worker_id": log_identifier(self.worker_id),
+            "job_id": log_identifier(claim.get("job_id")),
+            "attempt_id": log_identifier(claim.get("attempt_id")),
+            "operation": (
+                operation
+                if operation in ("generate", "chat", "embed", "embeddings", "systemone")
+                else "unknown"
+            ),
+            "model": model,
+        }
+        if elapsed is not None:
+            data["duration_ms"] = round(elapsed * 1000)
+        if error_code is not None:
+            data["error_code"] = (
+                error_code if error_code in LOG_ERROR_CODES else "internal_error"
+            )
+        level = (
+            logging.WARNING
+            if event in ("attempt_failed", "attempt_abandoned", "attempt_unconfirmed")
+            else logging.INFO
+        )
+        logger.log(level, json.dumps(data, ensure_ascii=True))
+
     async def execute(self, claim, server_now):
+        started = time.monotonic()
+        self.log_job("job_started", claim)
+        event, error_code = "attempt_unconfirmed", None
+        try:
+            event, error_code = await self._execute(claim, server_now)
+        except asyncio.CancelledError:
+            event = "attempt_cancelled"
+            raise
+        except RpcError as error:
+            error_code = error.code
+            raise
+        except Exception:
+            error_code = "internal_error"
+            raise
+        finally:
+            self.log_job(
+                event, claim, elapsed=time.monotonic() - started, error_code=error_code
+            )
+
+    async def _execute(self, claim, server_now):
         fields = {
             **self.session,
             **{key: claim[key] for key in ("job_id", "attempt_id")},
@@ -252,7 +349,7 @@ class SupabaseWorker:
             raise
         except RpcError as error:
             if error.code in ("stale_attempt", "stale_session", "worker_revoked"):
-                return
+                return "attempt_abandoned", error.code
             # An ambiguous append/finish is left for SQL lease recovery. Never
             # classify it as an inference failure and accidentally execute again.
             if error.code in (
@@ -262,19 +359,22 @@ class SupabaseWorker:
                 "invalid_rpc_response",
             ):
                 raise
-            await self.fail(fields, error.code, error.code == "storage_unavailable")
+            return await self.fail(
+                fields, error.code, error.code == "storage_unavailable"
+            )
         except TimeoutError:
-            await self.fail(fields, "execution_expired", False)
+            return await self.fail(fields, "execution_expired", False)
         except OutputTooLargeError:
-            await self.fail(fields, "output_too_large", False)
+            return await self.fail(fields, "output_too_large", False)
         except IncompleteOutputError:
-            await self.fail(fields, "incomplete_upstream_output", True)
+            return await self.fail(fields, "incomplete_upstream_output", True)
         except httpx.TransportError:
-            await self.fail(fields, "upstream_unavailable", True)
+            return await self.fail(fields, "upstream_unavailable", True)
         except ollama.ResponseError as error:
-            await self.fail(fields, "upstream_error", error.status_code >= 500)
+            return await self.fail(fields, "upstream_error", error.status_code >= 500)
         except (ValueError, KeyError, TypeError):
-            await self.fail(fields, "invalid_upstream_output", False)
+            return await self.fail(fields, "invalid_upstream_output", False)
+        return "job_succeeded", None
 
     async def fail(self, fields, code, retryable):
         try:
@@ -289,6 +389,8 @@ class SupabaseWorker:
         except RpcError as error:
             if error.code not in ("stale_attempt", "stale_session", "worker_revoked"):
                 raise
+            return "attempt_abandoned", error.code
+        return "attempt_failed", code
 
     async def inventory_loop(self, stop):
         while not stop.is_set():

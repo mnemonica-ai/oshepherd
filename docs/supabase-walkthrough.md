@@ -216,6 +216,11 @@ Use `invite` and `join` in step 6 to add a worker that serves inference.
 
 ## 5. Inspect the database in Supabase Studio
 
+For local execution activity, watch the `share` terminal or run
+`tail -F .oshepherd/local/end-user/operator/local.worker-session.log` in another
+terminal. See [worker logs](supabase-worker-walkthrough.md#watch-worker-logs) for
+the events and file retention policy.
+
 Step 2 enables Studio and its Postgres metadata service by default. Open
 [Supabase Studio](http://127.0.0.1:56323) and select the `oshepherd` schema
 in **Table Editor**. Look at `jobs`, `workers`, `worker_models` or `chunks`.

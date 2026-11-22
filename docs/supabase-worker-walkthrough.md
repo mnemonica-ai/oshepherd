@@ -101,6 +101,48 @@ exact model name in the Python example. Keep `share` running on the operator
 machine for cleanup. A completed response for that unique model verifies the
 new worker's inference path.
 
+## Watch worker logs
+
+Workers now log registration, job claims, execution starts and outcomes to the
+terminal automatically. Each job event includes worker, job and attempt IDs, the
+operation and model. Outcome events also include elapsed milliseconds and, when
+applicable, a classified error code. Prompts, generated content, credentials and
+raw exception messages are excluded; idle polling does not produce an event.
+
+The same messages are saved beside the worker session file, replacing `.json`
+with `.log` (or appending `.log` for other session filenames). Startup prints the
+log path. For the examples in this guide:
+
+| Worker | Log file |
+| --- | --- |
+| Cloud `share`, default worker name `local` | `.oshepherd/cloud/first-run/local.worker-session.log` |
+| Remote `join` | `~/.local/state/oshepherd/second-worker/worker-session.log` |
+| Local Docker `share` | `.oshepherd/local/end-user/operator/local.worker-session.log` |
+| Second local `join` | `.oshepherd/local/second-local-worker/worker-session.log` |
+
+On the second machine, follow the joined worker's file in another terminal:
+
+```sh
+tail -F ~/.local/state/oshepherd/second-worker/worker-session.log
+```
+
+Files have mode `0600` and rotate at 5 MiB, keeping three backups (`.1` through
+`.3`). Restarts append to the current file. The file is also written by installed
+background workers even though their service manager discards console output.
+For `start-worker --backend supabase`, its location follows `WORKER_SESSION_FILE`.
+This is a bounded local history, not a permanent audit log.
+
+`job_succeeded` means Supabase acknowledged the result. `attempt_failed` means a
+failure was acknowledged; a retry may follow. `attempt_cancelled` describes local
+cancellation, and `attempt_abandoned` means the lease/session is stale or revoked.
+`attempt_unconfirmed` means execution ended without a confirmed outcome, such as
+a lost RPC response: inspect `oshepherd.jobs` for the authoritative state. Metadata
+requests served directly by the gateway do not create worker execution events.
+
+Restart an existing foreground worker with the updated checkout to enable these
+logs. For an installed service, update its candidate package following the
+[installation instructions](install.md), then restart the service.
+
 ## 5. Stop and restart the worker
 
 Press Ctrl-C in the second worker's terminal to stop serving. Leave Ollama running

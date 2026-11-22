@@ -8,10 +8,16 @@ from .sessions import WorkerAuth, WorkerSession
 from .worker import SupabaseWorker
 from .storage import WorkerResultStorage
 from .private_files import read_private_json
+from .worker_logging import worker_logging
 from oshepherd.worker.executor import OllamaExecutor
 
 
 async def start_worker(config, *, stop=None, ready=None):
+    with worker_logging(config.WORKER_SESSION_FILE, config.LOGLEVEL):
+        await _run_worker(config, stop=stop, ready=ready)
+
+
+async def _run_worker(config, *, stop=None, ready=None):
     key = config.SUPABASE_PUBLISHABLE_KEY.get_secret_value()
     session = WorkerSession.load(
         config.WORKER_SESSION_FILE, supabase_url=config.SUPABASE_URL
