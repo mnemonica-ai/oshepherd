@@ -1,13 +1,20 @@
 # oshepherd
 
 <p align="center">
-  <img src="assets/oshepherd_logo.png" alt="oshepherd" width="180">
+  <img src="assets/oshepherd_logo.png" alt="oshepherd" height="140" align="middle">
+  &nbsp;&nbsp;&nbsp;<b>+</b>&nbsp;&nbsp;&nbsp;
+  <a href="https://supabase.com">
+    <img src="https://supabase.com/brand-assets/supabase-icon-green-transparent.svg" alt="Supabase" height="110" align="middle">
+  </a>
 </p>
 
 <p align="center">
-  <a href="https://supabase.com">
-    <img src="https://supabase.com/brand-assets/supabase-icon-green-transparent.svg" alt="Supabase" width="80">
-  </a>
+  <a href="https://pypi.org/project/oshepherd/"><img src="https://img.shields.io/pypi/v/oshepherd" alt="PyPI version"></a>
+  <a href="https://deepwiki.com/mnemonica-ai/oshepherd"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki"></a>
+  <a href="https://socket.dev/pypi/package/oshepherd"><img src="https://badge.socket.dev/pypi/package/oshepherd" alt="Socket"></a>
+  <a href="https://github.com/mnemonica-ai/oshepherd/actions/workflows/contract-tests.yaml"><img src="https://github.com/mnemonica-ai/oshepherd/actions/workflows/contract-tests.yaml/badge.svg" alt="Contract tests"></a>
+  <a href="https://discord.gg/99xEZmZYt9"><img src="https://img.shields.io/badge/discord-join-5865F2?logo=discord&logoColor=white" alt="Discord"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license"></a>
 </p>
 
 Distributed inference for your Ollama servers, using **Supabase as the primary
@@ -33,26 +40,11 @@ candidate: `uv tool install --python 3.12 'oshepherd[supabase]==0.1.0rc1'`. See 
 references and development guides, and the [progress ledger](docs/plans/supabase/progress.md)
 for validation status.
 
-## Moving from Redis to Supabase
+## Architecture
 
-<p align="center">
-  <a href="https://redis.io">
-    <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/redis/redis-original-wordmark.svg" alt="Redis" height="64">
-  </a>
-  &nbsp;&nbsp;
-  <a href="https://docs.celeryq.dev">
-    <img src="https://raw.githubusercontent.com/celery/celery/main/docs/images/celery_512.png" alt="Celery" height="64">
-  </a>
-  &nbsp;&nbsp;
-  <a href="https://fastapi.tiangolo.com">
-    <img src="https://raw.githubusercontent.com/fastapi/fastapi/master/docs/en/docs/img/logo-teal.svg" alt="FastAPI" height="64">
-  </a>
-</p>
-
-The original architecture uses a FastAPI gateway, Celery and Redis. Supabase now
-provides the main development and onboarding path: Postgres coordinates durable
-jobs and worker leases, Auth gives each worker a restricted identity, Storage
-holds larger results, and an Edge Function exposes the inference API.
+Supabase is the broker. Postgres coordinates durable jobs and worker leases,
+Auth gives each worker a restricted identity, Storage holds larger results, and
+an Edge Function exposes the inference API to Ollama clients.
 
 ```mermaid
 flowchart LR
@@ -65,21 +57,78 @@ flowchart LR
     W --> A[Supabase Auth]
 ```
 
-Workers make outbound connections to Supabase. A hosted installation does not
-need an inbound port or tunnel to Ollama. The same SQL, Auth, Storage and Edge
-path can be tested first with local Supabase containers.
+1. A client sends an Ollama request to the Edge gateway with its application key.
+2. The gateway records a job in Postgres.
+3. A worker claims the job under a lease, runs it on its local Ollama, and writes
+   output back to Postgres, or to Storage when the result is large.
+4. The gateway returns the result, or streams it, to the client.
 
-| Area | Supabase primary workflow | Redis legacy workflow |
+Workers make only outbound connections to Supabase. A hosted installation does
+not need an inbound port or tunnel to Ollama. The same SQL, Auth, Storage and
+Edge path can be tested first with local Supabase containers.
+
+## Legacy implementation: Redis, Celery and FastAPI
+
+<p align="center">
+  <a href="https://redis.io">
+    <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/redis/redis-original-wordmark.svg" alt="Redis" height="64">
+  </a>
+  &nbsp;&nbsp;
+  <a href="https://docs.celeryq.dev">
+    <img src="https://raw.githubusercontent.com/celery/celery/main/docs/images/celery_512.png" alt="Celery" height="64">
+  </a>
+  &nbsp;&nbsp;
+  <a href="https://fastapi.tiangolo.com">
+    <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/fastapi/fastapi-original.svg" alt="FastAPI" height="64">
+  </a>
+</p>
+
+oshepherd's original architecture is self-hosted: a FastAPI server receives
+Ollama requests and queues them as Celery tasks in Redis, which is both the
+message broker and the result backend. Celery workers, one next to each Ollama
+server, take tasks from the queue and run them on their local models. You run and
+secure all three parts yourself.
+
+```mermaid
+flowchart LR
+    C[Ollama Python client] --> F[FastAPI gateway]
+    F <--> R[Redis broker and results]
+    W[Celery worker] <--> R
+    W --> O[Local Ollama]
+```
+
+| Area | Supabase (primary) | Redis, Celery and FastAPI (legacy) |
 | --- | --- | --- |
 | Start serving | `oshepherd share` / prepared local connection | `start-api` and `start-worker` |
 | Add workers | `invite`, then `join` with a private one-use invitation | Configure the worker's Redis connection |
 | Python client | Gateway URL plus application bearer key | FastAPI URL |
-| Run infrastructure | Supabase; Ollama stays local | FastAPI, Celery and Redis |
+| Run infrastructure | Supabase; Ollama stays local | Redis, Celery and FastAPI |
 | Guide | [Local](docs/supabase-walkthrough.md) / [Cloud](docs/supabase-cloud-walkthrough.md) | [Redis setup](docs/setup-redis.md) |
 
-Redis remains supported as a legacy option. Existing `start-api` and
-`start-worker` commands retain their Redis defaults; choosing Supabase does not
-migrate Redis jobs or switch an existing deployment automatically.
+The legacy stack remains supported. Existing `start-api` and `start-worker`
+commands retain their Redis defaults; choosing Supabase does not migrate Redis
+jobs or switch an existing deployment automatically.
+
+### Motivation
+
+oshepherd started as a way to give the kids at [CodePeques](https://codepeques.com/),
+a technology academy in Venezuela that teaches children programming, robotics and
+design, access to large language models. Hosted LLM APIs such as OpenAI, Anthropic
+and Gemini were not available in Venezuela because of US sanctions, and deploying
+a custom model in the cloud was too expensive. Instead, oshepherd pooled the
+machines already on hand, each running open-source models with Ollama, behind one
+API. That setup [served CodePeques classes and CodePeques Day in May 2024, with no
+orchestration or inference costs](https://speakerdeck.com/p1nox/beyond-the-cloud-on-premise-orchestration-for-open-source-llms?slide=7).
+
+### PyCon Austria 2025
+
+The legacy stack was presented at PyCon Austria 2025 in the talk
+["Beyond the Cloud: On-Premise Orchestration for Open-Source LLMs"](https://2025.pycon.at/talks/beyond-the-cloud-on-premise-orchestration-for-open-source-llms/).
+For a practical example of orchestrating on-premise open-source LLMs with
+oshepherd, see the companion material:
+
+- Repository: https://github.com/mnemonica-ai/on-premise-orchestration-os-llms
+- Deck: https://speakerdeck.com/p1nox/beyond-the-cloud-on-premise-orchestration-for-open-source-llms
 
 ## Try it locally
 
@@ -190,5 +239,5 @@ and [pull requests](https://github.com/mnemonica-ai/oshepherd/pulls).
 
 Developed by [mnemonica.ai](https://mnemonica.ai). [MIT license](LICENSE).
 Supabase's unmodified logo comes from its [official brand assets](https://supabase.com/brand).
-The Redis logo comes from [Devicon](https://github.com/devicons/devicon);
-the Celery and FastAPI logos come from their official project repositories.
+The Redis and FastAPI logos come from [Devicon](https://github.com/devicons/devicon);
+the Celery logo comes from its official project repository.
