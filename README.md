@@ -4,7 +4,7 @@
   <img src="assets/oshepherd_logo.png" alt="oshepherd" height="140" align="middle">
   &nbsp;&nbsp;&nbsp;<b>+</b>&nbsp;&nbsp;&nbsp;
   <a href="https://supabase.com">
-    <img src="https://supabase.com/brand-assets/supabase-icon-green-transparent.svg" alt="Supabase" height="110" align="middle">
+    <img src="assets/supabase_logo.svg" alt="Supabase" height="110" align="middle">
   </a>
 </p>
 
@@ -24,15 +24,17 @@ your machines; prompts, jobs and results pass through Supabase.
 
 **Choose a walkthrough:**
 
-| Example | Where Supabase runs | Guide |
-| --- | --- | --- |
-| Fully local | Docker containers on your machine, including Studio | [Local walkthrough](docs/supabase-walkthrough.md) |
-| Supabase Cloud | Hosted project created by `oshepherd share`; Ollama stays on your machine | [Cloud walkthrough](docs/supabase-cloud-walkthrough.md) |
+| Example | Where Supabase runs | Needs | Guide |
+| --- | --- | --- | --- |
+| Fully local | Docker containers on your machine, including Studio | Python 3.12, uv, Docker, Supabase CLI **2.116.0**, `psql`, Ollama | [Local walkthrough](docs/supabase-walkthrough.md) |
+| Supabase Cloud | Hosted project created by `oshepherd share`; Ollama stays on your machine | Python 3.12, uv, a Supabase account, Ollama | [Cloud walkthrough](docs/supabase-cloud-walkthrough.md) |
 
 Both examples cover setup, Python requests, database inspection and restart.
 Once an installation is running, follow the [worker onboarding walkthrough](docs/supabase-worker-walkthrough.md)
-to add an Ollama server, or the [client onboarding walkthrough](docs/supabase-client-walkthrough.md)
-to give a script its own credentials.
+to add an Ollama server and [watch its logs](docs/supabase-worker-walkthrough.md#watch-worker-logs),
+the [client onboarding walkthrough](docs/supabase-client-walkthrough.md)
+to give a script its own credentials, or the [operations guide](docs/setup-supabase.md)
+to run in the background, restart or disable an installation.
 
 Supabase support is experimental and published as the `0.1.0rc1` release
 candidate: `uv tool install --python 3.12 'oshepherd[supabase]==0.1.0rc1'`. See the
@@ -71,15 +73,15 @@ Edge path can be tested first with local Supabase containers.
 
 <p align="center">
   <a href="https://redis.io">
-    <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/redis/redis-original-wordmark.svg" alt="Redis" height="64">
+    <img src="assets/redis_logo.svg" alt="Redis" height="64">
   </a>
   &nbsp;&nbsp;
   <a href="https://docs.celeryq.dev">
-    <img src="https://raw.githubusercontent.com/celery/celery/main/docs/images/celery_512.png" alt="Celery" height="64">
+    <img src="assets/celery_logo.png" alt="Celery" height="64">
   </a>
   &nbsp;&nbsp;
   <a href="https://fastapi.tiangolo.com">
-    <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/fastapi/fastapi-original.svg" alt="FastAPI" height="64">
+    <img src="assets/fastapi_logo.svg" alt="FastAPI" height="64">
   </a>
 </p>
 
@@ -129,20 +131,6 @@ oshepherd, see the companion material:
 
 - Repository: https://github.com/mnemonica-ai/on-premise-orchestration-os-llms
 - Deck: https://speakerdeck.com/p1nox/beyond-the-cloud-on-premise-orchestration-for-open-source-llms
-
-## Try it locally
-
-Follow the [local walkthrough](docs/supabase-walkthrough.md) for Docker setup,
-Studio, persistent state and Python requests. It needs Python 3.12, uv, Docker,
-Supabase CLI **2.116.0**, `psql` and Ollama. For a hosted database, use the
-[cloud walkthrough](docs/supabase-cloud-walkthrough.md); it needs no local
-Supabase containers, Supabase CLI or `psql`.
-
-After setup, add [workers](docs/supabase-worker-walkthrough.md) or
-[clients](docs/supabase-client-walkthrough.md), and inspect
-[worker logs](docs/supabase-worker-walkthrough.md#watch-worker-logs).
-Developers can run the separate [disposable acceptance workflow](docs/setup-supabase-local.md),
-which removes its own test database when it finishes.
 
 ## Use the Ollama Python package
 
@@ -226,7 +214,9 @@ uv build
 Keep SQL migrations immutable. Refresh the release manifest after source changes
 before running release-integrity tests. `uv.lock` records dependency versions;
 `requirements/runtime.txt` is the locked runtime export used for clean candidate
-verification. [Installation](docs/install.md) covers local wheel testing.
+verification. [Installation](docs/install.md) covers local wheel testing. The
+[disposable acceptance workflow](docs/setup-supabase-local.md) tests a fresh stack
+and removes its own test database when it finishes.
 
 The [local integration runbook](docs/plans/supabase/experiments/local-edge-lifecycle.md)
 covers the isolated development stack and its strict disconnect test. The

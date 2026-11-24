@@ -18,7 +18,7 @@ to install it from PyPI.
 
 ## 1. Prepare the checkout and models
 
-Use this branch with Python 3.12, [uv](https://docs.astral.sh/uv/), Docker running,
+Use a checkout of this repository with Python 3.12, [uv](https://docs.astral.sh/uv/), Docker running,
 Supabase CLI **2.116.0**, PostgreSQL's `psql` on your PATH, and Ollama installed.
 From the repository root:
 

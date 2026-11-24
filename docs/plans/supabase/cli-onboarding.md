@@ -137,9 +137,9 @@ or external `psql`. Dedicated user services support foreground-verified
 share and joined-worker state on macOS/Linux.
 
 The [distribution workflow](experiments/distribution.md) builds and verifies
-`0.0.25a1` artifacts and gates explicit experimental publication on prerelease
-versions, exact hashes and the protected PyPI environment. The candidate is not
-published. Service-manager operation has local evidence on macOS and containerized
+candidate artifacts and gates explicit experimental publication on prerelease
+versions, exact hashes and the protected PyPI environment. `0.1.0rc1` is
+published to PyPI as an experimental release candidate. Service-manager operation has local evidence on macOS and containerized
 Linux systemd. Fresh hosted creation and clean-machine published-package acceptance
 still require their own evidence; validation is recorded in the ledger. Hosted
 cancellation remains unqualified.

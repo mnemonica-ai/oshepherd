@@ -66,7 +66,7 @@ as completion of the full matrix.
 The [remaining plan](next-steps.md) covers Edge CPU limits and cancellation,
 physical second-machine validation, hosted lifecycle coverage and resource/cost
 measurements. Public distribution and hosted browser authentication are later
-work. Test locally built wheels using [candidate installation](../../install.md#install-the-0025a1-candidate).
+work. Test locally built wheels using [candidate installation](../../install.md#install-the-010rc1-candidate).
 
 ## Protocol contracts to preserve and audit
 
