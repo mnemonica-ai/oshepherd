@@ -1,0 +1,24 @@
+{% include site_style.html %}
+<script>
+  /* Keep source-only links useful without publishing the repository's internals. */
+  document.addEventListener("DOMContentLoaded", function () {
+    const base = {{ '/' | relative_url | jsonify }};
+    const repository = "https://github.com/mnemonica-ai/oshepherd/";
+    const directories = ["tests/contracts", "oshepherd/backends/supabase/release/migrations"];
+
+    document.querySelectorAll("a[href]").forEach(function (link) {
+      const href = link.getAttribute("href");
+      if (!href || href.startsWith("#")) return;
+
+      let target;
+      try { target = new URL(href, location.href); } catch (_) { return; }
+      if (target.origin !== location.origin || !target.pathname.startsWith(base)) return;
+
+      const path = target.pathname.slice(base.length);
+      if (!path || path === "index.html" || /^docs\/(?:[^/]+\.html)?$/.test(path) || path.startsWith("assets/")) return;
+
+      const kind = path.endsWith("/") || directories.includes(path) ? "tree" : "blob";
+      link.href = repository + kind + "/main/" + path + target.search + target.hash;
+    });
+  });
+</script>

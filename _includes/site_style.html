@@ -1,0 +1,195 @@
+<style>
+  /* A quiet, readable surface, inspired by ollama.com. Theme behavior stays native. */
+  :root {
+    --shepherd-ink: #171717;
+    --shepherd-muted: #595959;
+    --shepherd-border: #e5e5e5;
+    --shepherd-soft: #f7f7f7;
+  }
+
+  html { scroll-padding-top: 2rem; }
+  body {
+    background: #fff;
+    color: var(--shepherd-ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: var(--shepherd-ink); }
+  a:hover { color: #000; }
+  a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visible {
+    outline: 2px solid #171717;
+    outline-offset: 4px;
+  }
+  .side-bar, .main-header, .site-header { background: #fff; border-color: var(--shepherd-border); }
+  .site-title {
+    gap: .55rem;
+    font-size: 1.3rem !important;
+    font-weight: 650;
+    letter-spacing: -.045em;
+  }
+  .site-title::before {
+    content: "";
+    flex: 0 0 2rem;
+    width: 2rem;
+    height: 2rem;
+    background: url("{{ '/assets/oshepherd_logo.png' | relative_url }}") center / contain no-repeat;
+  }
+  .site-title:hover, .site-button:hover { background: var(--shepherd-soft); }
+  .site-button, .icon, .nav-list .nav-list-item .nav-list-expander { color: var(--shepherd-ink); }
+  .site-nav { padding-bottom: 2rem; }
+  .nav-list .nav-list-item .nav-list-link {
+    margin: .15rem .75rem;
+    padding: .55rem .75rem;
+    border-radius: .5rem;
+    color: var(--shepherd-muted);
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+  .nav-list .nav-list-item .nav-list-link:hover,
+  .nav-list .nav-list-item .nav-list-link.active {
+    color: var(--shepherd-ink);
+    background: var(--shepherd-soft);
+    background-image: none;
+  }
+  .nav-list .nav-list-item .nav-list-link.active { font-weight: 600; }
+  .site-footer { color: var(--shepherd-muted); }
+  .aux-nav .aux-nav-list-item { font-size: .875rem; }
+  .aux-nav .site-button { min-height: 44px; }
+  .aux-nav .site-button[href="https://github.com/mnemonica-ai/oshepherd"] { gap: .45rem; }
+  .aux-nav .site-button[href="https://github.com/mnemonica-ai/oshepherd"]::before {
+    content: "";
+    flex: 0 0 1rem;
+    width: 1rem;
+    height: 1rem;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23171717'%3E%3Cpath d='M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.65 7.65 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z'/%3E%3C/svg%3E") center / contain no-repeat;
+  }
+  .search-input { color: var(--shepherd-ink); font-size: .95rem; }
+  .search-input::placeholder { color: var(--shepherd-muted); opacity: 1; }
+  .search-label .search-icon { color: var(--shepherd-muted); }
+  .search-input:focus + .search-label .search-icon { color: var(--shepherd-ink); }
+  .search-results { border-color: var(--shepherd-border); background: #fff; }
+  .search-result:hover, .search-result.active { background: var(--shepherd-soft); }
+  .search-result-title, .search-result-rel-url { color: var(--shepherd-ink); }
+
+  .main-content { color: var(--shepherd-ink); }
+  .main-content h1, .main-content h2, .main-content h3,
+  .main-content h4, .main-content h5, .main-content h6 {
+    color: var(--shepherd-ink);
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -.035em;
+  }
+  /* The theme's heading size mixins use !important at every breakpoint. */
+  .main-content h1 { margin-bottom: 1.6rem; font-size: clamp(2rem, 4vw, 2.8rem) !important; }
+  .main-content h2 { margin-top: 3.5rem; font-size: 1.65rem !important; }
+  .main-content h3 { margin-top: 2.5rem; font-size: 1.2rem !important; }
+  .main-content p, .main-content ol, .main-content ul { margin-bottom: 1.25rem; }
+  .main-content a:not(.anchor-heading) {
+    text-decoration: underline;
+    text-decoration-color: #b5b5b5;
+    text-underline-offset: .2em;
+  }
+  .main-content a:not(.anchor-heading):hover { text-decoration-color: #171717; }
+  .main-content .anchor-heading, .main-content .anchor-heading svg { color: #737373; }
+  .main-content code { border-color: var(--shepherd-border); background: var(--shepherd-soft); border-radius: .25rem; }
+  .main-content pre {
+    padding: 1.25rem;
+    border: 1px solid var(--shepherd-border);
+    border-radius: .65rem;
+    background: var(--shepherd-soft);
+  }
+  .main-content pre code { padding: 0; border: 0; background: transparent; }
+  .main-content blockquote { border-color: #c9c9c9; color: var(--shepherd-muted); }
+  .main-content hr, .main-content footer { border-color: var(--shepherd-border); }
+  .main-content .table-wrapper {
+    margin: 1.75rem 0;
+    border: 1px solid var(--shepherd-border);
+    border-radius: .65rem;
+    box-shadow: none;
+  }
+  .main-content table { border-collapse: collapse; margin: 0; }
+  .main-content th, .main-content td {
+    padding: .9rem 1rem;
+    border-color: var(--shepherd-border);
+    background: #fff;
+    font-size: .9rem;
+    line-height: 1.6;
+  }
+  .main-content th { background: var(--shepherd-soft); font-weight: 600; }
+  .main-content .mermaid { margin: 2rem 0; overflow-x: auto; }
+  .main-content .mermaid svg { max-width: 100%; height: auto; }
+
+  @media (min-width: 50rem) {
+    .main { max-width: 58rem; }
+    .main-content-wrap { padding: 3rem 3rem 4rem; }
+    .main-header { padding-right: 1rem; }
+  }
+  @media (min-width: 66.5rem) {
+    .side-bar { width: max(16.5rem, calc((100% - 74.5rem) / 2 + 16.5rem)); min-width: 16.5rem; }
+    .side-bar + .main { margin-left: max(16.5rem, calc((100% - 74.5rem) / 2 + 16.5rem)); }
+    .site-nav, .site-header, .site-footer { width: 16.5rem; }
+  }
+  @media (max-width: 49.999rem) {
+    .main-content-wrap { padding: 2rem 1.25rem 3rem; }
+    .main-content h2 { margin-top: 2.75rem; }
+    .site-button { min-width: 44px; min-height: 44px; }
+    .main-content pre { padding: 1rem; }
+  }
+
+  {% if page.url == '/' or page.url == '/index.html' %}
+  /* Style the homepage's existing README markup without replacing its content. */
+  .main-content main > h1:first-child {
+    margin: 1rem 0 1.75rem;
+    font-size: clamp(3rem, 7vw, 4.5rem) !important;
+    font-weight: 650;
+    letter-spacing: -.06em;
+    text-align: center;
+  }
+  .main-content main > p[align="center"]:first-of-type { margin: 0 0 1.75rem; }
+  .main-content main > p[align="center"]:first-of-type img { max-width: 36%; height: auto; max-height: 100px; vertical-align: middle; }
+  .main-content main > p[align="center"]:nth-of-type(2) {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: .45rem;
+    margin-bottom: 2rem;
+  }
+  .main-content main > p:nth-of-type(3) {
+    max-width: 42rem;
+    margin: 0 auto 2.5rem;
+    color: #404040;
+    font-size: 1.2rem;
+    line-height: 1.7;
+    text-align: center;
+    letter-spacing: -.015em;
+  }
+  .main-content #legacy-implementation-redis-celery-and-fastapi + p[align="center"] img {
+    width: auto;
+    height: 64px;
+    max-width: 100%;
+    object-fit: contain;
+    vertical-align: middle;
+  }
+  .main-content main > .table-wrapper:first-of-type td:last-child a {
+    display: inline-block;
+    min-width: 8.5rem;
+    padding: .55rem .8rem;
+    border: 1px solid #171717;
+    border-radius: .5rem;
+    background: #171717;
+    color: #fff;
+    font-weight: 500;
+    text-align: center;
+    text-decoration: none;
+  }
+  .main-content main > .table-wrapper:first-of-type td:last-child a:hover { background: #383838; }
+  @media (max-width: 49.999rem) {
+    .main-content main > h1:first-child { margin-top: .5rem; }
+    .main-content main > p:nth-of-type(3) { font-size: 1.1rem; text-align: left; }
+  }
+  {% endif %}
+</style>

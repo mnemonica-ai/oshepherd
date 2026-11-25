@@ -1,0 +1,103 @@
+title: oshepherd
+description: Run Ollama inference across your workers with Redis or Supabase.
+url: https://mnemonica-ai.github.io
+baseurl: /oshepherd
+repository: mnemonica-ai/oshepherd
+
+remote_theme: just-the-docs/just-the-docs@v0.12.0
+plugins:
+  - jekyll-remote-theme
+
+relative_links:
+  enabled: true
+  collections: false
+
+readme_index:
+  remove_originals: true
+optional_front_matter:
+  remove_originals: true
+
+mermaid:
+  version: "12.3.0"
+
+color_scheme: light
+search_enabled: true
+aux_links:
+  GitHub:
+    - https://github.com/mnemonica-ai/oshepherd
+
+defaults:
+  - scope:
+      path: ""
+      type: pages
+    values:
+      layout: default
+  - scope:
+      path: README.md
+    values:
+      title: oshepherd
+      nav_order: 1
+  - scope:
+      path: docs/README.md
+    values:
+      title: Guides
+      nav_order: 2
+  - scope:
+      path: docs/install.md
+    values:
+      nav_order: 3
+  - scope:
+      path: docs/supabase-walkthrough.md
+    values:
+      nav_order: 4
+  - scope:
+      path: docs/supabase-cloud-walkthrough.md
+    values:
+      nav_order: 5
+  - scope:
+      path: docs/supabase-worker-walkthrough.md
+    values:
+      nav_order: 6
+  - scope:
+      path: docs/supabase-client-walkthrough.md
+    values:
+      nav_order: 7
+  - scope:
+      path: docs/setup-supabase.md
+    values:
+      nav_order: 8
+  - scope:
+      path: docs/setup-redis.md
+    values:
+      nav_order: 9
+  - scope:
+      path: docs/setup-supabase-local.md
+    values:
+      nav_order: 10
+
+# Publish README.md, docs/*.md, assets/*, and the Jekyll machinery only.
+# The contract guard requires exclusions for new files outside that allowlist.
+exclude:
+  - .api.env.template
+  - .claude
+  - .codex
+  - .github
+  - .gitignore
+  - .mcp.json
+  - .python-version
+  - .worker.env.template
+  - AGENTS.md
+  - LICENSE
+  - MANIFEST.in
+  - docs/plans
+  - examples
+  - oshepherd
+  - protocol
+  - pyproject.toml
+  - requirements
+  - requirements.txt
+  - scripts
+  - setup.py
+  - supabase
+  - tests
+  - uv.lock
