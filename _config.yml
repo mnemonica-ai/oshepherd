@@ -89,6 +89,7 @@ exclude:
   - AGENTS.md
   - LICENSE
   - MANIFEST.in
+  - docs/internal
   - docs/plans
   - examples
   - oshepherd
